@@ -262,12 +262,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const submitBooking = (bookingData: Omit<BookingRequest, 'id' | 'createdAt' | 'status'>): BookingRequest => {
     const newBooking: BookingRequest = {
       ...bookingData,
-      id: `bk-${Date.now().toString().slice(-4)}`,
+      id: `bk-${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
       status: 'Pending Approval'
     };
 
     setBookings(prev => [newBooking, ...prev]);
+
+    // Send to live GoDaddy PHP MySQL backend asynchronously
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveBooking(bookingData).catch(err => {
+        console.warn('GoDaddy MySQL API submission fallback:', err);
+      });
+    });
 
     // Also register pending user record if not exists
     const existingUser = users.find(u => u.email.toLowerCase() === bookingData.clientEmail.toLowerCase());
