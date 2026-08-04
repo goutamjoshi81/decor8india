@@ -56,7 +56,12 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
   };
 
   // Strict Security Rule: Client can only view THEIR OWN project
-  const clientProject = projects.find(p => p.clientId === currentUser?.id || p.id === currentUser?.projectId) || projects[2];
+  const clientProject = projects.find(p => 
+    (currentUser?.email && p.clientEmail && p.clientEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+    (currentUser?.email && p.clientId && p.clientId.toLowerCase() === currentUser.email.toLowerCase()) ||
+    (currentUser?.id && p.clientId === currentUser.id) ||
+    (currentUser?.projectId && p.id === currentUser.projectId)
+  ) || projects[0];
 
   if (!currentUser || currentUser.role !== 'CLIENT') {
     return (

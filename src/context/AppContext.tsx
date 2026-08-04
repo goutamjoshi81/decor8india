@@ -234,6 +234,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   }, []);
 
+  // Re-fetch live DB projects whenever currentUser logs in or changes
+  useEffect(() => {
+    if (currentUser) {
+      import('../services/apiService').then(({ apiService }) => {
+        apiService.getProjects(currentUser.role === 'CLIENT' ? currentUser.email : undefined).then(res => {
+          if (res.success && res.projects && Array.isArray(res.projects) && res.projects.length > 0) {
+            setProjects(prev => {
+              const dbIds = new Set(res.projects!.map((p: any) => p.id));
+              const localOnly = prev.filter(p => !dbIds.has(p.id));
+              return [...res.projects as any, ...localOnly];
+            });
+          }
+        }).catch(err => {
+          console.warn('Could not fetch user projects from DB:', err);
+        });
+      });
+    }
+  }, [currentUser]);
+
   useEffect(() => {
     try {
       localStorage.setItem('decor8_users', JSON.stringify(users));
