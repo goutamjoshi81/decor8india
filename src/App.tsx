@@ -5,9 +5,9 @@ import { Hero } from './components/Hero';
 import { AboutUs } from './components/AboutUs';
 import { ServicesSection } from './components/ServicesSection';
 import { CostEstimator } from './components/CostEstimator';
+import { PartnersSection } from './components/PartnersSection';
 import { PortfolioGallery } from './components/PortfolioGallery';
 import { OngoingProjects } from './components/OngoingProjects';
-import { PartnersSection } from './components/PartnersSection';
 import { MagazineSection } from './components/MagazineSection';
 import { InstagramSection } from './components/InstagramSection';
 import { Testimonials } from './components/Testimonials';
@@ -48,10 +48,10 @@ const MainAppContent: React.FC = () => {
           <Hero />
           <AboutUs />
           <ServicesSection />
+          <PartnersSection />
           <CostEstimator />
           <PortfolioGallery />
           <OngoingProjects />
-          <PartnersSection />
           <MagazineSection />
           <InstagramSection />
           <Testimonials />
