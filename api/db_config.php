@@ -1,11 +1,10 @@
 <?php
 // Decor8 India - GoDaddy MySQL Database Configuration
-// IMPORTANT: Update DB_USER, DB_PASS, DB_NAME below with your exact GoDaddy cPanel MySQL details!
 
 define('DB_HOST', 'localhost');
-define('DB_USER', 'decor8_user');
-define('DB_PASS', 'Decor8#India2026'); // Replace with your GoDaddy MySQL Password
-define('DB_NAME', 'decor8_db');     // Replace with your GoDaddy MySQL Database Name
+define('DB_USER', 'decor8india'); 
+define('DB_PASS', 'decor8india2018'); 
+define('DB_NAME', 'decor8_db'); 
 
 // Enable CORS for frontend React requests
 header("Access-Control-Allow-Origin: *");
@@ -31,7 +30,7 @@ function getDbConnection() {
         http_response_code(500);
         echo json_encode([
             "success" => false,
-            "message" => "Database connection error. Please verify DB_USER, DB_PASS, DB_NAME in public_html/api/db_config.php on GoDaddy.",
+            "message" => "Database connection error. Please verify GoDaddy MySQL permissions.",
             "error" => $e->getMessage()
         ]);
         exit();
