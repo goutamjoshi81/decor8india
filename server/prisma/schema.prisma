@@ -1,0 +1,179 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+  GUEST
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+}
+
+enum ProjectStatus {
+  ONGOING
+  COMPLETED
+}
+
+enum ServiceType {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String
+  name         String
+  phone        String?
+  role         Role      @default(CLIENT)
+  isApproved   Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  bookings     Booking[]
+  projects     Project[] @relation("ClientProjects")
+  messages     Message[]
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  userId        String?
+  user          User?         @relation(fields: [userId], references: [id])
+  clientName    String
+  clientEmail   String
+  clientPhone   String
+  serviceType   ServiceType
+  packageName   String
+  carpetArea    Int?
+  budgetRange   String?
+  preferredDate String?
+  floorPlanUrl  String?
+  requirements  String?       @db.Text
+  estimatedCost Float?
+  status        BookingStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+}
+
+model Project {
+  id                 String        @id @default(uuid())
+  title              String
+  clientId           String
+  client             User          @relation("ClientProjects", fields: [clientId], references: [id])
+  designerName       String
+  category           ServiceType
+  style              String
+  coverImage         String
+  location           String
+  area               String
+  budget             String
+  completionTime     String
+  status             ProjectStatus @default(ONGOING)
+  progressPercentage Int           @default(0)
+  currentStage       String
+  expectedCompletion String
+  description        String        @db.Text
+  createdAt          DateTime      @default(now())
+
+  milestones         Milestone[]
+  workUpdates        WorkUpdate[]
+  documents          Document[]
+  payments           Payment[]
+  messages           Message[]
+}
+
+model Milestone {
+  id                 String   @id @default(uuid())
+  projectId          String
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  stage              String
+  progressPercentage Int
+  status             String
+  targetDate         String
+  completedDate      String?
+}
+
+model WorkUpdate {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date        String
+  title       String
+  description String   @db.Text
+  mediaUrls   Json
+  mediaType   String
+  stage       String
+  createdAt   DateTime @default(now())
+}
+
+model Document {
+  id         String   @id @default(uuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title      String
+  category   String
+  fileUrl    String
+  fileSize   String
+  uploadDate String
+}
+
+model Payment {
+  id         String   @id @default(uuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title      String
+  amount     Float
+  paidAmount Float    @default(0)
+  dueDate    String
+  status     String
+  paidDate   String?
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id])
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model Service {
+  id                String      @id @default(uuid())
+  title             String
+  type              ServiceType
+  description       String      @db.Text
+  features          Json
+  estimatedDuration String
+  startingPrice     Float
+  image             String
+  iconName          String
+  isActive          Boolean     @default(true)
+}
+
+model Article {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  excerpt     String   @db.Text
+  content     String   @db.Text
+  category    String
+  coverImage  String
+  authorName  String
+  publishedAt String
+  readTime    String
+  featured    Boolean  @default(false)
+  status      String   @default("Published")
+}
