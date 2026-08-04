@@ -103,5 +103,21 @@ export const apiService = {
       console.warn('Backend API getBookings error:', error);
       return { success: false, message: 'Server connection error.' };
     }
+  },
+
+  // Change Password Endpoint (Updates password_hash in 'users' table)
+  async changePassword(userId: string, email: string, newPassword: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/change_password.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, email, newPassword })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API changePassword error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
   }
 };

@@ -290,6 +290,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (currentUser?.id === userId) {
       setCurrentUser(prev => prev ? { ...prev, password: newPassword, mustChangePassword: false } : null);
     }
+
+    const targetEmail = currentUser?.email || users.find(u => u.id === userId)?.email || '';
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.changePassword(userId, targetEmail, newPassword).catch(err => {
+        console.warn('Could not sync password update to live MySQL DB:', err);
+      });
+    });
+
     return true;
   };
 

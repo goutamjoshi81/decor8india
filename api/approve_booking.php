@@ -28,14 +28,20 @@ try {
     $updateStmt = $pdo->prepare("UPDATE bookings SET status = 'Approved' WHERE id = ?");
     $updateStmt->execute([$bookingId]);
 
-    // 3. Create or Update client user account with default password (phone number)
+    // 3. Create or Update client user account in 'users' table
     $userId = 'usr-' . time();
     $clientPhone = !empty($booking['client_phone']) ? preg_replace('/[^0-9]/', '', $booking['client_phone']) : '9876543210';
     $defaultPasswordHash = password_hash($clientPhone, PASSWORD_BCRYPT);
 
     $userStmt = $pdo->prepare("INSERT INTO users (id, name, email, phone, role, password_hash, is_approved, must_change_password) 
                                VALUES (?, ?, ?, ?, 'CLIENT', ?, 1, 1) 
-                               ON DUPLICATE KEY UPDATE is_approved = 1");
+                               ON DUPLICATE KEY UPDATE 
+                                 name = VALUES(name),
+                                 phone = VALUES(phone),
+                                 role = 'CLIENT',
+                                 password_hash = VALUES(password_hash),
+                                 is_approved = 1,
+                                 must_change_password = 1");
     $userStmt->execute([
         $userId,
         $booking['client_name'],
@@ -44,10 +50,10 @@ try {
         $defaultPasswordHash
     ]);
 
-    // 4. Create Project for Client
+    // 4. Create Project for Client if not exists
     $projectId = 'prj-' . time();
     $projectTitle = $booking['package_name'] . ' - ' . $booking['client_name'];
-    $projStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, service_type, estimated_cost, total_paid, progress_percentage, status) VALUES (?, ?, ?, ?, ?, 0, 10, 'In Progress')");
+    $projStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, service_type, estimated_cost, total_paid, progress_percentage, status) VALUES (?, ?, ?, ?, ?, 0, 10, 'In Progress') ON DUPLICATE KEY UPDATE status = 'In Progress'");
     $projStmt->execute([
         $projectId,
         $projectTitle,
@@ -60,9 +66,10 @@ try {
 
     echo json_encode([
         "success" => true,
-        "message" => "Booking approved successfully! Client transferred to users table and project initiated.",
+        "message" => "Client approved successfully! Added to users table. Default password set to phone number: $clientPhone.",
         "bookingId" => $bookingId,
-        "defaultPassword" => $clientPhone
+        "defaultPassword" => $clientPhone,
+        "clientEmail" => $booking['client_email']
     ]);
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
