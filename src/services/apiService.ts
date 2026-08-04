@@ -83,6 +83,21 @@ export const apiService = {
     try {
       const response = await fetch(`${API_BASE_URL}/get_bookings.php`);
       const data = await response.json();
+      if (data.success && Array.isArray(data.bookings)) {
+        data.bookings = data.bookings.map((b: any) => ({
+          ...b,
+          clientName: b.clientName || b.client_name || 'Client',
+          clientEmail: b.clientEmail || b.client_email || 'No email',
+          clientPhone: b.clientPhone || b.client_phone || 'No phone',
+          serviceType: b.serviceType || b.service_type || 'Residential',
+          packageName: b.packageName || b.package_name || 'Consultation Request',
+          preferredDate: b.preferredDate || b.preferred_date || '',
+          floorPlanUrl: b.floorPlanUrl || b.floor_plan_url || undefined,
+          estimatedCost: parseFloat(b.estimatedCost || b.estimated_cost || 0),
+          isEmiRequested: Boolean(b.isEmiRequested || b.is_emi_requested),
+          createdAt: b.createdAt || b.created_at || new Date().toISOString()
+        }));
+      }
       return data;
     } catch (error) {
       console.warn('Backend API getBookings error:', error);
