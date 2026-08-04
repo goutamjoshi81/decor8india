@@ -17,9 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
 
     if (in_array($fileType, $allowedTypes)) {
         if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
-            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
             $domain = $_SERVER['HTTP_HOST'];
-            $fileUrl = "$protocol://$domain/uploads/$fileName";
+            $fileUrl = "https://$domain/uploads/$fileName";
 
             echo json_encode([
                 "success" => true,

@@ -218,39 +218,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     syncToServer('services', services);
   }, [services]);
 
-  // ======== FETCH ALL DATA FROM GODADDY MYSQL ON MOUNT ========
+  // ======== FETCH ALL DATA FROM GODADDY MYSQL ON MOUNT & AUTO-POLL ========
   useEffect(() => {
-    import('../services/apiService').then(({ apiService }) => {
-      // Fetch bookings from DB
-      apiService.getBookings().then(res => {
-        if (res.success && res.bookings && Array.isArray(res.bookings) && res.bookings.length > 0) {
-          setBookings(prev => {
-            const dbIds = new Set(res.bookings!.map((b: any) => b.id));
-            const localOnly = prev.filter(b => !dbIds.has(b.id));
-            return [...res.bookings as any, ...localOnly];
-          });
-        }
-      }).catch(err => console.warn('Could not fetch bookings:', err));
+    const sanitizeUrls = (projList: Project[]): Project[] => {
+      return projList.map(p => ({
+        ...p,
+        coverImage: p.coverImage?.replace(/^http:\/\//i, 'https://'),
+        workUpdates: (p.workUpdates || []).map(u => ({
+          ...u,
+          mediaUrls: (u.mediaUrls || []).map(url => url.replace(/^http:\/\//i, 'https://'))
+        })),
+        documents: (p.documents || []).map(d => ({
+          ...d,
+          fileUrl: d.fileUrl?.replace(/^http:\/\//i, 'https://')
+        }))
+      }));
+    };
 
-      // Fetch ALL data from cms_data table (THE SINGLE SOURCE OF TRUTH)
-      // This includes projects, services, articles, team_members — all with full data
-      apiService.getCmsData().then(res => {
-        if (res.success && res.data) {
-          if (Array.isArray(res.data.projects) && res.data.projects.length > 0) {
-            setProjects(res.data.projects);
+    const fetchAllCmsData = () => {
+      import('../services/apiService').then(({ apiService }) => {
+        // Fetch bookings from DB
+        apiService.getBookings().then(res => {
+          if (res.success && res.bookings && Array.isArray(res.bookings) && res.bookings.length > 0) {
+            setBookings(prev => {
+              const dbIds = new Set(res.bookings!.map((b: any) => b.id));
+              const localOnly = prev.filter(b => !dbIds.has(b.id));
+              return [...res.bookings as any, ...localOnly];
+            });
           }
-          if (Array.isArray(res.data.services) && res.data.services.length > 0) {
-            setServices(res.data.services);
+        }).catch(err => console.warn('Could not fetch bookings:', err));
+
+        // Fetch ALL data from cms_data table (THE SINGLE SOURCE OF TRUTH)
+        apiService.getCmsData().then(res => {
+          if (res.success && res.data) {
+            if (Array.isArray(res.data.projects) && res.data.projects.length > 0) {
+              setProjects(sanitizeUrls(res.data.projects));
+            }
+            if (Array.isArray(res.data.services) && res.data.services.length > 0) {
+              setServices(res.data.services);
+            }
+            if (Array.isArray(res.data.articles) && res.data.articles.length > 0) {
+              setArticles(res.data.articles);
+            }
+            if (Array.isArray(res.data.team_members) && res.data.team_members.length > 0) {
+              setTeamMembers(res.data.team_members);
+            }
           }
-          if (Array.isArray(res.data.articles) && res.data.articles.length > 0) {
-            setArticles(res.data.articles);
-          }
-          if (Array.isArray(res.data.team_members) && res.data.team_members.length > 0) {
-            setTeamMembers(res.data.team_members);
-          }
-        }
-      }).catch(err => console.warn('Could not fetch CMS data:', err));
-    });
+        }).catch(err => console.warn('Could not fetch CMS data:', err));
+      });
+    };
+
+    // Fetch immediately on mount
+    fetchAllCmsData();
+
+    // Auto-poll every 10 seconds so client devices stay continuously updated
+    const interval = setInterval(fetchAllCmsData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const login = async (email: string, passwordInput?: string): Promise<{ success: boolean; user?: User; message?: string }> => {
