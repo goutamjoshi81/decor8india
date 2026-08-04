@@ -176,10 +176,14 @@ export const BookingModal: React.FC = () => {
                   </button>
                 </div>
 
+                {/* Material & Hardware Standard Selector */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#D4AF37] uppercase tracking-wider block">
-                    Material & Hardware Standard
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-[#D4AF37] uppercase tracking-wider block">
+                      Material & Hardware Standard
+                    </label>
+                    <span className="text-[10px] text-neutral-400 font-mono">Select Tier for Dynamic Pricing</span>
+                  </div>
                   <div className="grid grid-cols-3 gap-2">
                     {MATERIAL_STANDARDS.map((std) => {
                       const rate = STANDARD_PRICING[serviceType][std.id];
@@ -201,27 +205,51 @@ export const BookingModal: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Active Standard Live Price Rate Badge */}
+                <div className="p-3 rounded-xl bg-gradient-to-r from-[#201D13] via-[#2A2312] to-[#201D13] border border-[#D4AF37]/40 flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-2">
+                    <ShieldCheck className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                    <span className="font-bold text-white">
+                      Selected Tier: <span className="text-[#D4AF37]">{selectedStandard} Standard</span>
+                    </span>
+                  </div>
+                  <span className="font-mono font-bold text-[#D4AF37] bg-[#D4AF37]/20 px-2.5 py-1 rounded border border-[#D4AF37]/40 text-xs">
+                    ₹ {STANDARD_PRICING[serviceType][selectedStandard]} / sq. ft. ({serviceType})
+                  </span>
+                </div>
+
+                {/* Desired Package List with Dynamic Standard Pricing */}
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">
                     Choose Desired Package
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
-                    {filteredServices.map(srv => (
-                      <div
-                        key={srv.id}
-                        onClick={() => setSelectedPackage(srv.title)}
-                        className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                          selectedPackage === srv.title
-                            ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg'
-                            : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
-                        }`}
-                      >
-                        <div className="text-xs font-bold text-white">{srv.title}</div>
-                        <div className="text-[10px] text-[#D4AF37] font-mono mt-0.5">
-                          Starting ₹ {(srv.startingPrice / 100000).toFixed(2)} Lakhs
+                    {filteredServices.map(srv => {
+                      const currentStandardRate = STANDARD_PRICING[serviceType][selectedStandard];
+                      const baseUrbanRate = STANDARD_PRICING[serviceType]['Urban'];
+                      const standardMultiplier = currentStandardRate / baseUrbanRate;
+                      const dynamicPackagePrice = Math.round(srv.startingPrice * standardMultiplier);
+
+                      return (
+                        <div
+                          key={srv.id}
+                          onClick={() => setSelectedPackage(srv.title)}
+                          className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                            selectedPackage === srv.title
+                              ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg'
+                              : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
+                          }`}
+                        >
+                          <div className="text-xs font-bold text-white">{srv.title}</div>
+                          <div className="text-[11px] text-[#D4AF37] font-mono mt-0.5 font-bold">
+                            Starting ₹ {(dynamicPackagePrice / 100000).toFixed(2)} Lakhs
+                          </div>
+                          <div className="text-[9px] text-neutral-400 font-mono mt-0.5">
+                            Based on {selectedStandard} Tier (₹{currentStandardRate}/sq.ft)
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
