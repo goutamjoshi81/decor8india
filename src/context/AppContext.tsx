@@ -205,13 +205,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [bookings]);
 
-  // Fetch live bookings from GoDaddy MySQL database on mount
+  // Fetch live bookings & projects from GoDaddy MySQL database on mount
   useEffect(() => {
     import('../services/apiService').then(({ apiService }) => {
       apiService.getBookings().then(res => {
         if (res.success && res.bookings && Array.isArray(res.bookings) && res.bookings.length > 0) {
           setBookings(prev => {
-            // Merge DB bookings into reactive state
             const dbIds = new Set(res.bookings!.map((b: any) => b.id));
             const localOnly = prev.filter(b => !dbIds.has(b.id));
             return [...res.bookings as any, ...localOnly];
@@ -219,6 +218,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }).catch(err => {
         console.warn('Could not fetch live DB bookings on startup:', err);
+      });
+
+      apiService.getProjects().then(res => {
+        if (res.success && res.projects && Array.isArray(res.projects) && res.projects.length > 0) {
+          setProjects(prev => {
+            const dbIds = new Set(res.projects!.map((p: any) => p.id));
+            const localOnly = prev.filter(p => !dbIds.has(p.id));
+            return [...res.projects as any, ...localOnly];
+          });
+        }
+      }).catch(err => {
+        console.warn('Could not fetch live DB projects on startup:', err);
       });
     });
   }, []);
@@ -495,6 +506,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setProjects(prev => [newProject, ...prev]);
+
+    // Sync newly created project to GoDaddy MySQL
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveProjectUpdate({
+        projectId: newProjId,
+        title: newProject.title,
+        clientEmail: booking.clientEmail,
+        serviceType: booking.serviceType,
+        estimatedCost: booking.estimatedCost,
+        progressPercentage: 10,
+        currentStage: 'Design Discussion',
+        workUpdate: newProject.workUpdates[0],
+        document: newProject.documents[0],
+        payment: newProject.payments[0]
+      }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
+    });
   };
 
   const rejectBooking = (bookingId: string) => {
@@ -508,7 +535,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const isCompleted = percentage >= 100 && stage === 'Handover Completed';
       const newStatus = isCompleted ? 'Completed' : proj.status;
 
-      // Update milestone list
       const updatedMilestones = proj.milestones.map(m => {
         if (m.stage === stage) {
           return {
@@ -529,6 +555,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         milestones: updatedMilestones
       };
     }));
+
+    // Sync progress & stage to GoDaddy MySQL
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveProjectUpdate({
+        projectId,
+        progressPercentage: percentage,
+        currentStage: stage
+      }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
+    });
   };
 
   const addWorkUpdate = (projectId: string, updateData: Omit<WorkUpdate, 'id' | 'projectId'>) => {
@@ -538,6 +573,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       projectId
     };
     setProjects(prev => prev.map(p => p.id === projectId ? { ...p, workUpdates: [newUpdate, ...p.workUpdates] } : p));
+
+    // Sync daily site photo feed to GoDaddy MySQL
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveProjectUpdate({
+        projectId,
+        workUpdate: newUpdate
+      }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
+    });
   };
 
   const addDocument = (projectId: string, docData: Omit<DocumentItem, 'id' | 'projectId'>) => {
@@ -547,6 +590,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       projectId
     };
     setProjects(prev => prev.map(p => p.id === projectId ? { ...p, documents: [newDoc, ...p.documents] } : p));
+
+    // Sync document/invoice to GoDaddy MySQL
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveProjectUpdate({
+        projectId,
+        document: newDoc
+      }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
+    });
   };
 
   const addPayment = (projectId: string, payData: Omit<PaymentItem, 'id' | 'projectId'>) => {

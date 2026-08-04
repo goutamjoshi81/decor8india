@@ -137,5 +137,36 @@ export const apiService = {
       console.warn('Backend API uploadFile error:', error);
       return { success: false, message: 'Server connection error during upload.' };
     }
+  },
+
+  // Get Projects & Site Updates from GoDaddy MySQL
+  async getProjects(clientEmail?: string): Promise<{ success: boolean; projects?: any[]; message?: string }> {
+    try {
+      const url = clientEmail 
+        ? `${API_BASE_URL}/get_projects.php?clientEmail=${encodeURIComponent(clientEmail)}`
+        : `${API_BASE_URL}/get_projects.php`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getProjects error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  // Save Project Progress, Work Updates & Documents to GoDaddy MySQL
+  async saveProjectUpdate(payload: any): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_project_update.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveProjectUpdate error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
   }
 };
