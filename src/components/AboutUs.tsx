@@ -28,8 +28,8 @@ export const AboutUs: React.FC = () => {
     },
     {
       icon: Layers,
-      title: 'Turnkey Single Point Contact',
-      desc: 'From civil alterations to soft furnishings — zero hassle with multiple contractors.'
+      title: 'Turnkey Construction & Fitouts',
+      desc: 'From ground-up civil construction to luxury modular woodwork — zero hassle with multiple contractors.'
     },
     {
       icon: ShieldCheck,
@@ -59,7 +59,7 @@ export const AboutUs: React.FC = () => {
             Where Visionary Architecture Meets <span className="gold-gradient-text italic font-normal">Uncompromised Luxury</span>
           </h2>
           <p className="text-neutral-400 font-light text-base sm:text-lg">
-            Founded in 2012, Decor8India has redefined bespoke interior design by blending heritage craftsmanship with contemporary ergonomics and smart automation.
+            Founded in 2012, Decor8India has redefined bespoke interior design, turnkey civil construction, and architecture by blending heritage craftsmanship with contemporary ergonomics and smart automation.
           </p>
         </div>
 

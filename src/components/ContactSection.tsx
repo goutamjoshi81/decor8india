@@ -167,9 +167,9 @@ export const ContactSection: React.FC = () => {
               <div className="flex items-start space-x-3">
                 <MapPin className="w-5 h-5 text-[#D4AF37] shrink-0 mt-1" />
                 <div>
-                  <div className="text-xs font-bold text-white uppercase tracking-wider">Flagship Experience Studio</div>
+                  <div className="text-xs font-bold text-white uppercase tracking-wider">Flagship Experience Studio & Office</div>
                   <p className="text-xs text-neutral-300 pt-1">
-                    Decor8India Tower, Suite 402-405, Worli Sea Face, South Mumbai, MH - 400018
+                    #14, sy no 36/1, vasanth vallabnagar, vasanthpura, uttrahalli hobilli, bengaluru 560061
                   </p>
                 </div>
               </div>

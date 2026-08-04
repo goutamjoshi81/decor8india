@@ -29,6 +29,7 @@ export const PortfolioGallery: React.FC = () => {
     if (filterCategory === 'All') return true;
     if (filterCategory === 'Residential') return p.category === 'Residential';
     if (filterCategory === 'Commercial') return p.category === 'Commercial';
+    if (filterCategory === 'Construction') return p.category === 'Construction';
     if (filterCategory === 'Luxury') return p.style === 'Luxury';
     if (filterCategory === 'Modern') return p.style === 'Modern';
     if (filterCategory === 'Minimal') return p.style === 'Minimal';
@@ -54,14 +55,14 @@ export const PortfolioGallery: React.FC = () => {
             Explore Our Completed <span className="gold-gradient-text italic font-normal">Architectural Gems</span>
           </h2>
           <p className="text-neutral-400 font-light text-base sm:text-lg">
-            A curated showcase of our finest luxury penthouses, minimalist villas, and executive corporate headquarters across India.
+            A curated showcase of our finest luxury penthouses, minimalist villas, turnkey construction builds, and executive corporate headquarters across India.
           </p>
         </div>
 
         {/* Filter Tabs */}
         <div className="flex justify-center">
           <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl glass-panel border border-white/10 max-w-full overflow-x-auto">
-            {['All', 'Residential', 'Commercial', 'Luxury', 'Modern', 'Minimal', 'Traditional'].map(cat => (
+            {['All', 'Residential', 'Commercial', 'Construction', 'Luxury', 'Modern', 'Minimal', 'Traditional'].map(cat => (
               <button
                 key={cat}
                 onClick={() => setFilterCategory(cat)}

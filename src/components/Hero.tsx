@@ -72,7 +72,7 @@ export const Hero: React.FC = () => {
             {/* Top Badge */}
             <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full glass-panel border border-[#D4AF37]/30 text-xs font-semibold uppercase tracking-widest text-[#D4AF37]">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>India's Premier Luxury Interior & Architectural Studio</span>
+              <span>India's Premier Luxury Interior, Construction & Architectural Studio</span>
             </div>
 
             {/* Headline */}
@@ -83,7 +83,7 @@ export const Hero: React.FC = () => {
 
             {/* Subtext */}
             <p className="text-base sm:text-lg text-neutral-300 font-light max-w-2xl leading-relaxed">
-              Decor8India transforms high-end residential penthouses, grand villas, and visionary commercial spaces into architectural masterpieces with turnkey precision and unmatched craftsmanship.
+              Decor8India transforms high-end residential penthouses, grand villas, turnkey civil construction projects, and visionary commercial spaces into architectural masterpieces with turnkey precision and unmatched craftsmanship.
             </p>
 
             {/* Call to Action Buttons */}

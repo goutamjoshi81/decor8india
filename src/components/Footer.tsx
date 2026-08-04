@@ -4,7 +4,8 @@ import {
   Check, 
   ArrowRight,
   Phone,
-  Mail
+  Mail,
+  MapPin
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -54,10 +55,14 @@ export const Footer: React.FC = () => {
             </div>
 
             <p className="text-xs text-neutral-400 leading-relaxed max-w-sm">
-              Decor8India is an award-winning luxury interior architecture and turnkey fitout firm, creating timeless residential penthouses, minimalist villas, and high-performance commercial headquarters.
+              Decor8India is an award-winning luxury interior architecture, turnkey civil construction, and fitout firm, creating timeless residential penthouses, minimalist villas, and high-performance commercial headquarters.
             </p>
 
             <div className="space-y-1.5 pt-1 text-xs text-neutral-300">
+              <div className="flex items-start space-x-2">
+                <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0 mt-0.5" />
+                <span>#14, sy no 36/1, vasanth vallabnagar, vasanthpura, uttrahalli hobilli, bengaluru 560061</span>
+              </div>
               <div className="flex items-center space-x-2">
                 <Phone className="w-3.5 h-3.5 text-[#D4AF37]" />
                 <a href="tel:+919380523743" className="hover:text-[#D4AF37] transition-colors font-mono">+91 93805 23743</a>
