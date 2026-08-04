@@ -5,16 +5,39 @@ import type { PaymentItem, Project } from '../types';
 interface InvoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  payment: PaymentItem | null;
+  payment?: PaymentItem | null;
   project: Project | null;
+  isConsolidated?: boolean;
 }
 
-export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, payment, project }) => {
-  if (!isOpen || !payment || !project) return null;
+export const InvoiceModal: React.FC<InvoiceModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  payment, 
+  project, 
+  isConsolidated = false 
+}) => {
+  if (!isOpen || !project) return null;
+  if (!isConsolidated && !payment) return null;
 
-  const invoiceNumber = payment.invoiceUrl ? payment.invoiceUrl.split('/').pop()?.replace('.pdf', '') : `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`;
-  const invoiceDate = payment.paidDate || new Date().toISOString().split('T')[0];
-  const totalPaid = payment.paidAmount || payment.amount;
+  const paidPayments = project.payments.filter(p => p.status === 'Paid');
+
+  // Single payment vs Consolidated Master Calculation
+  const invoiceNumber = isConsolidated
+    ? `BILL-MASTER-${project.id.slice(-6).toUpperCase()}`
+    : (payment?.invoiceUrl ? payment.invoiceUrl.split('/').pop()?.replace('.pdf', '') : `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`);
+  
+  const invoiceDate = isConsolidated 
+    ? new Date().toISOString().split('T')[0] 
+    : (payment?.paidDate || new Date().toISOString().split('T')[0]);
+
+  const totalPaid = isConsolidated
+    ? paidPayments.reduce((acc, p) => acc + (p.paidAmount || p.amount), 0)
+    : (payment ? (payment.paidAmount || payment.amount) : 0);
+
+  // Estimate total contract value if available
+  const totalContractVal = project.payments.reduce((acc, p) => acc + p.amount, 0) || totalPaid;
+  const remainingBalance = Math.max(0, totalContractVal - totalPaid);
 
   const handlePrint = () => {
     window.print();
@@ -29,14 +52,14 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
           <div className="flex items-center space-x-2">
             <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold font-mono flex items-center space-x-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>OFFICIAL PAID INVOICE</span>
+              <span>{isConsolidated ? 'MASTER CONSOLIDATED PAID BILL' : 'OFFICIAL PAID INVOICE'}</span>
             </span>
           </div>
 
           <div className="flex items-center space-x-2">
             <button 
               onClick={handlePrint}
-              className="px-4 py-2 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 flex items-center space-x-1.5"
+              className="px-4 py-2 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 flex items-center space-x-1.5 shadow-lg shadow-[#D4AF37]/20"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Print / Save PDF</span>
@@ -66,12 +89,14 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
                 Architectural Interiors & Luxury Turnkey Construction
               </p>
               <p className="text-[10px] text-neutral-500">
-                Official Project Payment Receipt & Invoice
+                {isConsolidated ? 'Master Consolidated Statement of Account & Payment Receipt' : 'Official Project Payment Receipt & Invoice'}
               </p>
             </div>
 
             <div className="text-left sm:text-right space-y-1 bg-neutral-50 p-3 rounded-lg border border-neutral-200">
-              <div className="text-xs font-bold text-[#B8860B] uppercase tracking-wider font-serif">OFFICIAL INVOICE</div>
+              <div className="text-xs font-bold text-[#B8860B] uppercase tracking-wider font-serif">
+                {isConsolidated ? 'CONSOLIDATED BILL' : 'OFFICIAL INVOICE'}
+              </div>
               <div className="text-sm font-mono font-bold text-neutral-900">{invoiceNumber}</div>
               <div className="text-[11px] text-neutral-600 font-mono">Date: {invoiceDate}</div>
               <div className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider bg-emerald-100 px-2 py-0.5 rounded inline-block">
@@ -102,30 +127,64 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-neutral-100 text-neutral-700 font-bold border-y border-neutral-300">
-                  <th className="py-2.5 px-3">Description / Milestone Item</th>
-                  <th className="py-2.5 px-3 text-right">Payment Status</th>
+                  <th className="py-2.5 px-3">#</th>
+                  <th className="py-2.5 px-3">Milestone Installment / Item</th>
+                  <th className="py-2.5 px-3 text-center">Paid Date</th>
+                  <th className="py-2.5 px-3 text-right">Status</th>
                   <th className="py-2.5 px-3 text-right">Amount Paid (₹)</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-neutral-200">
-                  <td className="py-3.5 px-3">
-                    <div className="font-bold text-neutral-900">{payment.title}</div>
-                    <div className="text-[10px] text-neutral-500 font-mono">Project Milestone Installment for {project.title}</div>
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono font-bold text-emerald-700">PAID</td>
-                  <td className="py-3.5 px-3 text-right font-mono font-bold text-neutral-900 text-sm">₹ {totalPaid.toLocaleString('en-IN')}</td>
-                </tr>
+                {isConsolidated ? (
+                  paidPayments.map((p, idx) => (
+                    <tr key={p.id} className="border-b border-neutral-200">
+                      <td className="py-3 px-3 font-mono text-neutral-500">{idx + 1}</td>
+                      <td className="py-3 px-3">
+                        <div className="font-bold text-neutral-900">{p.title}</div>
+                        <div className="text-[10px] text-neutral-500 font-mono">Installment for {project.title}</div>
+                      </td>
+                      <td className="py-3 px-3 text-center font-mono text-neutral-600">{p.paidDate || p.dueDate}</td>
+                      <td className="py-3 px-3 text-right font-mono font-bold text-emerald-700">PAID</td>
+                      <td className="py-3 px-3 text-right font-mono font-bold text-neutral-900">
+                        ₹ {(p.paidAmount || p.amount).toLocaleString('en-IN')}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className="border-b border-neutral-200">
+                    <td className="py-3.5 px-3 font-mono text-neutral-500">1</td>
+                    <td className="py-3.5 px-3">
+                      <div className="font-bold text-neutral-900">{payment?.title}</div>
+                      <div className="text-[10px] text-neutral-500 font-mono">Project Milestone Installment for {project.title}</div>
+                    </td>
+                    <td className="py-3.5 px-3 text-center font-mono text-neutral-600">{payment?.paidDate || payment?.dueDate}</td>
+                    <td className="py-3.5 px-3 text-right font-mono font-bold text-emerald-700">PAID</td>
+                    <td className="py-3.5 px-3 text-right font-mono font-bold text-neutral-900 text-sm">₹ {totalPaid.toLocaleString('en-IN')}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
 
           {/* Summary Breakdown */}
           <div className="flex justify-end pt-2">
-            <div className="w-full max-w-xs space-y-2 text-xs font-mono bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+            <div className="w-full max-w-sm space-y-2 text-xs font-mono bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+              {isConsolidated && (
+                <>
+                  <div className="flex justify-between text-neutral-600">
+                    <span>Total Project Contract:</span>
+                    <span>₹ {totalContractVal.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-600">
+                    <span>Remaining Balance:</span>
+                    <span>₹ {remainingBalance.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="w-full h-px bg-neutral-300 my-1" />
+                </>
+              )}
               <div className="flex justify-between font-bold text-sm text-neutral-900">
-                <span>Total Amount Paid:</span>
-                <span className="text-[#B8860B] font-extrabold">₹ {totalPaid.toLocaleString('en-IN')}</span>
+                <span>{isConsolidated ? 'Total Cumulative Paid:' : 'Total Amount Paid:'}</span>
+                <span className="text-[#B8860B] font-extrabold text-base">₹ {totalPaid.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -135,9 +194,9 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
             <div className="space-y-1">
               <div className="font-bold text-neutral-800 flex items-center space-x-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Verified Official Payment Invoice & Receipt</span>
+                <span>Verified Official Master Consolidated Payment Receipt</span>
               </div>
-              <div>Payment received via Bank Transfer / Online Gateway.</div>
+              <div>All payments received & verified via Bank Transfer / Online Gateway.</div>
               <div>Thank you for choosing Decor8 India for your dream project!</div>
             </div>
 

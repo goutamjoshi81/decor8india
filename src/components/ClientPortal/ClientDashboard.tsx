@@ -30,6 +30,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
   const [newMessageText, setNewMessageText] = useState('');
   const [selectedInvoicePayment, setSelectedInvoicePayment] = useState<PaymentItem | null>(null);
 
+  const [isConsolidatedInvoiceOpen, setIsConsolidatedInvoiceOpen] = useState(false);
+
   // Strict Security Rule: Client can only view THEIR OWN project
   const clientProject = projects.find(p => p.clientId === currentUser?.id || p.id === currentUser?.projectId) || projects[2];
 
@@ -375,9 +377,19 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
         {/* TAB 5: PAYMENTS */}
         {activeTab === 'payments' && (
           <div className="p-8 rounded-2xl glass-panel border border-white/10 space-y-6 animate-in fade-in">
-            <div className="space-y-1">
-              <h2 className="font-serif text-3xl font-bold text-white">Milestone Payment Ledger</h2>
-              <p className="text-xs text-neutral-400">Track paid installments, pending amounts, and tax invoices.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h2 className="font-serif text-3xl font-bold text-white">Milestone Payment Ledger</h2>
+                <p className="text-xs text-neutral-400">Track paid installments, pending amounts, and tax invoices.</p>
+              </div>
+
+              <button
+                onClick={() => setIsConsolidatedInvoiceOpen(true)}
+                className="px-4 py-2.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-all flex items-center space-x-1.5 shrink-0 shadow-lg shadow-[#D4AF37]/20"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Download All Paid Invoices (Consolidated Bill)</span>
+              </button>
             </div>
 
             <div className="overflow-x-auto">
@@ -512,12 +524,20 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
 
       </div>
 
-      {/* GST Tax Invoice Modal */}
+      {/* Single Milestone Tax Invoice Modal */}
       <InvoiceModal 
         isOpen={Boolean(selectedInvoicePayment)}
         onClose={() => setSelectedInvoicePayment(null)}
         payment={selectedInvoicePayment}
         project={clientProject}
+      />
+
+      {/* Master Consolidated Bill Modal (All Paid Invoices) */}
+      <InvoiceModal 
+        isOpen={isConsolidatedInvoiceOpen}
+        onClose={() => setIsConsolidatedInvoiceOpen(false)}
+        project={clientProject}
+        isConsolidated={true}
       />
 
     </div>
