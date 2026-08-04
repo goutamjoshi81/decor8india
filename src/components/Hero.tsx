@@ -76,21 +76,21 @@ export const Hero: React.FC = () => {
             </div>
 
             {/* Headline */}
-            <h1 className="text-3xl sm:text-6xl lg:text-7xl font-serif font-normal text-white leading-tight sm:leading-[1.1] tracking-tight">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-serif font-normal text-white leading-[1.1] tracking-tight">
               Crafting Timeless <br />
               <span className="gold-gradient-text italic font-normal">Sanctuaries of Luxury</span> & Precision.
             </h1>
 
             {/* Subtext */}
-            <p className="text-sm sm:text-lg text-neutral-300 font-light max-w-2xl leading-relaxed">
+            <p className="text-base sm:text-lg text-neutral-300 font-light max-w-2xl leading-relaxed">
               Decor8India transforms high-end residential penthouses, grand villas, and visionary commercial spaces into architectural masterpieces with turnkey precision and unmatched craftsmanship.
             </p>
 
             {/* Call to Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <button 
                 onClick={() => setIsBookingOpen(true)}
-                className="group px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl gold-gradient-bg text-black font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center space-x-2.5 sm:space-x-3 shadow-xl shadow-[#D4AF37]/20 hover:shadow-[#D4AF37]/40 transition-all transform hover:-translate-y-0.5"
+                className="group px-8 py-4 rounded-xl gold-gradient-bg text-black font-bold text-sm tracking-wider uppercase flex items-center space-x-3 shadow-xl shadow-[#D4AF37]/20 hover:shadow-[#D4AF37]/40 transition-all transform hover:-translate-y-0.5"
               >
                 <span>Book Free Consultation</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -98,7 +98,7 @@ export const Hero: React.FC = () => {
 
               <button 
                 onClick={() => setIsEstimatorOpen(true)}
-                className="px-6 sm:px-7 py-3.5 sm:py-4 rounded-xl glass-panel border border-white/20 hover:border-[#D4AF37] text-white font-semibold text-xs sm:text-sm tracking-wider flex items-center justify-center space-x-2.5 sm:space-x-3 transition-all hover:bg-white/10"
+                className="px-7 py-4 rounded-xl glass-panel border border-white/20 hover:border-[#D4AF37] text-white font-semibold text-sm tracking-wider flex items-center space-x-3 transition-all hover:bg-white/10"
               >
                 <Calculator className="w-4 h-4 text-[#D4AF37]" />
                 <span>Get Free Estimate</span>
@@ -106,17 +106,17 @@ export const Hero: React.FC = () => {
             </div>
 
             {/* Trust Badges */}
-            <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2.5 sm:gap-6 text-xs text-neutral-400 font-medium">
+            <div className="pt-4 flex flex-wrap items-center gap-6 text-xs text-neutral-400 font-medium">
               <div className="flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
                 <span>100% On-Time Turnkey Execution</span>
               </div>
               <div className="flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
                 <span>10-Year Modular Guarantee</span>
               </div>
               <div className="flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
                 <span>Transparent Live Project Portal</span>
               </div>
             </div>

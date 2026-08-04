@@ -147,32 +147,32 @@ export const BookingModal: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setServiceType('Residential')}
-                    className={`flex-1 py-2 sm:py-2.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1 sm:space-x-1.5 transition-all ${
+                    className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
                       serviceType === 'Residential' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
                     }`}
                   >
-                    <Home className="w-3.5 h-3.5 shrink-0 hidden min-[400px]:inline" />
-                    <span className="truncate">Residential</span>
+                    <Home className="w-4 h-4" />
+                    <span>Residential</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setServiceType('Commercial')}
-                    className={`flex-1 py-2 sm:py-2.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1 sm:space-x-1.5 transition-all ${
+                    className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
                       serviceType === 'Commercial' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
                     }`}
                   >
-                    <Building2 className="w-3.5 h-3.5 shrink-0 hidden min-[400px]:inline" />
-                    <span className="truncate">Commercial</span>
+                    <Building2 className="w-4 h-4" />
+                    <span>Commercial</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setServiceType('Construction')}
-                    className={`flex-1 py-2 sm:py-2.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1 sm:space-x-1.5 transition-all ${
+                    className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
                       serviceType === 'Construction' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
                     }`}
                   >
-                    <HardHat className="w-3.5 h-3.5 shrink-0 hidden min-[400px]:inline" />
-                    <span className="truncate">Construction</span>
+                    <HardHat className="w-4 h-4" />
+                    <span>Construction</span>
                   </button>
                 </div>
 
