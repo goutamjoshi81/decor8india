@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 function getDbConnection() {
+    // Try exact configured credentials first
     try {
         $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
         $options = [
@@ -27,11 +28,14 @@ function getDbConnection() {
         ];
         return new PDO($dsn, DB_USER, DB_PASS, $options);
     } catch (\PDOException $e) {
-        http_response_code(500);
+        // Output clean JSON error response so client can inspect exact reason
+        http_response_code(200); // Send 200 so Chrome Response tab displays JSON instead of empty 500
         echo json_encode([
             "success" => false,
-            "message" => "Database connection error. Please verify GoDaddy MySQL permissions.",
-            "error" => $e->getMessage()
+            "message" => "MySQL Connection Error on GoDaddy. Check db_config.php or cPanel user privileges.",
+            "error_details" => $e->getMessage(),
+            "attempted_user" => DB_USER,
+            "attempted_db" => DB_NAME
         ]);
         exit();
     }
