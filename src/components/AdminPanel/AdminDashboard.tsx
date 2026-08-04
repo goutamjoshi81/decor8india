@@ -65,9 +65,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
   const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine' | 'notifications'>('analytics');
 
-  // Reusable file-to-data-URL handler with automatic image compression to prevent QuotaExceededError
+  // Reusable file-to-server uploader (saves to GoDaddy /uploads/ directory so all devices see photos/docs)
   const handleFileUpload = useCallback((file: File, setter: (url: string) => void) => {
     if (!file) return;
+
+    import('../../services/apiService').then(({ apiService }) => {
+      apiService.uploadFile(file).then(res => {
+        if (res.success && res.fileUrl) {
+          setter(res.fileUrl);
+          return;
+        }
+        fallbackLocalUpload(file, setter);
+      }).catch(() => {
+        fallbackLocalUpload(file, setter);
+      });
+    });
+  }, []);
+
+  const fallbackLocalUpload = (file: File, setter: (url: string) => void) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
@@ -106,7 +121,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       img.src = dataUrl;
     };
     reader.readAsDataURL(file);
-  }, []);
+  };
   
   // Project Management Sub-Tab State
   const [selectedProjectId, setSelectedProjectId] = useState<string>(projects[0]?.id || '');
@@ -1011,14 +1026,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="text-xs text-neutral-300 font-medium">File Download URL *</label>
-                          <input 
-                            type="text" 
-                            required
-                            value={docFileUrl}
-                            onChange={(e) => setDocFileUrl(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
-                          />
+                          <label className="text-xs text-neutral-300 font-medium">File Upload or Download URL *</label>
+                          <div className="flex items-center space-x-2">
+                            <input 
+                              type="text" 
+                              required
+                              placeholder="https://... or click Browse to upload file"
+                              value={docFileUrl}
+                              onChange={(e) => setDocFileUrl(e.target.value)}
+                              className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                            />
+                            <label className="px-3 py-2.5 rounded-xl bg-white/10 hover:bg-[#D4AF37] hover:text-black text-white text-xs font-bold cursor-pointer shrink-0 transition-colors">
+                              <input 
+                                type="file" 
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    if (!docTitle) setDocTitle(file.name);
+                                    setDocFileSize(`${(file.size / (1024 * 1024)).toFixed(1)} MB`);
+                                    handleFileUpload(file, setDocFileUrl);
+                                  }
+                                }}
+                              />
+                              Browse
+                            </label>
+                          </div>
                         </div>
 
                         <div className="space-y-1">

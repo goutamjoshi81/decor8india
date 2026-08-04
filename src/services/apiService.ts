@@ -119,5 +119,23 @@ export const apiService = {
       console.warn('Backend API changePassword error:', error);
       return { success: false, message: 'Server connection error.' };
     }
+  },
+
+  // Direct Server File & Photo Upload Endpoint (Saves to GoDaddy /uploads/ directory)
+  async uploadFile(file: File): Promise<{ success: boolean; fileUrl?: string; fileName?: string; message?: string }> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_BASE_URL}/upload_file.php`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API uploadFile error:', error);
+      return { success: false, message: 'Server connection error during upload.' };
+    }
   }
 };
