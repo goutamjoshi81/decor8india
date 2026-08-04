@@ -205,6 +205,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [bookings]);
 
+  // Fetch live bookings from GoDaddy MySQL database on mount
+  useEffect(() => {
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.getBookings().then(res => {
+        if (res.success && res.bookings && Array.isArray(res.bookings) && res.bookings.length > 0) {
+          setBookings(prev => {
+            // Merge DB bookings into reactive state
+            const dbIds = new Set(res.bookings!.map((b: any) => b.id));
+            const localOnly = prev.filter(b => !dbIds.has(b.id));
+            return [...res.bookings as any, ...localOnly];
+          });
+        }
+      }).catch(err => {
+        console.warn('Could not fetch live DB bookings on startup:', err);
+      });
+    });
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem('decor8_users', JSON.stringify(users));

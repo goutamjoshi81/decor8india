@@ -76,5 +76,17 @@ export const apiService = {
       console.warn('Backend API approveBooking error:', error);
       return { success: false, message: 'Server connection error.' };
     }
+  },
+
+  // Fetch All Bookings Endpoint (Loads live MySQL bookings in Admin panel)
+  async getBookings(): Promise<{ success: boolean; bookings?: any[]; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_bookings.php`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getBookings error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
   }
 };
