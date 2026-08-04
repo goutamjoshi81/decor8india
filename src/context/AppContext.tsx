@@ -466,7 +466,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const autoInvoiceDoc: DocumentItem = {
           id: `doc-inv-${Date.now()}`,
           projectId,
-          title: `GST Tax Invoice - ${payData.title} (#${invNum})`,
+          title: `Official Invoice - ${payData.title} (#${invNum})`,
           category: 'Invoice',
           fileUrl: autoInvoiceUrl,
           fileSize: '240 KB',
@@ -514,7 +514,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const autoInvoiceDoc: DocumentItem = {
           id: `doc-inv-${Date.now()}`,
           projectId,
-          title: `GST Tax Invoice - ${targetPayTitle || 'Milestone Payment'} (#${invNum})`,
+          title: `Official Invoice - ${targetPayTitle || 'Milestone Payment'} (#${invNum})`,
           category: 'Invoice',
           fileUrl: autoInvoiceUrl,
           fileSize: '240 KB',

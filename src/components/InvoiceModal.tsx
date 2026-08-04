@@ -14,13 +14,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
 
   const invoiceNumber = payment.invoiceUrl ? payment.invoiceUrl.split('/').pop()?.replace('.pdf', '') : `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`;
   const invoiceDate = payment.paidDate || new Date().toISOString().split('T')[0];
-
-  // GST Calculation (18% GST included: 9% CGST + 9% SGST)
   const totalPaid = payment.paidAmount || payment.amount;
-  const baseAmount = Math.round(totalPaid / 1.18);
-  const totalGst = totalPaid - baseAmount;
-  const cgst = Math.round(totalGst / 2);
-  const sgst = totalGst - cgst;
 
   const handlePrint = () => {
     window.print();
@@ -35,7 +29,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
           <div className="flex items-center space-x-2">
             <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold font-mono flex items-center space-x-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>OFFICIAL PAID TAX INVOICE</span>
+              <span>OFFICIAL PAID INVOICE</span>
             </span>
           </div>
 
@@ -72,12 +66,12 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
                 Architectural Interiors & Luxury Turnkey Construction
               </p>
               <p className="text-[10px] text-neutral-500">
-                GSTIN: <strong className="font-mono text-neutral-800">29AABCU9603R1ZM</strong> • SAC Code: 998391
+                Official Project Payment Receipt & Invoice
               </p>
             </div>
 
             <div className="text-left sm:text-right space-y-1 bg-neutral-50 p-3 rounded-lg border border-neutral-200">
-              <div className="text-xs font-bold text-[#B8860B] uppercase tracking-wider font-serif">TAX INVOICE</div>
+              <div className="text-xs font-bold text-[#B8860B] uppercase tracking-wider font-serif">OFFICIAL INVOICE</div>
               <div className="text-sm font-mono font-bold text-neutral-900">{invoiceNumber}</div>
               <div className="text-[11px] text-neutral-600 font-mono">Date: {invoiceDate}</div>
               <div className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider bg-emerald-100 px-2 py-0.5 rounded inline-block">
@@ -109,20 +103,18 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
               <thead>
                 <tr className="bg-neutral-100 text-neutral-700 font-bold border-y border-neutral-300">
                   <th className="py-2.5 px-3">Description / Milestone Item</th>
-                  <th className="py-2.5 px-3 text-right">Base Amount (₹)</th>
-                  <th className="py-2.5 px-3 text-right">GST Rate</th>
-                  <th className="py-2.5 px-3 text-right">Total Paid (₹)</th>
+                  <th className="py-2.5 px-3 text-right">Payment Status</th>
+                  <th className="py-2.5 px-3 text-right">Amount Paid (₹)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-neutral-200">
-                  <td className="py-3 px-3">
+                  <td className="py-3.5 px-3">
                     <div className="font-bold text-neutral-900">{payment.title}</div>
-                    <div className="text-[10px] text-neutral-500 font-mono">Project Milestone Payment for {project.title}</div>
+                    <div className="text-[10px] text-neutral-500 font-mono">Project Milestone Installment for {project.title}</div>
                   </td>
-                  <td className="py-3 px-3 text-right font-mono">₹ {baseAmount.toLocaleString('en-IN')}</td>
-                  <td className="py-3 px-3 text-right font-mono">18% (GST)</td>
-                  <td className="py-3 px-3 text-right font-mono font-bold text-neutral-900">₹ {totalPaid.toLocaleString('en-IN')}</td>
+                  <td className="py-3.5 px-3 text-right font-mono font-bold text-emerald-700">PAID</td>
+                  <td className="py-3.5 px-3 text-right font-mono font-bold text-neutral-900 text-sm">₹ {totalPaid.toLocaleString('en-IN')}</td>
                 </tr>
               </tbody>
             </table>
@@ -131,31 +123,19 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
           {/* Summary Breakdown */}
           <div className="flex justify-end pt-2">
             <div className="w-full max-w-xs space-y-2 text-xs font-mono bg-neutral-50 p-4 rounded-xl border border-neutral-200">
-              <div className="flex justify-between text-neutral-600">
-                <span>Subtotal (Excl. Tax):</span>
-                <span>₹ {baseAmount.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between text-neutral-600">
-                <span>CGST (9%):</span>
-                <span>₹ {cgst.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between text-neutral-600">
-                <span>SGST (9%):</span>
-                <span>₹ {sgst.toLocaleString('en-IN')}</span>
-              </div>
-              <div className="flex justify-between font-bold text-sm text-neutral-900 border-t border-neutral-300 pt-2">
+              <div className="flex justify-between font-bold text-sm text-neutral-900">
                 <span>Total Amount Paid:</span>
-                <span className="text-[#B8860B]">₹ {totalPaid.toLocaleString('en-IN')}</span>
+                <span className="text-[#B8860B] font-extrabold">₹ {totalPaid.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
 
-          {/* Footer & Signature Stamp */}
+          {/* Footer & CEO Signature Stamp */}
           <div className="pt-6 border-t border-neutral-200 flex flex-col sm:flex-row justify-between items-end gap-4 text-[10px] text-neutral-500">
             <div className="space-y-1">
               <div className="font-bold text-neutral-800 flex items-center space-x-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Computer Generated Official Tax Invoice</span>
+                <span>Verified Official Payment Invoice & Receipt</span>
               </div>
               <div>Payment received via Bank Transfer / Online Gateway.</div>
               <div>Thank you for choosing Decor8 India for your dream project!</div>
@@ -163,9 +143,9 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, pay
 
             <div className="text-right space-y-1">
               <div className="text-xs font-serif font-bold text-neutral-900">Satish Bhat</div>
-              <div className="text-[10px] text-neutral-600 font-mono">Managing Director, Decor8 India</div>
-              <div className="w-28 h-px bg-neutral-400 ml-auto mt-1" />
-              <div className="text-[9px] text-neutral-400 italic">Authorized Signatory</div>
+              <div className="text-[10px] font-bold text-[#B8860B] font-mono">CEO, Decor8 India</div>
+              <div className="w-32 h-px bg-neutral-400 ml-auto mt-1" />
+              <div className="text-[9px] text-neutral-400 italic">Signed by CEO</div>
             </div>
           </div>
 
