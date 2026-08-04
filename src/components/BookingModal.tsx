@@ -47,18 +47,11 @@ export const BookingModal: React.FC = () => {
 
   if (!isBookingOpen) return null;
 
+  const currentRate = STANDARD_PRICING[serviceType][selectedStandard];
+  const baseUrbanRate = STANDARD_PRICING[serviceType]['Urban'];
+  const standardMultiplier = currentRate / baseUrbanRate;
+
   const filteredServices = services.filter(s => s.type === serviceType && s.isActive);
-
-  // Calculate adjusted starting price for any package based on selected category & material standard
-  const getAdjustedPackagePrice = (baseStartingPrice: number) => {
-    const currentRate = STANDARD_PRICING[serviceType][selectedStandard];
-    const baseUrbanRate = STANDARD_PRICING[serviceType]['Urban'];
-    const multiplier = currentRate / baseUrbanRate;
-    return Math.round(baseStartingPrice * multiplier);
-  };
-
-  const selectedServiceObj = filteredServices.find(s => s.title === selectedPackage) || filteredServices[0];
-  const activePackagePrice = selectedServiceObj ? getAdjustedPackagePrice(selectedServiceObj.startingPrice) : 0;
 
   const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,17 +63,21 @@ export const BookingModal: React.FC = () => {
     const bookingId = `D8I-${Math.floor(100000 + Math.random() * 900000)}`;
     setGeneratedBookingId(bookingId);
 
+    const selectedSrv = services.find(s => s.title === selectedPackage);
+    const basePrice = selectedSrv ? selectedSrv.startingPrice : 650000;
+    const finalEstCost = Math.round(basePrice * standardMultiplier);
+
     submitBooking({
       clientName,
       clientEmail,
       clientPhone,
       serviceType,
-      packageName: `${selectedPackage || filteredServices[0]?.title || 'Turnkey Design'} (${selectedStandard} Standard)`,
+      packageName: `${selectedPackage} (${selectedStandard} Standard)`,
       preferredDate,
       floorPlanUrl: uploadedFileName ? `https://decor8india.com/uploads/${uploadedFileName}` : undefined,
-      requirements: `${requirements} | Material Standard: ${selectedStandard} Standard (₹ ${STANDARD_PRICING[serviceType][selectedStandard]}/sq.ft)${isEmiRequested ? ' | 0% EMI Plan Requested' : ''}`,
+      requirements: `${requirements} | Material Standard: ${selectedStandard} Standard (₹ ${currentRate}/sq.ft)${isEmiRequested ? ' | 0% EMI Plan Requested' : ''}`,
       carpetArea: 1500,
-      estimatedCost: activePackagePrice,
+      estimatedCost: finalEstCost,
       isEmiRequested
     });
 
@@ -157,10 +154,7 @@ export const BookingModal: React.FC = () => {
                 <div className="flex rounded-xl bg-black/60 p-1 border border-white/10">
                   <button
                     type="button"
-                    onClick={() => {
-                      setServiceType('Residential');
-                      setSelectedPackage('');
-                    }}
+                    onClick={() => setServiceType('Residential')}
                     className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
                       serviceType === 'Residential' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
                     }`}
@@ -170,10 +164,7 @@ export const BookingModal: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      setServiceType('Commercial');
-                      setSelectedPackage('');
-                    }}
+                    onClick={() => setServiceType('Commercial')}
                     className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
                       serviceType === 'Commercial' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
                     }`}
@@ -183,10 +174,7 @@ export const BookingModal: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      setServiceType('Construction');
-                      setSelectedPackage('');
-                    }}
+                    onClick={() => setServiceType('Construction')}
                     className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
                       serviceType === 'Construction' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
                     }`}
@@ -197,12 +185,9 @@ export const BookingModal: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-[#D4AF37] uppercase tracking-wider block">
-                      Material & Hardware Standard
-                    </label>
-                    <span className="text-[10px] text-neutral-400 font-mono">Selecting a tier updates package prices live</span>
-                  </div>
+                  <label className="text-xs font-semibold text-[#D4AF37] uppercase tracking-wider block">
+                    Material & Hardware Standard
+                  </label>
                   <div className="grid grid-cols-3 gap-2">
                     {MATERIAL_STANDARDS.map((std) => {
                       const rate = STANDARD_PRICING[serviceType][std.id];
@@ -230,33 +215,26 @@ export const BookingModal: React.FC = () => {
                       Choose Desired Package
                     </label>
                     <span className="text-[10px] text-[#D4AF37] font-mono font-bold">
-                      {selectedStandard} Standard Rate: ₹ {STANDARD_PRICING[serviceType][selectedStandard]}/sq.ft
+                      Calculated for {selectedStandard} Standard (₹ {currentRate}/sq.ft)
                     </span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
                     {filteredServices.map(srv => {
-                      const dynamicPrice = getAdjustedPackagePrice(srv.startingPrice);
-                      const isSelected = selectedPackage ? selectedPackage === srv.title : false;
-
+                      const packagePrice = Math.round(srv.startingPrice * standardMultiplier);
                       return (
                         <div
                           key={srv.id}
                           onClick={() => setSelectedPackage(srv.title)}
                           className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                            isSelected
+                            selectedPackage === srv.title
                               ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg ring-1 ring-[#D4AF37]/50'
                               : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
                           }`}
                         >
-                          <div className="text-xs font-bold text-white flex justify-between items-center">
-                            <span>{srv.title}</span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37] font-mono font-bold uppercase">{selectedStandard}</span>
-                          </div>
-                          <div className="text-[11px] text-[#D4AF37] font-mono mt-1 font-bold">
-                            Starting ₹ {(dynamicPrice / 100000).toFixed(2)} Lakhs
-                          </div>
-                          <div className="text-[9px] text-neutral-400 mt-0.5">
-                            Calculated at ₹ {STANDARD_PRICING[serviceType][selectedStandard]}/sq.ft standard rate
+                          <div className="text-xs font-bold text-white">{srv.title}</div>
+                          <div className="text-[10px] text-[#D4AF37] font-mono mt-1 font-bold flex items-center justify-between">
+                            <span>Starting ₹ {(packagePrice / 100000).toFixed(2)} Lakhs</span>
+                            <span className="text-[9px] text-neutral-400 font-normal">({selectedStandard} Standard)</span>
                           </div>
                         </div>
                       );
