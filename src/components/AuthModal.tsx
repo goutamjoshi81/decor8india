@@ -26,7 +26,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessRedirect }) => {
 
   if (!isAuthOpen) return null;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -35,7 +35,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessRedirect }) => {
       return;
     }
 
-    const res = login(email, password);
+    const res = await login(email, password);
 
     if (res.success && res.user) {
       setIsAuthOpen(false);

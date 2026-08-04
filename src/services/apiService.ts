@@ -2,7 +2,7 @@
 // Points to your live backend on GoDaddy / production domain
 
 const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? 'https://decor8india.vercel.app/api' // Fallback for local testing
+  ? 'https://decor8india.com/api' // Fallback for local testing against live GoDaddy backend
   : `${window.location.origin}/api`;
 
 export interface UserPayload {

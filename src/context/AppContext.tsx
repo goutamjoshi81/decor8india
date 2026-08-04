@@ -51,7 +51,7 @@ interface AppContextType {
   setSelectedProjectForSiteVisit: (projTitle: string | null) => void;
 
   // Actions
-  login: (email: string, passwordInput?: string) => { success: boolean; user?: User; message?: string };
+  login: (email: string, passwordInput?: string) => Promise<{ success: boolean; user?: User; message?: string }> | { success: boolean; user?: User; message?: string };
   updatePassword: (userId: string, newPassword: string) => boolean;
   logout: () => void;
   submitBooking: (booking: Omit<BookingRequest, 'id' | 'createdAt' | 'status'>) => BookingRequest;
@@ -247,10 +247,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [services]);
 
-  const login = (email: string, passwordInput?: string): { success: boolean; user?: User; message?: string } => {
+  const login = async (email: string, passwordInput?: string): Promise<{ success: boolean; user?: User; message?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
-    
-    // Find user matching email or admin aliases
+
+    // 1. Try GoDaddy Live MySQL Backend Login first
+    try {
+      const { apiService } = await import('../services/apiService');
+      const apiRes = await apiService.login(cleanEmail, passwordInput || '');
+      if (apiRes.success && apiRes.user) {
+        const loggedUser: User = {
+          id: apiRes.user.id,
+          name: apiRes.user.name,
+          email: apiRes.user.email,
+          phone: apiRes.user.phone || '',
+          role: apiRes.user.role,
+          isApproved: true,
+          mustChangePassword: (apiRes.user as any).mustChangePassword ?? false
+        };
+
+        setUsers(prev => {
+          const exists = prev.some(u => u.email.toLowerCase() === loggedUser.email.toLowerCase());
+          if (exists) {
+            return prev.map(u => u.email.toLowerCase() === loggedUser.email.toLowerCase() ? loggedUser : u);
+          }
+          return [...prev, loggedUser];
+        });
+
+        setCurrentUser(loggedUser);
+        return { success: true, user: loggedUser };
+      } else if (apiRes.message && !apiRes.message.includes('Server connection error')) {
+        return { success: false, message: apiRes.message };
+      }
+    } catch (e) {
+      console.warn('API login exception, fallback to local state:', e);
+    }
+
+    // 2. Fallback: Search local memory state
     const foundUser = users.find(u => 
       u.email.toLowerCase() === cleanEmail || 
       (cleanEmail === 'satish@decor8india.com' && u.role === 'ADMIN') ||
@@ -271,7 +303,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }
 
-    // Default password for client accounts is their contact phone number (digits stripped)
     const expectedPassword = foundUser.password || foundUser.phone?.replace(/[^0-9]/g, '') || 'Decor8#India2026';
 
     if (passwordInput && passwordInput.trim() !== expectedPassword && passwordInput.trim() !== 'Decor8#India2026') {
