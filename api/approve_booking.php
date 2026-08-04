@@ -12,6 +12,25 @@ try {
 
     $bookingId = trim($data->bookingId);
 
+    // Auto-migrate tables if created with an older schema
+    try { $pdo->exec("ALTER TABLE users ADD COLUMN is_approved TINYINT(1) DEFAULT 1"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE users ADD COLUMN must_change_password TINYINT(1) DEFAULT 0"); } catch (\PDOException $ex) {}
+    
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `projects` (
+          `id` varchar(50) NOT NULL,
+          `title` varchar(150) NOT NULL,
+          `client_id` varchar(50) NOT NULL,
+          `service_type` varchar(50) NOT NULL,
+          `estimated_cost` decimal(12,2) DEFAULT NULL,
+          `total_paid` decimal(12,2) DEFAULT 0,
+          `progress_percentage` int DEFAULT 0,
+          `status` varchar(50) DEFAULT 'In Progress',
+          `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    } catch (\PDOException $ex) {}
+
     // 1. Fetch booking details
     $stmt = $pdo->prepare("SELECT * FROM bookings WHERE id = ?");
     $stmt->execute([$bookingId]);
