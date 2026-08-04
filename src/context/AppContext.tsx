@@ -171,43 +171,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isSiteVisitOpen, setIsSiteVisitOpen] = useState(false);
   const [selectedProjectForSiteVisit, setSelectedProjectForSiteVisit] = useState<string | null>(null);
 
-  // Sync to local storage with try-catch guards to prevent QuotaExceededError crashes
+  // Helper: sync CMS data to GoDaddy MySQL server (fire-and-forget)
+  const syncToServer = (key: string, value: any) => {
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveCmsData(key, value).catch(err => {
+        console.warn(`Server sync failed for ${key}:`, err);
+      });
+    });
+  };
+
+  // Sync to BOTH localStorage (fast cache) AND GoDaddy MySQL server
   useEffect(() => {
     try {
       if (currentUser) localStorage.setItem('decor8_user', JSON.stringify(currentUser));
       else localStorage.removeItem('decor8_user');
     } catch (e) {
-      console.warn('LocalStorage quota exceeded for currentUser:', e);
+      console.warn('LocalStorage error for currentUser:', e);
     }
   }, [currentUser]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('decor8_projects', JSON.stringify(projects));
-    } catch (e) {
-      console.warn('LocalStorage quota exceeded for projects:', e);
-    }
+    try { localStorage.setItem('decor8_projects', JSON.stringify(projects)); } catch (e) {}
+    syncToServer('projects', projects);
   }, [projects]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('decor8_team_members', JSON.stringify(teamMembers));
-    } catch (e) {
-      console.warn('LocalStorage quota exceeded for teamMembers:', e);
-    }
+    try { localStorage.setItem('decor8_team_members', JSON.stringify(teamMembers)); } catch (e) {}
+    syncToServer('team_members', teamMembers);
   }, [teamMembers]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('decor8_bookings', JSON.stringify(bookings));
-    } catch (e) {
-      console.warn('LocalStorage quota exceeded for bookings:', e);
-    }
+    try { localStorage.setItem('decor8_bookings', JSON.stringify(bookings)); } catch (e) {}
   }, [bookings]);
 
-  // Fetch live bookings & projects from GoDaddy MySQL database on mount
+  useEffect(() => {
+    try { localStorage.setItem('decor8_users', JSON.stringify(users)); } catch (e) {}
+  }, [users]);
+
+  useEffect(() => {
+    try { localStorage.setItem('decor8_articles', JSON.stringify(articles)); } catch (e) {}
+    syncToServer('articles', articles);
+  }, [articles]);
+
+  useEffect(() => {
+    try { localStorage.setItem('decor8_services', JSON.stringify(services)); } catch (e) {}
+    syncToServer('services', services);
+  }, [services]);
+
+  // ======== FETCH ALL DATA FROM GODADDY MYSQL ON MOUNT ========
   useEffect(() => {
     import('../services/apiService').then(({ apiService }) => {
+      // Fetch bookings from DB
       apiService.getBookings().then(res => {
         if (res.success && res.bookings && Array.isArray(res.bookings) && res.bookings.length > 0) {
           setBookings(prev => {
@@ -216,10 +230,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return [...res.bookings as any, ...localOnly];
           });
         }
-      }).catch(err => {
-        console.warn('Could not fetch live DB bookings on startup:', err);
-      });
+      }).catch(err => console.warn('Could not fetch bookings:', err));
 
+      // Fetch projects from DB
       apiService.getProjects().then(res => {
         if (res.success && res.projects && Array.isArray(res.projects) && res.projects.length > 0) {
           setProjects(prev => {
@@ -228,13 +241,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return [...res.projects as any, ...localOnly];
           });
         }
-      }).catch(err => {
-        console.warn('Could not fetch live DB projects on startup:', err);
-      });
+      }).catch(err => console.warn('Could not fetch projects:', err));
+
+      // Fetch ALL CMS data from DB (services, articles, team, portfolio)
+      apiService.getCmsData().then(res => {
+        if (res.success && res.data) {
+          if (Array.isArray(res.data.services) && res.data.services.length > 0) {
+            setServices(res.data.services);
+          }
+          if (Array.isArray(res.data.articles) && res.data.articles.length > 0) {
+            setArticles(res.data.articles);
+          }
+          if (Array.isArray(res.data.team_members) && res.data.team_members.length > 0) {
+            setTeamMembers(res.data.team_members);
+          }
+          if (Array.isArray(res.data.projects) && res.data.projects.length > 0) {
+            setProjects(prev => {
+              const cmsIds = new Set((res.data.projects as any[]).map((p: any) => p.id));
+              const existing = prev.filter(p => !cmsIds.has(p.id));
+              return [...res.data.projects as any, ...existing];
+            });
+          }
+        }
+      }).catch(err => console.warn('Could not fetch CMS data:', err));
     });
   }, []);
 
-  // Re-fetch live DB projects whenever currentUser logs in or changes
+  // Re-fetch live DB projects whenever currentUser logs in
   useEffect(() => {
     if (currentUser) {
       import('../services/apiService').then(({ apiService }) => {
@@ -246,36 +279,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               return [...res.projects as any, ...localOnly];
             });
           }
-        }).catch(err => {
-          console.warn('Could not fetch user projects from DB:', err);
-        });
+        }).catch(err => console.warn('Could not fetch user projects:', err));
       });
     }
   }, [currentUser]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('decor8_users', JSON.stringify(users));
-    } catch (e) {
-      console.warn('LocalStorage quota exceeded for users:', e);
-    }
-  }, [users]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('decor8_articles', JSON.stringify(articles));
-    } catch (e) {
-      console.warn('LocalStorage quota exceeded for articles:', e);
-    }
-  }, [articles]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('decor8_services', JSON.stringify(services));
-    } catch (e) {
-      console.warn('LocalStorage quota exceeded for services:', e);
-    }
-  }, [services]);
 
   const login = async (email: string, passwordInput?: string): Promise<{ success: boolean; user?: User; message?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
