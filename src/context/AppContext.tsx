@@ -62,6 +62,7 @@ interface AppContextType {
   addWorkUpdate: (projectId: string, update: Omit<WorkUpdate, 'id' | 'projectId'>) => void;
   addDocument: (projectId: string, doc: Omit<DocumentItem, 'id' | 'projectId'>) => void;
   addPayment: (projectId: string, pay: Omit<PaymentItem, 'id' | 'projectId'>) => void;
+  updatePaymentStatus: (projectId: string, paymentId: string, status: 'Paid' | 'Pending' | 'Overdue', paidAmount?: number) => void;
   sendMessage: (projectId: string, text: string) => void;
   
   // CMS Actions
@@ -446,12 +447,88 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addPayment = (projectId: string, payData: Omit<PaymentItem, 'id' | 'projectId'>) => {
+    const invNum = `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`;
+    const autoInvoiceUrl = `https://decor8india.com/invoices/${invNum}.pdf`;
+
     const newPay: PaymentItem = {
       ...payData,
       id: `pay-${Date.now()}`,
-      projectId
+      projectId,
+      invoiceUrl: payData.status === 'Paid' ? autoInvoiceUrl : payData.invoiceUrl,
+      paidDate: payData.status === 'Paid' ? (payData.paidDate || new Date().toISOString().split('T')[0]) : payData.paidDate
     };
-    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, payments: [...p.payments, newPay] } : p));
+
+    setProjects(prev => prev.map(p => {
+      if (p.id !== projectId) return p;
+
+      let updatedDocuments = p.documents;
+      if (payData.status === 'Paid') {
+        const autoInvoiceDoc: DocumentItem = {
+          id: `doc-inv-${Date.now()}`,
+          projectId,
+          title: `GST Tax Invoice - ${payData.title} (#${invNum})`,
+          category: 'Invoice',
+          fileUrl: autoInvoiceUrl,
+          fileSize: '240 KB',
+          uploadDate: newPay.paidDate || new Date().toISOString().split('T')[0]
+        };
+        updatedDocuments = [autoInvoiceDoc, ...p.documents];
+      }
+
+      return {
+        ...p,
+        payments: [...p.payments, newPay],
+        documents: updatedDocuments
+      };
+    }));
+  };
+
+  const updatePaymentStatus = (projectId: string, paymentId: string, status: 'Paid' | 'Pending' | 'Overdue', paidAmount?: number) => {
+    const invNum = `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`;
+    const autoInvoiceUrl = `https://decor8india.com/invoices/${invNum}.pdf`;
+    const today = new Date().toISOString().split('T')[0];
+
+    setProjects(prev => prev.map(p => {
+      if (p.id !== projectId) return p;
+
+      let targetPayTitle = '';
+      let targetPayAmount = 0;
+
+      const updatedPayments = p.payments.map(pay => {
+        if (pay.id === paymentId) {
+          targetPayTitle = pay.title;
+          targetPayAmount = paidAmount !== undefined ? paidAmount : (status === 'Paid' ? pay.amount : pay.paidAmount);
+          return {
+            ...pay,
+            status,
+            paidAmount: targetPayAmount,
+            paidDate: status === 'Paid' ? (pay.paidDate || today) : pay.paidDate,
+            invoiceUrl: status === 'Paid' ? (pay.invoiceUrl || autoInvoiceUrl) : pay.invoiceUrl
+          };
+        }
+        return pay;
+      });
+
+      let updatedDocuments = p.documents;
+      if (status === 'Paid') {
+        const autoInvoiceDoc: DocumentItem = {
+          id: `doc-inv-${Date.now()}`,
+          projectId,
+          title: `GST Tax Invoice - ${targetPayTitle || 'Milestone Payment'} (#${invNum})`,
+          category: 'Invoice',
+          fileUrl: autoInvoiceUrl,
+          fileSize: '240 KB',
+          uploadDate: today
+        };
+        updatedDocuments = [autoInvoiceDoc, ...p.documents];
+      }
+
+      return {
+        ...p,
+        payments: updatedPayments,
+        documents: updatedDocuments
+      };
+    }));
   };
 
   const sendMessage = (projectId: string, text: string) => {
@@ -573,6 +650,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addWorkUpdate,
       addDocument,
       addPayment,
+      updatePaymentStatus,
       sendMessage,
       addProject,
       updateProject,

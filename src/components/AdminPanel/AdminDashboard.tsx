@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
-import type { Project, ServiceItem, ProjectStage, TeamMember } from '../../types';
+import type { Project, ServiceItem, ProjectStage, TeamMember, PaymentItem } from '../../types';
 import { 
   LayoutDashboard, 
   Users, 
@@ -26,6 +26,8 @@ import {
   Award
 } from 'lucide-react';
 
+import { InvoiceModal } from '../InvoiceModal';
+
 interface AdminDashboardProps {
   onReturnToPublic: () => void;
 }
@@ -42,6 +44,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     addWorkUpdate,
     addDocument,
     addPayment,
+    updatePaymentStatus,
     addProject,
     updateProject,
     deleteProject,
@@ -130,6 +133,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [payAmount, setPayAmount] = useState<number>(500000);
   const [payDueDate, setPayDueDate] = useState(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
   const [payStatus, setPayStatus] = useState<'Pending' | 'Paid'>('Pending');
+  const [selectedInvoicePayment, setSelectedInvoicePayment] = useState<PaymentItem | null>(null);
 
   // ---------------- PORTFOLIO CMS MODAL STATE ----------------
   const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
@@ -1134,14 +1138,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                               <div className="font-bold text-white">{pay.title}</div>
                               <div className="text-[10px] text-neutral-400 font-mono">Due: {pay.dueDate} {pay.paidDate ? `• Paid on ${pay.paidDate}` : ''}</div>
                             </div>
-                            <div className="text-right">
-                              <div className="font-bold font-mono text-[#D4AF37]">₹ {(pay.amount / 100000).toFixed(2)} Lakhs</div>
-                              <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                                pay.status === 'Paid' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300'
-                              }`}>
-                                {pay.status}
-                              </span>
+                            
+                            <div className="flex items-center space-x-3">
+                              <div className="text-right">
+                                <div className="font-bold font-mono text-[#D4AF37]">₹ {(pay.amount / 100000).toFixed(2)} Lakhs</div>
+                                <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                                  pay.status === 'Paid' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-300'
+                                }`}>
+                                  {pay.status}
+                                </span>
+                              </div>
+
+                              {pay.status === 'Pending' ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    updatePaymentStatus(selectedProject.id, pay.id, 'Paid');
+                                    alert(`Payment marked as Paid! Official GST Tax Invoice generated for "${pay.title}" and saved to Client Document Vault.`);
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-[11px] uppercase"
+                                >
+                                  Mark as Paid
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedInvoicePayment(pay)}
+                                  className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#D4AF37] text-white hover:text-black font-bold text-[11px] transition-colors border border-white/15 flex items-center space-x-1"
+                                >
+                                  <FileText className="w-3.5 h-3.5" />
+                                  <span>View Invoice</span>
+                                </button>
+                              )}
                             </div>
+
                           </div>
                         ))}
                       </div>
@@ -1977,6 +2007,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
           </div>
         </div>
       )}
+
+      {/* GST Tax Invoice Viewer Modal */}
+      <InvoiceModal 
+        isOpen={Boolean(selectedInvoicePayment)}
+        onClose={() => setSelectedInvoicePayment(null)}
+        payment={selectedInvoicePayment}
+        project={selectedProject}
+      />
 
     </div>
   );

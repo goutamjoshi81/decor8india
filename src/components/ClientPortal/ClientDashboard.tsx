@@ -17,6 +17,9 @@ import {
   ChevronRight
 } from 'lucide-react';
 
+import type { PaymentItem } from '../../types';
+import { InvoiceModal } from '../InvoiceModal';
+
 interface ClientDashboardProps {
   onReturnToPublic: () => void;
 }
@@ -25,6 +28,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
   const { currentUser, logout, projects, sendMessage } = useApp();
   const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'updates' | 'documents' | 'payments' | 'messages' | 'profile'>('overview');
   const [newMessageText, setNewMessageText] = useState('');
+  const [selectedInvoicePayment, setSelectedInvoicePayment] = useState<PaymentItem | null>(null);
 
   // Strict Security Rule: Client can only view THEIR OWN project
   const clientProject = projects.find(p => p.clientId === currentUser?.id || p.id === currentUser?.projectId) || projects[2];
@@ -401,12 +405,17 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
                         </span>
                       </td>
                       <td className="p-4 text-right">
-                        <button 
-                          onClick={() => alert(`Downloading Invoice for ${p.title}`)}
-                          className="text-xs text-[#D4AF37] hover:underline font-semibold"
-                        >
-                          Download Invoice
-                        </button>
+                        {p.status === 'Paid' ? (
+                          <button 
+                            onClick={() => setSelectedInvoicePayment(p)}
+                            className="text-xs text-[#D4AF37] hover:underline font-semibold flex items-center justify-end space-x-1 ml-auto"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>View / Download Invoice</span>
+                          </button>
+                        ) : (
+                          <span className="text-neutral-500 text-[11px] italic">Pending Payment</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -502,6 +511,15 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
         )}
 
       </div>
+
+      {/* GST Tax Invoice Modal */}
+      <InvoiceModal 
+        isOpen={Boolean(selectedInvoicePayment)}
+        onClose={() => setSelectedInvoicePayment(null)}
+        payment={selectedInvoicePayment}
+        project={clientProject}
+      />
+
     </div>
   );
 };
