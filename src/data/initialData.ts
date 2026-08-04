@@ -748,20 +748,23 @@ export const INITIAL_BOOKINGS: BookingRequest[] = [
 export const INITIAL_USERS: User[] = [
   {
     id: 'admin-1',
-    name: 'Decor8India Admin',
-    email: 'admin@decor8india.com',
+    name: 'Mr. Satish Bhat (CEO & Admin)',
+    email: 'satish@decor8india.com',
+    password: 'Decor8#India2026',
     role: 'ADMIN',
-    phone: '+91 90000 00001',
+    phone: '+91 98765 43210',
     isApproved: true,
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'
+    avatar: '/satish_bhat.png'
   },
   {
     id: 'client-user-1',
     name: 'Ananya Reddy',
     email: 'ananya.reddy@example.com',
+    password: '9876543210',
     role: 'CLIENT',
-    phone: '+91 98765 43210',
+    phone: '9876543210',
     isApproved: true,
+    mustChangePassword: true,
     projectId: 'proj-3',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80'
   }

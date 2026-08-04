@@ -25,12 +25,35 @@ interface ClientDashboardProps {
 }
 
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPublic }) => {
-  const { currentUser, logout, projects, sendMessage } = useApp();
+  const { currentUser, logout, projects, sendMessage, updatePassword } = useApp();
   const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'updates' | 'documents' | 'payments' | 'messages' | 'profile'>('overview');
   const [newMessageText, setNewMessageText] = useState('');
   const [selectedInvoicePayment, setSelectedInvoicePayment] = useState<PaymentItem | null>(null);
-
   const [isConsolidatedInvoiceOpen, setIsConsolidatedInvoiceOpen] = useState(false);
+
+  // Change Password state
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSuccessMsg, setPasswordSuccessMsg] = useState('');
+
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 4) {
+      alert('Password must be at least 4 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      alert('New password and confirmation password do not match.');
+      return;
+    }
+
+    if (currentUser) {
+      updatePassword(currentUser.id, newPassword);
+      setPasswordSuccessMsg('Password updated successfully! Your account is now fully secured.');
+      setNewPassword('');
+      setConfirmPassword('');
+    }
+  };
 
   // Strict Security Rule: Client can only view THEIR OWN project
   const clientProject = projects.find(p => p.clientId === currentUser?.id || p.id === currentUser?.projectId) || projects[2];
@@ -70,6 +93,27 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
       
       {/* Top Portal Banner */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        {/* Security Notice Banner for Default Password */}
+        {currentUser?.mustChangePassword && (
+          <div className="p-4 rounded-xl bg-[#D4AF37]/20 border border-[#D4AF37]/60 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg shadow-[#D4AF37]/10 animate-pulse">
+            <div className="space-y-0.5">
+              <div className="font-bold text-xs text-[#D4AF37] uppercase tracking-wider flex items-center space-x-1.5">
+                <Sparkles className="w-4 h-4" />
+                <span>SECURITY NOTICE: Update Default Password</span>
+              </div>
+              <p className="text-xs text-neutral-200">
+                You are currently logged in using your default contact phone number password. Please change your password below to secure your client account.
+              </p>
+            </div>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className="px-4 py-2 rounded-lg gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider shrink-0 hover:opacity-95"
+            >
+              Change Password Now
+            </button>
+          </div>
+        )}
         
         <div className="p-6 sm:p-8 rounded-2xl glass-panel-gold border border-[#D4AF37]/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl relative overflow-hidden">
           <div className="space-y-3">
@@ -515,8 +559,58 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
                 <div className="text-neutral-400 font-mono">Account Security Status</div>
                 <div className="text-emerald-400 font-bold flex items-center space-x-1">
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Admin Approved & Active JWT Session</span>
+                  <span>Admin Approved & Active Session</span>
                 </div>
+              </div>
+
+              {/* Change Password Form */}
+              <div className="p-6 rounded-xl bg-[#0D0E12] border border-[#D4AF37]/40 space-y-4 mt-6">
+                <div className="space-y-1">
+                  <h3 className="font-serif text-lg font-bold text-white flex items-center space-x-2">
+                    <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+                    <span>Change Account Password</span>
+                  </h3>
+                  <p className="text-xs text-neutral-400">Update your default contact number password to a new secure password.</p>
+                </div>
+
+                {passwordSuccessMsg && (
+                  <div className="p-3 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold">
+                    {passwordSuccessMsg}
+                  </div>
+                )}
+
+                <form onSubmit={handleChangePassword} className="space-y-3">
+                  <div>
+                    <label className="text-xs text-neutral-300 block mb-1">New Secure Password *</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Enter new password (min 4 characters)"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-neutral-300 block mb-1">Confirm New Password *</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Re-enter new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity"
+                  >
+                    Save & Secure Account
+                  </button>
+                </form>
               </div>
             </div>
           </div>

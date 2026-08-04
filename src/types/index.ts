@@ -4,9 +4,11 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string;
   role: UserRole;
   phone?: string;
   isApproved: boolean;
+  mustChangePassword?: boolean;
   avatar?: string;
   projectId?: string;
 }

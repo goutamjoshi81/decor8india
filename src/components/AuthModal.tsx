@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   X, 
-  UserCheck, 
-  ShieldAlert, 
   Lock, 
   Mail, 
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  PhoneCall
 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -31,36 +30,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessRedirect }) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!email) {
-      setErrorMsg('Please enter your email address.');
+    if (!email || !password) {
+      setErrorMsg('Please enter both your registered email address and password.');
       return;
     }
 
-    const success = login(email);
-    if (success) {
+    const res = login(email, password);
+
+    if (res.success && res.user) {
       setIsAuthOpen(false);
+      setEmail('');
+      setPassword('');
       if (onSuccessRedirect) {
-        if (email.toLowerCase().includes('admin')) {
+        if (res.user.role === 'ADMIN') {
           onSuccessRedirect('admin');
         } else {
           onSuccessRedirect('client');
         }
       }
     } else {
-      setErrorMsg('Account not found or pending admin approval. Please use demo buttons or submit a booking request.');
-    }
-  };
-
-  const handleQuickDemo = (role: 'ADMIN' | 'CLIENT') => {
-    setErrorMsg('');
-    const demoEmail = role === 'ADMIN' ? 'admin@decor8india.com' : 'ananya.reddy@example.com';
-    setEmail(demoEmail);
-    const success = login(demoEmail, role);
-    if (success) {
-      setIsAuthOpen(false);
-      if (onSuccessRedirect) {
-        onSuccessRedirect(role === 'ADMIN' ? 'admin' : 'client');
-      }
+      setErrorMsg(res.message || 'Invalid credentials. Please check your email and password.');
     }
   };
 
@@ -78,7 +67,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessRedirect }) => {
 
         {/* Modal Header */}
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-center space-x-2.5 mx-auto">
+          <div className="flex items-center justify-center space-x-2.5 mx-auto mb-1">
             <img src="/logo_icon.png" alt="Decor8 India" className="h-9 w-auto object-contain filter drop-shadow-[0_2px_10px_rgba(212,175,55,0.3)]" />
             <span className="text-xl font-serif tracking-wider text-white font-bold">
               DECOR8<span className="text-[#D4AF37]">INDIA</span>
@@ -86,37 +75,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessRedirect }) => {
           </div>
 
           <h2 className="text-2xl font-serif font-bold text-white">
-            Secure Portal Authentication
+            Secure Account Login
           </h2>
           <p className="text-xs text-neutral-400">
-            Enter your credentials to access your project dashboard or admin control panel.
+            Sign in to access your private client portal or admin management dashboard.
           </p>
         </div>
 
-        {/* Quick Demo Shortcuts */}
-        <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
-          <div className="text-[11px] uppercase tracking-wider text-[#D4AF37] font-semibold text-center">
-            ⚡ One-Click Demo Access
+        {/* Client Default Password Notice */}
+        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-neutral-300 space-y-1">
+          <div className="font-bold text-[#D4AF37] flex items-center space-x-1.5">
+            <PhoneCall className="w-3.5 h-3.5" />
+            <span>Default Client Login Password:</span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickDemo('CLIENT')}
-              className="py-2 px-3 rounded-lg bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-xs font-bold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all flex items-center justify-center space-x-1.5"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Client Demo</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickDemo('ADMIN')}
-              className="py-2 px-3 rounded-lg bg-red-500/20 border border-red-500/40 text-xs font-bold text-red-300 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center space-x-1.5"
-            >
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Admin Demo</span>
-            </button>
-          </div>
+          <p className="text-[11px] text-neutral-400 leading-normal">
+            For approved clients, your default password is your <strong>registered contact phone number</strong>.
+          </p>
         </div>
 
         {/* Error Alert */}
@@ -130,13 +104,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessRedirect }) => {
         {/* Credentials Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs text-neutral-300 font-medium">Email Address</label>
+            <label className="text-xs text-neutral-300 font-medium">Registered Email Address *</label>
             <div className="relative">
               <Mail className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input 
                 type="email" 
                 required
-                placeholder="ananya.reddy@example.com"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
@@ -145,11 +119,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessRedirect }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-neutral-300 font-medium">Password</label>
+            <label className="text-xs text-neutral-300 font-medium">Password *</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input 
                 type="password" 
+                required
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -160,15 +135,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccessRedirect }) => {
 
           <button 
             type="submit"
-            className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2"
+            className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-lg shadow-[#D4AF37]/20"
           >
-            <span>Sign In to Portal</span>
+            <span>Sign In to Dashboard</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
         <div className="text-center text-[11px] text-neutral-500 pt-2 border-t border-white/10">
-          Haven't booked a consultation yet? Submit a booking to request client portal access.
+          Need portal access? Submit a consultation booking to receive login credentials.
         </div>
 
       </div>

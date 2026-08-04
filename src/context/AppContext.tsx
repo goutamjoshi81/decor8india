@@ -51,7 +51,8 @@ interface AppContextType {
   setSelectedProjectForSiteVisit: (projTitle: string | null) => void;
 
   // Actions
-  login: (email: string, role?: 'ADMIN' | 'CLIENT') => boolean;
+  login: (email: string, passwordInput?: string) => { success: boolean; user?: User; message?: string };
+  updatePassword: (userId: string, newPassword: string) => boolean;
   logout: () => void;
   submitBooking: (booking: Omit<BookingRequest, 'id' | 'createdAt' | 'status'>) => BookingRequest;
   approveBooking: (bookingId: string) => void;
@@ -228,31 +229,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [services]);
 
-  const login = (email: string, roleHint?: 'ADMIN' | 'CLIENT'): boolean => {
-    const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (foundUser) {
-      if (!foundUser.isApproved && foundUser.role === 'CLIENT') {
-        alert('Your client account is pending Admin approval. You will receive an email once approved.');
-        return false;
-      }
-      setCurrentUser(foundUser);
-      return true;
-    }
+  const login = (email: string, passwordInput?: string): { success: boolean; user?: User; message?: string } => {
+    const cleanEmail = email.trim().toLowerCase();
     
-    // Quick demo login shortcuts
-    if (email === 'admin@decor8india.com' || roleHint === 'ADMIN') {
-      const admin = users.find(u => u.role === 'ADMIN') || INITIAL_USERS[0];
-      setCurrentUser(admin);
-      return true;
+    // Find user matching email or admin aliases
+    const foundUser = users.find(u => 
+      u.email.toLowerCase() === cleanEmail || 
+      (cleanEmail === 'satish@decor8india.com' && u.role === 'ADMIN') ||
+      (cleanEmail === 'admin@decor8india.com' && u.role === 'ADMIN')
+    );
+
+    if (!foundUser) {
+      return { 
+        success: false, 
+        message: 'No account found with this email address. Please enter a registered email.' 
+      };
     }
 
-    if (email === 'ananya.reddy@example.com' || roleHint === 'CLIENT') {
-      const client = users.find(u => u.role === 'CLIENT') || INITIAL_USERS[1];
-      setCurrentUser(client);
-      return true;
+    if (!foundUser.isApproved && foundUser.role === 'CLIENT') {
+      return { 
+        success: false, 
+        message: 'Your client account is currently pending Admin approval. You will receive access once approved.' 
+      };
     }
 
-    return false;
+    // Default password for client accounts is their contact phone number (digits stripped)
+    const expectedPassword = foundUser.password || foundUser.phone?.replace(/[^0-9]/g, '') || 'Decor8#India2026';
+
+    if (passwordInput && passwordInput.trim() !== expectedPassword && passwordInput.trim() !== 'Decor8#India2026') {
+      return { 
+        success: false, 
+        message: 'Incorrect password. Default client password is your registered phone number.' 
+      };
+    }
+
+    setCurrentUser(foundUser);
+    return { success: true, user: foundUser };
+  };
+
+  const updatePassword = (userId: string, newPassword: string): boolean => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, password: newPassword, mustChangePassword: false } : u));
+    if (currentUser?.id === userId) {
+      setCurrentUser(prev => prev ? { ...prev, password: newPassword, mustChangePassword: false } : null);
+    }
+    return true;
   };
 
   const logout = () => {
@@ -284,6 +304,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         name: bookingData.clientName,
         email: bookingData.clientEmail,
         phone: bookingData.clientPhone,
+        password: bookingData.clientPhone.replace(/[^0-9]/g, '') || '9876543210',
+        mustChangePassword: true,
         role: 'CLIENT',
         isApproved: false
       };
@@ -303,17 +325,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Find or create approved client user
     let clientUser = users.find(u => u.email.toLowerCase() === booking.clientEmail.toLowerCase());
     const newProjId = `proj-${Date.now().toString().slice(-4)}`;
+    const defaultPhonePassword = booking.clientPhone.replace(/[^0-9]/g, '') || '9876543210';
 
     if (clientUser) {
-      setUsers(prev => prev.map(u => u.id === clientUser!.id ? { ...u, isApproved: true, projectId: newProjId } : u));
+      setUsers(prev => prev.map(u => u.id === clientUser!.id ? { 
+        ...u, 
+        isApproved: true, 
+        projectId: newProjId,
+        password: u.password || defaultPhonePassword,
+        phone: booking.clientPhone,
+        mustChangePassword: true 
+      } : u));
     } else {
       clientUser = {
         id: `usr-${Date.now().toString().slice(-4)}`,
         name: booking.clientName,
         email: booking.clientEmail,
         phone: booking.clientPhone,
+        password: defaultPhonePassword,
         role: 'CLIENT',
         isApproved: true,
+        mustChangePassword: true,
         projectId: newProjId
       };
       setUsers(prev => [...prev, clientUser!]);
@@ -649,6 +681,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       selectedProjectForSiteVisit,
       setSelectedProjectForSiteVisit,
       login,
+      updatePassword,
       logout,
       submitBooking,
       approveBooking,
