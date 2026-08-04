@@ -117,6 +117,7 @@ export interface Project {
   id: string;
   title: string;
   clientId?: string;
+  clientEmail?: string;
   clientName: string;
   designerName: string;
   designerAvatar?: string;
