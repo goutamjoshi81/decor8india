@@ -15,11 +15,19 @@ import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
 import { AuthModal } from './components/AuthModal';
+import { SiteVisitModal } from './components/SiteVisitModal';
 import { ClientDashboard } from './components/ClientPortal/ClientDashboard';
 import { AdminDashboard } from './components/AdminPanel/AdminDashboard';
 
 const MainAppContent: React.FC = () => {
-  const { currentUser, isEstimatorOpen, setIsEstimatorOpen } = useApp();
+  const { 
+    currentUser, 
+    isEstimatorOpen, 
+    setIsEstimatorOpen, 
+    isSiteVisitOpen, 
+    setIsSiteVisitOpen, 
+    selectedProjectForSiteVisit 
+  } = useApp();
   const [activeTab, setActiveTab] = useState<'public' | 'client' | 'admin'>('public');
 
   return (
@@ -56,6 +64,13 @@ const MainAppContent: React.FC = () => {
       {/* Interactive Global Modals */}
       <BookingModal />
       <AuthModal onSuccessRedirect={(tab) => setActiveTab(tab)} />
+
+      {/* Site Visit Modal */}
+      <SiteVisitModal 
+        isOpen={isSiteVisitOpen}
+        onClose={() => setIsSiteVisitOpen(false)}
+        initialProjectTitle={selectedProjectForSiteVisit || undefined}
+      />
 
       {/* Cost Estimator Standalone Modal */}
       {isEstimatorOpen && (

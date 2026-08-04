@@ -45,6 +45,10 @@ interface AppContextType {
 
   isEstimatorOpen: boolean;
   setIsEstimatorOpen: (open: boolean) => void;
+  isSiteVisitOpen: boolean;
+  setIsSiteVisitOpen: (open: boolean) => void;
+  selectedProjectForSiteVisit: string | null;
+  setSelectedProjectForSiteVisit: (projTitle: string | null) => void;
 
   // Actions
   login: (email: string, role?: 'ADMIN' | 'CLIENT') => boolean;
@@ -162,6 +166,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isEstimatorOpen, setIsEstimatorOpen] = useState(false);
+  const [isSiteVisitOpen, setIsSiteVisitOpen] = useState(false);
+  const [selectedProjectForSiteVisit, setSelectedProjectForSiteVisit] = useState<string | null>(null);
 
   // Sync to local storage with try-catch guards to prevent QuotaExceededError crashes
   useEffect(() => {
@@ -554,6 +560,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setAuthMode,
       isEstimatorOpen,
       setIsEstimatorOpen,
+      isSiteVisitOpen,
+      setIsSiteVisitOpen,
+      selectedProjectForSiteVisit,
+      setSelectedProjectForSiteVisit,
       login,
       logout,
       submitBooking,
