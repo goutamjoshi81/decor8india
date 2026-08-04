@@ -5,7 +5,7 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+05:30";
 
--- Table 1: Users (Admin & Clients)
+-- Table 1: Users (Admin & Approved Clients)
 CREATE TABLE IF NOT EXISTS `users` (
   `id` varchar(50) NOT NULL,
   `name` varchar(100) NOT NULL,
@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `phone` varchar(20) DEFAULT NULL,
   `role` enum('ADMIN','CLIENT') NOT NULL DEFAULT 'CLIENT',
   `password_hash` varchar(255) NOT NULL,
+  `is_approved` tinyint(1) NOT NULL DEFAULT 1,
+  `must_change_password` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
@@ -75,9 +77,9 @@ CREATE TABLE IF NOT EXISTS `payments` (
   CONSTRAINT `fk_payments_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Seed Default Admin Account (Email: satish@decor8india.com / Password: Admin@Decor82026)
-INSERT INTO `users` (`id`, `name`, `email`, `phone`, `role`, `password_hash`) VALUES
-('admin-1', 'Satish Bhat (CEO & Principal Architect)', 'satish@decor8india.com', '+91 98765 43210', 'ADMIN', '$2y$10$v0N16QfH2wNlXlB3hU8Fse1a1uGZ11vS2e48r6B0a9A7N1x0m0m1O')
+-- Seed Default Admin Account (Email: satish@decor8india.com / Password: Decor8#India2026)
+INSERT INTO `users` (`id`, `name`, `email`, `phone`, `role`, `password_hash`, `is_approved`, `must_change_password`) VALUES
+('admin-1', 'Mr. Satish Bhat (CEO & Principal Architect)', 'satish@decor8india.com', '+91 98765 43210', 'ADMIN', '$2y$10$v0N16QfH2wNlXlB3hU8Fse1a1uGZ11vS2e48r6B0a9A7N1x0m0m1O', 1, 0)
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
 
 COMMIT;

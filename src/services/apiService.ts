@@ -46,7 +46,7 @@ export const apiService = {
     }
   },
 
-  // Save Booking Endpoint
+  // Save Booking Endpoint (Saves to 'bookings' table)
   async saveBooking(bookingData: any): Promise<{ success: boolean; bookingId?: string; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/save_booking.php`, {
@@ -58,6 +58,22 @@ export const apiService = {
       return data;
     } catch (error) {
       console.warn('Backend API saveBooking error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  // Approve Booking Endpoint (Transfers client to 'users' table)
+  async approveBooking(bookingId: string): Promise<{ success: boolean; user?: any; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/approve_booking.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API approveBooking error:', error);
       return { success: false, message: 'Server connection error.' };
     }
   }

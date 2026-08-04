@@ -322,6 +322,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Update booking status
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Approved' } : b));
 
+    // Call live MySQL backend API asynchronously
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.approveBooking(bookingId).catch(err => {
+        console.warn('GoDaddy MySQL API approveBooking fallback:', err);
+      });
+    });
+
     // Find or create approved client user
     let clientUser = users.find(u => u.email.toLowerCase() === booking.clientEmail.toLowerCase());
     const newProjId = `proj-${Date.now().toString().slice(-4)}`;
