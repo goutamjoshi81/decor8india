@@ -437,18 +437,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
   const selectedProject = projects.find(p => p.id === selectedProjectId) || projects[0];
 
+  // Auto-select first project when projects load or change
+  React.useEffect(() => {
+    if (projects.length > 0 && (!selectedProjectId || !projects.some(p => p.id === selectedProjectId))) {
+      setSelectedProjectId(projects[0].id);
+    }
+  }, [projects, selectedProjectId]);
+
   const handleUpdateProgressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProjectId) return;
-    updateProjectProgress(selectedProjectId, selectedStage, stageProgressInput);
+    const targetProjId = selectedProjectId || selectedProject?.id;
+    if (!targetProjId) {
+      alert('Please select a project first.');
+      return;
+    }
+    updateProjectProgress(targetProjId, selectedStage, stageProgressInput);
     alert('Project active stage & overall completion updated successfully!');
   };
 
   const handlePostSiteFeed = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProjectId || !feedTitle || !feedDescription) return;
+    const targetProjId = selectedProjectId || selectedProject?.id;
+    if (!targetProjId || !feedTitle || !feedDescription) {
+      alert('Please fill out the update title and description.');
+      return;
+    }
 
-    addWorkUpdate(selectedProjectId, {
+    addWorkUpdate(targetProjId, {
       date: new Date().toISOString().split('T')[0],
       title: feedTitle,
       description: feedDescription,
@@ -464,9 +479,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
   const handleUploadDocument = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProjectId || !docTitle) return;
+    const targetProjId = selectedProjectId || selectedProject?.id;
+    if (!targetProjId || !docTitle) {
+      alert('Please enter a document title.');
+      return;
+    }
 
-    addDocument(selectedProjectId, {
+    addDocument(targetProjId, {
       title: docTitle,
       category: docCategory,
       fileUrl: docFileUrl || '#',
@@ -480,9 +499,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
   const handleAddPaymentMilestone = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProjectId || !payTitle || !payAmount) return;
+    const targetProjId = selectedProjectId || selectedProject?.id;
+    if (!targetProjId || !payTitle || !payAmount) {
+      alert('Please enter payment title and amount.');
+      return;
+    }
 
-    addPayment(selectedProjectId, {
+    addPayment(targetProjId, {
       title: payTitle,
       amount: Number(payAmount),
       paidAmount: payStatus === 'Paid' ? Number(payAmount) : 0,

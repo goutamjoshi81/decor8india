@@ -60,7 +60,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
     (currentUser?.email && p.clientEmail && p.clientEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
     (currentUser?.email && p.clientId && p.clientId.toLowerCase() === currentUser.email.toLowerCase()) ||
     (currentUser?.id && p.clientId === currentUser.id) ||
-    (currentUser?.projectId && p.id === currentUser.projectId)
+    (currentUser?.projectId && p.id === currentUser.projectId) ||
+    (currentUser?.name && p.clientName && p.clientName.toLowerCase().includes(currentUser.name.toLowerCase())) ||
+    (currentUser?.name && p.title && p.title.toLowerCase().includes(currentUser.name.toLowerCase()))
   ) || projects[0];
 
   if (!currentUser || currentUser.role !== 'CLIENT') {

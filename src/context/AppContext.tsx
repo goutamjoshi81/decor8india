@@ -232,20 +232,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       }).catch(err => console.warn('Could not fetch bookings:', err));
 
-      // Fetch projects from DB
-      apiService.getProjects().then(res => {
-        if (res.success && res.projects && Array.isArray(res.projects) && res.projects.length > 0) {
-          setProjects(prev => {
-            const dbIds = new Set(res.projects!.map((p: any) => p.id));
-            const localOnly = prev.filter(p => !dbIds.has(p.id));
-            return [...res.projects as any, ...localOnly];
-          });
-        }
-      }).catch(err => console.warn('Could not fetch projects:', err));
-
-      // Fetch ALL CMS data from DB (services, articles, team, portfolio)
+      // Fetch ALL data from cms_data table (THE SINGLE SOURCE OF TRUTH)
+      // This includes projects, services, articles, team_members — all with full data
       apiService.getCmsData().then(res => {
         if (res.success && res.data) {
+          if (Array.isArray(res.data.projects) && res.data.projects.length > 0) {
+            setProjects(res.data.projects);
+          }
           if (Array.isArray(res.data.services) && res.data.services.length > 0) {
             setServices(res.data.services);
           }
@@ -255,34 +248,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (Array.isArray(res.data.team_members) && res.data.team_members.length > 0) {
             setTeamMembers(res.data.team_members);
           }
-          if (Array.isArray(res.data.projects) && res.data.projects.length > 0) {
-            setProjects(prev => {
-              const cmsIds = new Set((res.data.projects as any[]).map((p: any) => p.id));
-              const existing = prev.filter(p => !cmsIds.has(p.id));
-              return [...res.data.projects as any, ...existing];
-            });
-          }
         }
       }).catch(err => console.warn('Could not fetch CMS data:', err));
     });
   }, []);
-
-  // Re-fetch live DB projects whenever currentUser logs in
-  useEffect(() => {
-    if (currentUser) {
-      import('../services/apiService').then(({ apiService }) => {
-        apiService.getProjects(currentUser.role === 'CLIENT' ? currentUser.email : undefined).then(res => {
-          if (res.success && res.projects && Array.isArray(res.projects) && res.projects.length > 0) {
-            setProjects(prev => {
-              const dbIds = new Set(res.projects!.map((p: any) => p.id));
-              const localOnly = prev.filter(p => !dbIds.has(p.id));
-              return [...res.projects as any, ...localOnly];
-            });
-          }
-        }).catch(err => console.warn('Could not fetch user projects:', err));
-      });
-    }
-  }, [currentUser]);
 
   const login = async (email: string, passwordInput?: string): Promise<{ success: boolean; user?: User; message?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
@@ -457,6 +426,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: newProjId,
       title: `${booking.packageName} for ${booking.clientName}`,
       clientId: clientUser.id,
+      clientEmail: booking.clientEmail,
       clientName: booking.clientName,
       designerName: 'Aarav Mehta (Principal Architect)',
       category: booking.serviceType,
