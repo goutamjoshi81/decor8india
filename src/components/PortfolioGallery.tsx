@@ -59,13 +59,13 @@ export const PortfolioGallery: React.FC = () => {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex justify-center">
-          <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl glass-panel border border-white/10 max-w-full overflow-x-auto">
+        <div className="w-full max-w-full overflow-x-auto no-scrollbar flex justify-start sm:justify-center px-1 pb-2">
+          <div className="flex space-x-1.5 sm:space-x-2 p-1.5 rounded-2xl glass-panel border border-white/10 shrink-0">
             {['All', 'Residential', 'Commercial', 'Luxury', 'Modern', 'Minimal', 'Traditional'].map(cat => (
               <button
                 key={cat}
                 onClick={() => setFilterCategory(cat)}
-                className={`px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                className={`px-3.5 py-1.5 sm:px-5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap ${
                   filterCategory === cat 
                     ? 'gold-gradient-bg text-black shadow-md' 
                     : 'text-neutral-400 hover:text-white hover:bg-white/5'

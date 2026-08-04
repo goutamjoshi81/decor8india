@@ -179,86 +179,86 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Controls Column */}
-        <div className="lg:col-span-7 p-6 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-6">
+        <div className="lg:col-span-7 p-4 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-6">
           
           {/* Category Selector */}
           <div className="flex rounded-xl bg-black/50 p-1 border border-white/10">
             <button
               onClick={() => setServiceCategory('Residential')}
-              className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
+              className={`flex-1 py-2 sm:py-2.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1 sm:space-x-1.5 transition-all ${
                 serviceCategory === 'Residential' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
               }`}
             >
-              <Home className="w-4 h-4" />
-              <span>Residential</span>
+              <Home className="w-3.5 h-3.5 shrink-0 hidden min-[400px]:inline" />
+              <span className="truncate">Residential</span>
             </button>
 
             <button
               onClick={() => setServiceCategory('Commercial')}
-              className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
+              className={`flex-1 py-2 sm:py-2.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1 sm:space-x-1.5 transition-all ${
                 serviceCategory === 'Commercial' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
               }`}
             >
-              <Building2 className="w-4 h-4" />
-              <span>Commercial</span>
+              <Building2 className="w-3.5 h-3.5 shrink-0 hidden min-[400px]:inline" />
+              <span className="truncate">Commercial</span>
             </button>
 
             <button
               onClick={() => setServiceCategory('Construction')}
-              className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
+              className={`flex-1 py-2 sm:py-2.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1 sm:space-x-1.5 transition-all ${
                 serviceCategory === 'Construction' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
               }`}
             >
-              <HardHat className="w-4 h-4" />
-              <span>Construction</span>
+              <HardHat className="w-3.5 h-3.5 shrink-0 hidden min-[400px]:inline" />
+              <span className="truncate">Construction</span>
             </button>
           </div>
 
           {/* Material & Hardware Standard Selector (Eco / Urban / Luxe) */}
-          <div className="space-y-3 p-4 rounded-xl bg-white/5 border border-white/10">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider block">
+          <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-1">
+              <label className="text-[11px] sm:text-xs font-bold text-[#D4AF37] uppercase tracking-wider block">
                 Material & Hardware Standard
               </label>
-              <span className="text-[10px] text-neutral-400 font-mono font-medium">Select Specification Tier</span>
+              <span className="text-[9.5px] sm:text-[10px] text-neutral-400 font-mono font-medium">Select Specification Tier</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {MATERIAL_STANDARDS.map((std) => {
                 const rate = STANDARD_PRICING[serviceCategory][std.id];
                 return (
                   <button
                     key={std.id}
                     onClick={() => setMaterialStandard(std.id)}
-                    className={`p-3 rounded-xl text-center border transition-all flex flex-col justify-between ${
+                    className={`p-2 sm:p-3 rounded-xl text-center border transition-all flex flex-col justify-between ${
                       materialStandard === std.id 
                         ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg ring-1 ring-[#D4AF37]/50' 
                         : 'bg-black/40 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
                     }`}
                   >
                     <div>
-                      <div className="text-xs font-bold text-white">{std.badge}</div>
-                      <div className="text-[10px] text-[#D4AF37] font-mono mt-0.5 font-bold">₹ {rate}/sq.ft</div>
+                      <div className="text-[11px] sm:text-xs font-bold text-white leading-tight">{std.badge}</div>
+                      <div className="text-[9.5px] sm:text-[10px] text-[#D4AF37] font-mono mt-0.5 font-bold">₹ {rate}/sq.ft</div>
                     </div>
-                    <div className="text-[9px] text-neutral-400 mt-1 line-clamp-1">{std.title}</div>
+                    <div className="text-[8.5px] sm:text-[9px] text-neutral-400 mt-1 truncate">{std.title}</div>
                   </button>
                 );
               })}
             </div>
 
             {/* Standard Specs Drawer */}
-            <div className="p-3 rounded-lg bg-black/60 border border-white/10 text-xs space-y-1.5 text-neutral-300 font-light">
-              <div className="flex items-center justify-between text-[#D4AF37] font-semibold text-xs pb-1 border-b border-white/10">
+            <div className="p-2.5 sm:p-3 rounded-lg bg-black/60 border border-white/10 text-xs space-y-1.5 text-neutral-300 font-light">
+              <div className="flex flex-wrap items-center justify-between text-[#D4AF37] font-semibold text-xs pb-1 border-b border-white/10 gap-1">
                 <div className="flex items-center space-x-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>{selectedStandardDetail.badge} — Included Specifications</span>
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span className="text-[11px] sm:text-xs">{selectedStandardDetail.badge} — Included Specifications</span>
                 </div>
-                <span className="font-mono text-[11px] text-white font-bold bg-[#D4AF37]/20 px-2 py-0.5 rounded border border-[#D4AF37]/40">
+                <span className="font-mono text-[10px] sm:text-[11px] text-white font-bold bg-[#D4AF37]/20 px-1.5 sm:px-2 py-0.5 rounded border border-[#D4AF37]/40">
                   ₹ {currentRatePerSqFt} / sq. ft. ({serviceCategory})
                 </span>
               </div>
               {serviceCategory === 'Construction' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[10px] sm:text-[11px] pt-1">
                   <div><strong className="text-white">Steel Rebars:</strong> {(selectedStandardDetail as ConstructionStandardDetail).steelGrade}</div>
                   <div><strong className="text-white">Cement Grade:</strong> {(selectedStandardDetail as ConstructionStandardDetail).cementBrand}</div>
                   <div><strong className="text-white">Bricks/Blocks:</strong> {(selectedStandardDetail as ConstructionStandardDetail).bricksBlocks}</div>
@@ -267,7 +267,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   <div><strong className="text-white">Plumbing/Piping:</strong> {(selectedStandardDetail as ConstructionStandardDetail).plumbingPiping}</div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[10px] sm:text-[11px] pt-1">
                   <div><strong className="text-white">Plywood:</strong> {(selectedStandardDetail as MaterialStandardDetail).plywoodGrade}</div>
                   <div><strong className="text-white">Hardware:</strong> {(selectedStandardDetail as MaterialStandardDetail).hardwareBrand}</div>
                   <div><strong className="text-white">Finish:</strong> {(selectedStandardDetail as MaterialStandardDetail).laminateFinish}</div>
@@ -286,12 +286,12 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
               {/* BHK Size */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">1. Property BHK Size</label>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
                   {(['1 BHK', '2 BHK', '3 BHK', '4 BHK', 'Grand Villa'] as const).map(bhk => (
                     <button
                       key={bhk}
                       onClick={() => setBhkSize(bhk)}
-                      className={`py-2 px-1 rounded-lg text-xs font-semibold border transition-all ${
+                      className={`py-2 px-1 rounded-lg text-[10px] sm:text-xs font-semibold border transition-all truncate ${
                         bhkSize === bhk 
                           ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#D4AF37]' 
                           : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'

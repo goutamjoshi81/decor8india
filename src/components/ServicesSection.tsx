@@ -73,53 +73,53 @@ export const ServicesSection: React.FC = () => {
         </div>
 
         {/* Tab Switcher: All, Residential, Commercial, Construction */}
-        <div className="flex justify-center overflow-x-auto pb-2">
-          <div className="p-1.5 rounded-2xl glass-panel border border-white/10 flex space-x-2 scrollbar-none">
+        <div className="w-full max-w-full overflow-x-auto no-scrollbar flex justify-start sm:justify-center px-1 pb-3">
+          <div className="p-1 sm:p-1.5 rounded-2xl glass-panel border border-white/10 flex space-x-1.5 sm:space-x-2 shrink-0">
             <button
               onClick={() => setActiveType('All')}
-              className={`flex items-center space-x-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 whitespace-nowrap ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 sm:px-6 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 whitespace-nowrap ${
                 activeType === 'All'
                   ? 'gold-gradient-bg text-black font-bold shadow-lg shadow-[#D4AF37]/20'
                   : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Sparkles className="w-4 h-4" />
-              <span>All Services ({services.filter(s => s.isActive).length})</span>
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span>All ({services.filter(s => s.isActive).length})</span>
             </button>
 
             <button
               onClick={() => setActiveType('Residential')}
-              className={`flex items-center space-x-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 whitespace-nowrap ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 sm:px-6 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 whitespace-nowrap ${
                 activeType === 'Residential'
                   ? 'gold-gradient-bg text-black font-bold shadow-lg shadow-[#D4AF37]/20'
                   : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Home className="w-4 h-4" />
+              <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               <span>Residential ({services.filter(s => s.type === 'Residential' && s.isActive).length})</span>
             </button>
 
             <button
               onClick={() => setActiveType('Commercial')}
-              className={`flex items-center space-x-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 whitespace-nowrap ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 sm:px-6 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 whitespace-nowrap ${
                 activeType === 'Commercial'
                   ? 'gold-gradient-bg text-black font-bold shadow-lg shadow-[#D4AF37]/20'
                   : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Building2 className="w-4 h-4" />
+              <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               <span>Commercial ({services.filter(s => s.type === 'Commercial' && s.isActive).length})</span>
             </button>
 
             <button
               onClick={() => setActiveType('Construction')}
-              className={`flex items-center space-x-2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 whitespace-nowrap ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3.5 py-2 sm:px-6 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 whitespace-nowrap ${
                 activeType === 'Construction'
                   ? 'gold-gradient-bg text-black font-bold shadow-lg shadow-[#D4AF37]/20'
                   : 'text-neutral-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              <HardHat className="w-4 h-4" />
+              <HardHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               <span>Construction ({services.filter(s => s.type === 'Construction' && s.isActive).length})</span>
             </button>
           </div>

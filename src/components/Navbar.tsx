@@ -51,16 +51,18 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
       {/* Top EMI Announcement Banner */}
-      <div className="bg-gradient-to-r from-[#1A1915] via-[#2A2312] to-[#1A1915] border-b border-[#D4AF37]/30 text-white text-[11px] sm:text-xs py-1.5 px-4 text-center flex items-center justify-center space-x-2">
-        <span className="inline-flex items-center space-x-1.5">
-          <span className="px-1.5 py-0.5 rounded bg-[#D4AF37] text-black font-extrabold uppercase text-[9px] tracking-wider font-mono">0% Interest EMI</span>
-          <span className="font-medium text-neutral-200">Easy Monthly EMI Financing Available Up to 36 Months — Design & Build Now, Pay Later!</span>
+      <div className="bg-gradient-to-r from-[#1A1915] via-[#2A2312] to-[#1A1915] border-b border-[#D4AF37]/30 text-white text-[10px] sm:text-xs py-1.5 px-3 sm:px-4 text-center flex items-center justify-center space-x-1.5 sm:space-x-2">
+        <span className="inline-flex items-center space-x-1 sm:space-x-1.5 truncate">
+          <span className="px-1.5 py-0.5 rounded bg-[#D4AF37] text-black font-extrabold uppercase text-[8px] sm:text-[9px] tracking-wider font-mono shrink-0">0% EMI</span>
+          <span className="font-medium text-neutral-200 truncate">
+            <span className="hidden min-[480px]:inline">Easy Monthly Financing Up to 36 Months — </span>Design & Build Now, Pay Later!
+          </span>
         </span>
         <button 
           onClick={() => setIsEstimatorOpen(true)}
-          className="hidden sm:inline-flex items-center space-x-1 text-[#D4AF37] font-bold hover:underline ml-2"
+          className="hidden md:inline-flex items-center space-x-1 text-[#D4AF37] font-bold hover:underline shrink-0 ml-1"
         >
-          <span>Calculate EMI Budget</span>
+          <span>Calculate EMI</span>
           <ChevronRight className="w-3 h-3" />
         </button>
       </div>
@@ -68,8 +70,8 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
       <header 
         className={`transition-all duration-500 ${
           isScrolled 
-            ? 'bg-[#0B0C0E]/95 backdrop-blur-xl border-b border-white/10 py-2.5 shadow-2xl shadow-black/80' 
-            : 'bg-gradient-to-b from-black/90 via-black/50 to-transparent py-4'
+            ? 'bg-[#0B0C0E]/95 backdrop-blur-xl border-b border-white/10 py-2 sm:py-2.5 shadow-2xl shadow-black/80' 
+            : 'bg-gradient-to-b from-black/90 via-black/50 to-transparent py-3 sm:py-4'
         }`}
       >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -78,18 +80,18 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
           {/* Logo */}
           <div 
             onClick={() => handleNavClick('hero')} 
-            className="flex items-center space-x-2.5 cursor-pointer group py-1 shrink-0 mr-4 sm:mr-6"
+            className="flex items-center space-x-2 sm:space-x-2.5 cursor-pointer group py-1 shrink-0 mr-2 sm:mr-6"
           >
             <img 
               src="/logo_icon.png" 
               alt="Decor8 India Logo" 
-              className="h-8 sm:h-10 w-auto object-contain transition-transform duration-500 group-hover:scale-110 filter drop-shadow-[0_2px_10px_rgba(212,175,55,0.3)] shrink-0" 
+              className="h-7 sm:h-10 w-auto object-contain transition-transform duration-500 group-hover:scale-110 filter drop-shadow-[0_2px_10px_rgba(212,175,55,0.3)] shrink-0" 
             />
             <div className="shrink-0">
-              <span className="text-xl sm:text-2xl font-serif tracking-wider text-white font-bold block leading-none whitespace-nowrap">
+              <span className="text-lg sm:text-2xl font-serif tracking-wider text-white font-bold block leading-none whitespace-nowrap">
                 DECOR8<span className="text-[#D4AF37]">INDIA</span>
               </span>
-              <span className="text-[8px] sm:text-[9px] tracking-[0.25em] text-[#A8A29E] uppercase block font-semibold mt-1 whitespace-nowrap">
+              <span className="text-[7.5px] sm:text-[9px] tracking-[0.2em] sm:tracking-[0.25em] text-[#A8A29E] uppercase block font-semibold mt-0.5 sm:mt-1 whitespace-nowrap">
                 Affordable Luxury
               </span>
             </div>
