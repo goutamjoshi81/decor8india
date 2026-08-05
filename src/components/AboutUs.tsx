@@ -171,6 +171,17 @@ export const AboutUs: React.FC = () => {
                     src={member.image} 
                     alt={member.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.dataset.failed) {
+                        target.dataset.failed = 'true';
+                        target.src = index === 1 
+                          ? 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80'
+                          : index === 2 
+                            ? 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80'
+                            : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80';
+                      }
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-transparent" />
                 </div>

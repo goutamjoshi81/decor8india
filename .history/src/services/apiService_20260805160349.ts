@@ -1,9 +1,13 @@
-// Decor8 India - Live Backend API Integration Service
-// Points to your live backend on GoDaddy / production domain
+// Toggle between Local Database vs Live GoDaddy Database:
+// - Set USE_LOCAL_DATABASE = false -> Local code connects to live GoDaddy cPanel MySQL database
+// - Set USE_LOCAL_DATABASE = true  -> Local code connects to local database (e.g. XAMPP/WAMP at http://localhost/api)
+const USE_LOCAL_DATABASE = false;
 
-const API_BASE_URL = window.location.hostname === 'localhost'
-  ? 'https://decor8india.com/api' // Fallback for local testing against live GoDaddy backend
-  : `${window.location.origin}/api`;
+const API_BASE_URL = USE_LOCAL_DATABASE
+  ? 'http://localhost/api'
+  : (window.location.hostname === 'localhost' 
+      ? 'https://decor8india.com/api' // Default: Local frontend talks to live GoDaddy database
+      : `${window.location.origin}/api`);
 
 export interface UserPayload {
   id: string;
@@ -142,7 +146,7 @@ export const apiService = {
   // Get Projects & Site Updates from GoDaddy MySQL
   async getProjects(clientEmail?: string): Promise<{ success: boolean; projects?: any[]; message?: string }> {
     try {
-      const url = clientEmail
+      const url = clientEmail 
         ? `${API_BASE_URL}/get_projects.php?clientEmail=${encodeURIComponent(clientEmail)}`
         : `${API_BASE_URL}/get_projects.php`;
       const response = await fetch(url);
@@ -189,7 +193,7 @@ export const apiService = {
   // Generic CMS Data Fetch (portfolio, services, articles, team, etc.)
   async getCmsData(key?: string): Promise<{ success: boolean; data?: any; value?: any; message?: string }> {
     try {
-      const url = key
+      const url = key 
         ? `${API_BASE_URL}/get_cms_data.php?key=${encodeURIComponent(key)}`
         : `${API_BASE_URL}/get_cms_data.php`;
       const response = await fetch(url);

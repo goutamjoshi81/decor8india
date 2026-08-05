@@ -235,6 +235,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }));
     };
 
+    const sanitizeTeamMembers = (members: TeamMember[]): TeamMember[] => {
+      return members.map(m => {
+        let img = m.image || '';
+        if (img.startsWith('http://')) {
+          img = img.replace(/^http:\/\//i, 'https://');
+        }
+        if (img.startsWith('/uploads/')) {
+          img = `https://decor8india.com${img}`;
+        }
+        if (!img || img === '/logo_transparent.png' || img.includes('logo')) {
+          const initMatch = INITIAL_TEAM_MEMBERS.find(initM => initM.id === m.id || initM.name.toLowerCase() === m.name.toLowerCase());
+          if (initMatch) img = initMatch.image;
+        }
+        return {
+          ...m,
+          image: img
+        };
+      });
+    };
+
     const fetchAllCmsData = () => {
       import('../services/apiService').then(({ apiService }) => {
         // Fetch bookings from DB
@@ -261,7 +281,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               setArticles(res.data.articles);
             }
             if (Array.isArray(res.data.team_members) && res.data.team_members.length > 0) {
-              setTeamMembers(res.data.team_members);
+              setTeamMembers(sanitizeTeamMembers(res.data.team_members));
             }
           }
         }).catch(err => console.warn('Could not fetch CMS data:', err));

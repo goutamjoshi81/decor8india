@@ -370,7 +370,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       setTeamName('');
       setTeamRole('');
       setTeamExperience('');
-      setTeamImage('/satish_bhat.png');
+      setTeamImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80');
       setTeamBio('');
     }
     setIsTeamModalOpen(true);
@@ -1448,6 +1448,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         src={member.image} 
                         alt={member.name} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.dataset.failed) {
+                            target.dataset.failed = 'true';
+                            target.src = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80';
+                          }
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-transparent" />
                       <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] font-mono text-[10px] font-bold">
@@ -2030,25 +2037,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
               {/* Photo Upload / Image URL */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-neutral-300">Profile Photo / Portrait *</label>
-                <label className="flex items-center justify-center w-full px-3.5 py-4 rounded-xl bg-black/60 border-2 border-dashed border-white/20 hover:border-[#D4AF37]/60 transition-colors cursor-pointer group">
+                <div className="space-y-2">
                   <input 
-                    type="file" 
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileUpload(file, setTeamImage);
-                    }}
+                    type="text"
+                    placeholder="Enter Image URL or upload a file below..."
+                    value={teamImage}
+                    onChange={(e) => setTeamImage(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                   />
-                  <div className="flex flex-col items-center space-y-1">
-                    <Upload className="w-5 h-5 text-neutral-400 group-hover:text-[#D4AF37] transition-colors" />
-                    <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors">Click to upload photo portrait</span>
-                  </div>
-                </label>
+                  <label className="flex items-center justify-center w-full px-3.5 py-3 rounded-xl bg-black/60 border border-dashed border-white/20 hover:border-[#D4AF37]/60 transition-colors cursor-pointer group">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, setTeamImage);
+                      }}
+                    />
+                    <div className="flex items-center space-x-2">
+                      <Upload className="w-4 h-4 text-neutral-400 group-hover:text-[#D4AF37] transition-colors" />
+                      <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors">Click to upload photo portrait file</span>
+                    </div>
+                  </label>
+                </div>
 
                 {teamImage && (
                   <div className="relative inline-block mt-2">
-                    <img src={teamImage} alt="Portrait Preview" className="w-24 h-28 rounded-lg object-cover border border-[#D4AF37]/40 shadow-md" />
+                    <img 
+                      src={teamImage} 
+                      alt="Portrait Preview" 
+                      className="w-24 h-28 rounded-lg object-cover border border-[#D4AF37]/40 shadow-md"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.dataset.failed) {
+                          target.dataset.failed = 'true';
+                          target.src = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80';
+                        }
+                      }}
+                    />
                     <button type="button" onClick={() => setTeamImage('')} className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500/90 text-white flex items-center justify-center text-xs hover:bg-red-400 transition-colors"><X className="w-3 h-3" /></button>
                   </div>
                 )}
