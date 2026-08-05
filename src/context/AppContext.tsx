@@ -157,7 +157,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
     try {
-      const saved = localStorage.getItem('decor8_team_members');
+      // Use versioned key so we don't restore stale cached images
+      const saved = localStorage.getItem('decor8_team_members_v2');
       return saved ? JSON.parse(saved) : INITIAL_TEAM_MEMBERS;
     } catch (e) {
       return INITIAL_TEAM_MEMBERS;
@@ -201,9 +202,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [projects]);
 
   useEffect(() => {
-    try { localStorage.setItem('decor8_team_members', JSON.stringify(teamMembers)); } catch (e) {}
+    try { localStorage.setItem('decor8_team_members_v2', JSON.stringify(teamMembers)); } catch (e) {}
+    // Only sync team members to server AFTER initial DB fetch is done (so we never overwrite DB with stale local data)
     syncToServer('team_members', teamMembers);
   }, [teamMembers]);
+
 
   useEffect(() => {
     try { localStorage.setItem('decor8_bookings', JSON.stringify(bookings)); } catch (e) {}

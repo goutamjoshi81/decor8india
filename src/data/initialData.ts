@@ -14,7 +14,7 @@ export const INITIAL_TEAM_MEMBERS: TeamMember[] = [
     name: 'Mr. Ar Darshan Bhat',
     role: 'Principal Architect',
     experience: '7+ Years @ Aaroha Studios',
-    image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80',
+    image: '/darshan_bhat.png',
     bio: 'Principal architect specializing in spatial planning, luxury villa design, and bespoke architectural concepts.'
   },
   {
