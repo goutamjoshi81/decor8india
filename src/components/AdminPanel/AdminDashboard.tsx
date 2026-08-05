@@ -354,7 +354,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [teamName, setTeamName] = useState('');
   const [teamRole, setTeamRole] = useState('');
   const [teamExperience, setTeamExperience] = useState('');
-  const [teamImage, setTeamImage] = useState('/satish_bhat.png');
+  const [teamImage, setTeamImage] = useState('');
   const [teamBio, setTeamBio] = useState('');
 
   const openTeamMemberModal = (member?: TeamMember) => {
@@ -388,7 +388,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         name: teamName,
         role: teamRole,
         experience: teamExperience,
-        image: teamImage || '/satish_bhat.png',
+        image: teamImage || '/logo_transparent.png',
         bio: teamBio
       });
       alert(`Architect profile for ${teamName} updated successfully!`);
@@ -397,7 +397,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         name: teamName,
         role: teamRole,
         experience: teamExperience,
-        image: teamImage || '/satish_bhat.png',
+        image: teamImage || '/logo_transparent.png',
         bio: teamBio
       });
       alert(`New Master Architect ${teamName} added to leadership team!`);

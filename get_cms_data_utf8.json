@@ -1,0 +1,828 @@
+{
+    "success":  true,
+    "data":  {
+                 "team_members":  [
+                                      {
+                                          "id":  "team-1",
+                                          "name":  "Mr. Satish Bhat",
+                                          "role":  "Founder \u0026 CEO",
+                                          "experience":  "10+ Years Experience",
+                                          "image":  "/satish_bhat.png",
+                                          "bio":  "Visionary founder driving Decor8India\u0027s architectural perfection, strategic growth, and client trust."
+                                      },
+                                      {
+                                          "id":  "team-2",
+                                          "name":  "Mr. Ar Darshan Bhat",
+                                          "role":  "Principal Architect",
+                                          "experience":  "7+ Years @ Aaroha Studios",
+                                          "image":  "/darshan_bhat.png",
+                                          "bio":  "Principal architect specializing in spatial planning, luxury villa design, and bespoke architectural concepts."
+                                      },
+                                      {
+                                          "id":  "team-3",
+                                          "name":  "Mr. Er Chandan Bhat",
+                                          "role":  "Structural Engineer",
+                                          "experience":  "8+ Years Experience",
+                                          "image":  "/chandan_bhat.png",
+                                          "bio":  "Lead structural engineer overseeing RCC framing, seismic load calculations, and turnkey civil execution."
+                                      }
+                                  ],
+                 "services":  [
+                                  {
+                                      "id":  "res-1bhk",
+                                      "title":  "1 BHK Interior Package",
+                                      "type":  "Residential",
+                                      "description":  "Smart, spatial optimization for compact luxury living with custom modular furniture \u0026 ambient lighting.",
+                                      "features":  [
+                                                       "Modular Kitchen with Tandem Drawers",
+                                                       "Master Bedroom Wardrobe with Loft",
+                                                       "Designer TV Unit \u0026 Foyer",
+                                                       "Ceiling \u0026 Ambient Concealed Lighting",
+                                                       "Complete Soft Furnishing Consultation"
+                                                   ],
+                                      "estimatedDuration":  "30 - 45 Days",
+                                      "startingPrice":  380000,
+                                      "image":  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Home",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "res-2bhk",
+                                      "title":  "2 BHK Premium Interior",
+                                      "type":  "Residential",
+                                      "description":  "Elegantly curated 2BHK design featuring bespoke woodwork, false ceiling highlights, and premium finishes.",
+                                      "features":  [
+                                                       "Acrylic Finished Modular Kitchen",
+                                                       "2 Full Wardrobe Units with Dresser",
+                                                       "Panelled Living Room Wall \u0026 Bar Unit",
+                                                       "Designer Bathroom Vanities",
+                                                       "3D Photorealistic Visualizations"
+                                                   ],
+                                      "estimatedDuration":  "45 - 60 Days",
+                                      "startingPrice":  650000,
+                                      "image":  "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Building",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "res-3bhk",
+                                      "title":  "3 BHK Royal Residency",
+                                      "type":  "Residential",
+                                      "description":  "Comprehensive luxury makeover with fine Italian marble accents, veneer panelling, and automated smart controls.",
+                                      "features":  [
+                                                       "Island Modular Kitchen with Quartz Countertop",
+                                                       "Walk-in Closets in Master Suite",
+                                                       "Custom Dining Set \u0026 Crockery Unit",
+                                                       "False Ceiling with Smart RGBW Lighting",
+                                                       "Balcony Garden \u0026 Deck Flooring"
+                                                   ],
+                                      "estimatedDuration":  "60 - 75 Days",
+                                      "startingPrice":  1150000,
+                                      "image":  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Crown",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "res-villa",
+                                      "title":  "4 BHK / Grand Villa Interior",
+                                      "type":  "Residential",
+                                      "description":  "Ultra-luxurious bespoke villa interiors tailored to architectural perfection with custom imported marble \u0026 artworks.",
+                                      "features":  [
+                                                       "Double-Height Living Room Statement Wall",
+                                                       "Home Theater \u0026 Acoustics Setup",
+                                                       "Gourmet Chef Kitchen \u0026 Pantry",
+                                                       "Private Elevator Surround Panelling",
+                                                       "Dedicated Turnkey Interior Execution"
+                                                   ],
+                                      "estimatedDuration":  "90 - 120 Days",
+                                      "startingPrice":  2450000,
+                                      "image":  "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Castle",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "res-custom",
+                                      "title":  "Custom Residential Architecture",
+                                      "type":  "Residential",
+                                      "description":  "Bespoke design-to-build residential architecture and customized interior design for discerning homeowners.",
+                                      "features":  [
+                                                       "100% Customized Material Palettes",
+                                                       "Architectural Spatial Planning",
+                                                       "Custom Handcrafted Furniture Pieces",
+                                                       "Art Curation \u0026 Landscaping",
+                                                       "Dedicated Senior Project Architect"
+                                                   ],
+                                      "estimatedDuration":  "Custom Timeline",
+                                      "startingPrice":  1800000,
+                                      "image":  "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Compass",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "com-office",
+                                      "title":  "Modern Corporate Office",
+                                      "type":  "Commercial",
+                                      "description":  "Ergonomic, high-productivity office environments with acoustically isolated cabins and collaborative workspaces.",
+                                      "features":  [
+                                                       "Ergonomic Workstations \u0026 Executive Cabins",
+                                                       "Conference Room Audio-Visual Integration",
+                                                       "Reception Lounge Statement Feature",
+                                                       "Acoustic Baffle Ceiling System",
+                                                       "Biophilic Design Integration"
+                                                   ],
+                                      "estimatedDuration":  "40 - 60 Days",
+                                      "startingPrice":  1200000,
+                                      "image":  "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Briefcase",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "com-retail",
+                                      "title":  "Boutique Retail Store",
+                                      "type":  "Commercial",
+                                      "description":  "High-converting retail interiors crafted to elevate brand identity and optimize customer walk-in experience.",
+                                      "features":  [
+                                                       "Custom Product Display Units \u0026 Shelving",
+                                                       "High-CRI Architectural Accent Lighting",
+                                                       "Trial Room Suites \u0026 Cash Counter",
+                                                       "Window Display Framing \u0026 Signage",
+                                                       "Security \u0026 Smart POS Integration"
+                                                   ],
+                                      "estimatedDuration":  "30 - 45 Days",
+                                      "startingPrice":  850000,
+                                      "image":  "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "ShoppingBag",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "com-restaurant",
+                                      "title":  "Restaurant \u0026 Fine Dining Café",
+                                      "type":  "Commercial",
+                                      "description":  "Atmospheric dining venue designs blending mood lighting, acoustic control, and seamless kitchen-to-table workflow.",
+                                      "features":  [
+                                                       "Custom Booth Seating \u0026 Bar Counter",
+                                                       "Commercial HVAC \u0026 Kitchen Layout Plan",
+                                                       "Ambient Mood Lighting Control",
+                                                       "Acoustic Wall Treatment",
+                                                       "Outdoor Deck \u0026 Pergola Setup"
+                                                   ],
+                                      "estimatedDuration":  "60 - 90 Days",
+                                      "startingPrice":  1800000,
+                                      "image":  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Utensils",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "com-hotel",
+                                      "title":  "Hotel \u0026 Luxury Hospitality",
+                                      "type":  "Commercial",
+                                      "description":  "World-class hospitality interior design for boutique hotels, resorts, and premium guest suites.",
+                                      "features":  [
+                                                       "Suite Room Furniture \u0026 Layout Package",
+                                                       "Grand Lobby \u0026 Concierge Counter",
+                                                       "All-Day Dining Restaurant Planning",
+                                                       "Spa \u0026 Wellness Interior Details",
+                                                       "Turnkey FF\u0026E Supply \u0026 Fitout"
+                                                   ],
+                                      "estimatedDuration":  "90 - 150 Days",
+                                      "startingPrice":  3500000,
+                                      "image":  "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Hotel",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "com-clinic",
+                                      "title":  "Clinic \u0026 Healthcare Interior",
+                                      "type":  "Commercial",
+                                      "description":  "Clean, soothing, and anti-microbial medical spaces designed for patient comfort and doctor efficiency.",
+                                      "features":  [
+                                                       "Hygienic Seamless Flooring \u0026 Surfaces",
+                                                       "Consultation Desk \u0026 Medical Equipment Units",
+                                                       "Comfortable Waiting Lounge",
+                                                       "Acoustic Soundproofing Cabins",
+                                                       "NABH Compliant Layout Standards"
+                                                   ],
+                                      "estimatedDuration":  "30 - 50 Days",
+                                      "startingPrice":  750000,
+                                      "image":  "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Stethoscope",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "com-showroom",
+                                      "title":  "Luxury Experience Showroom",
+                                      "type":  "Commercial",
+                                      "description":  "Immersive experiential spaces designed to highlight high-end products, automobile, or jewellery collections.",
+                                      "features":  [
+                                                       "Interactive Customer Lounge \u0026 VIP Area",
+                                                       "Spotlight Track Lighting \u0026 Ceiling Vaults",
+                                                       "Digital Display Wall Panelling",
+                                                       "High-Security Display Cabinets",
+                                                       "Architectural Entrance Canopy"
+                                                   ],
+                                      "estimatedDuration":  "45 - 75 Days",
+                                      "startingPrice":  2100000,
+                                      "image":  "https://images.unsplash.com/photo-1582037928769-181f2644ecb7?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Sparkles",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "con-villa",
+                                      "title":  "Turnkey Villa \u0026 Bungalow Construction",
+                                      "type":  "Construction",
+                                      "description":  "Ground-up civil engineering, RCC framing, brickwork, slab casting, and architectural elevation for luxury villas.",
+                                      "features":  [
+                                                       "Structural RCC Framing \u0026 Deep Foundation",
+                                                       "Tata Tiscon TMT Steel \u0026 Ultratech Cement",
+                                                       "3D Architectural Elevation \u0026 Glass Facade",
+                                                       "Complete Plumbing \u0026 Anti-Termite Treatment",
+                                                       "Soil Testing \u0026 Turnkey Civil Handover"
+                                                   ],
+                                      "estimatedDuration":  "120 - 180 Days",
+                                      "startingPrice":  3500000,
+                                      "image":  "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "HardHat",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "con-commercial",
+                                      "title":  "Commercial Structure \u0026 Fitout Construction",
+                                      "type":  "Construction",
+                                      "description":  "Heavy-duty commercial civil construction, structural steel framing, glass curtain walls, and basement slab execution.",
+                                      "features":  [
+                                                       "Structural Steel \u0026 RCC Hybrid Framing",
+                                                       "Glass Curtain Wall \u0026 ACP Facade Cladding",
+                                                       "Basement Parking \u0026 Drainage Engineering",
+                                                       "Fire Safety \u0026 Elevator Shaft Execution",
+                                                       "Municipal Approval \u0026 NOC Assistance"
+                                                   ],
+                                      "estimatedDuration":  "150 - 240 Days",
+                                      "startingPrice":  5500000,
+                                      "image":  "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Building",
+                                      "isActive":  true
+                                  },
+                                  {
+                                      "id":  "con-addition",
+                                      "title":  "Structural Alteration \u0026 Floor Extension",
+                                      "type":  "Construction",
+                                      "description":  "Vertical floor additions, terrace deck construction, structural beam reinforcement, and civil layout modifications.",
+                                      "features":  [
+                                                       "Structural Audit \u0026 Beam Reinforcement",
+                                                       "Additional Floor RCC Slab Casting",
+                                                       "Terrace Pergola \u0026 Waterproofing Deck",
+                                                       "Exterior Weatherproof Paint \u0026 Cladding",
+                                                       "Dedicated Civil Site Engineer"
+                                                   ],
+                                      "estimatedDuration":  "60 - 90 Days",
+                                      "startingPrice":  1800000,
+                                      "image":  "https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "iconName":  "Hammer",
+                                      "isActive":  true
+                                  }
+                              ],
+                 "projects":  [
+                                  {
+                                      "id":  "proj-1",
+                                      "title":  "The Imperial Penthouse at Worli",
+                                      "clientName":  "Rajesh \u0026 Sunita Singhania",
+                                      "designerName":  "Aarav Mehta (Principal Architect)",
+                                      "category":  "Residential",
+                                      "style":  "Luxury",
+                                      "coverImage":  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "galleryImages":  [
+                                                            "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                                            "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                                            "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format\u0026fit=crop\u0026w=1200\u0026q=80"
+                                                        ],
+                                      "beforeImage":  "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "afterImage":  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "location":  "Worli, South Mumbai",
+                                      "area":  "4,800 Sq. Ft.",
+                                      "budget":  "₹ 1.85 Cr",
+                                      "completionTime":  "90 Days",
+                                      "status":  "Completed",
+                                      "progressPercentage":  100,
+                                      "currentStage":  "Handover Completed",
+                                      "expectedCompletion":  "2026-03-15",
+                                      "description":  "A 4BHK duplex penthouse featuring imported Statuario marble, custom brass-inlaid fluted wooden panelling, and automated Lutron lighting system.",
+                                      "clientTestimonial":  {
+                                                                "quote":  "Decor8India turned our bare apartment into a museum-worthy sanctuary. The attention to detail in brass work and marble joinery was impeccable.",
+                                                                "rating":  5,
+                                                                "clientName":  "Rajesh Singhania",
+                                                                "designation":  "Managing Director, Zenith Corp"
+                                                            },
+                                      "milestones":  [
+                                                         {
+                                                             "id":  "m1",
+                                                             "stage":  "Design Discussion",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2025-12-05",
+                                                             "completedDate":  "2025-12-05"
+                                                         },
+                                                         {
+                                                             "id":  "m2",
+                                                             "stage":  "Site Measurement",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2025-12-10",
+                                                             "completedDate":  "2025-12-10"
+                                                         },
+                                                         {
+                                                             "id":  "m3",
+                                                             "stage":  "3D Design",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2025-12-25",
+                                                             "completedDate":  "2025-12-24"
+                                                         },
+                                                         {
+                                                             "id":  "m4",
+                                                             "stage":  "Material Selection",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-01-05",
+                                                             "completedDate":  "2026-01-04"
+                                                         },
+                                                         {
+                                                             "id":  "m5",
+                                                             "stage":  "Civil Work",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-01-25",
+                                                             "completedDate":  "2026-01-25"
+                                                         },
+                                                         {
+                                                             "id":  "m6",
+                                                             "stage":  "Carpentry",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-02-15",
+                                                             "completedDate":  "2026-02-14"
+                                                         },
+                                                         {
+                                                             "id":  "m7",
+                                                             "stage":  "Painting",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-02-25",
+                                                             "completedDate":  "2026-02-24"
+                                                         },
+                                                         {
+                                                             "id":  "m8",
+                                                             "stage":  "Electrical",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-03-02",
+                                                             "completedDate":  "2026-03-01"
+                                                         },
+                                                         {
+                                                             "id":  "m9",
+                                                             "stage":  "Furniture Installation",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-03-10",
+                                                             "completedDate":  "2026-03-09"
+                                                         },
+                                                         {
+                                                             "id":  "m10",
+                                                             "stage":  "Final Inspection",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-03-15",
+                                                             "completedDate":  "2026-03-15"
+                                                         }
+                                                     ],
+                                      "workUpdates":  [
+                                                          {
+                                                              "id":  "u1",
+                                                              "projectId":  "proj-1",
+                                                              "date":  "2026-03-14",
+                                                              "title":  "Final Handover \u0026 Deep Cleaning Completed",
+                                                              "description":  "All brass fixtures polished, smart lighting calibrated, and custom velvet sofa installed in the double-height lounge.",
+                                                              "mediaUrls":  [
+                                                                                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80"
+                                                                            ],
+                                                              "mediaType":  "image",
+                                                              "stage":  "Final Inspection"
+                                                          }
+                                                      ],
+                                      "documents":  [
+                                                        {
+                                                            "id":  "d1",
+                                                            "projectId":  "proj-1",
+                                                            "title":  "Signed Design Agreement.pdf",
+                                                            "category":  "Agreement",
+                                                            "fileUrl":  "#",
+                                                            "fileSize":  "2.4 MB",
+                                                            "uploadDate":  "2025-12-01"
+                                                        },
+                                                        {
+                                                            "id":  "d2",
+                                                            "projectId":  "proj-1",
+                                                            "title":  "Final Tax Invoice #D8I-2026-089.pdf",
+                                                            "category":  "Invoice",
+                                                            "fileUrl":  "#",
+                                                            "fileSize":  "1.1 MB",
+                                                            "uploadDate":  "2026-03-15"
+                                                        }
+                                                    ],
+                                      "payments":  [
+                                                       {
+                                                           "id":  "p1",
+                                                           "projectId":  "proj-1",
+                                                           "title":  "Token Booking Amount (10%)",
+                                                           "amount":  1850000,
+                                                           "paidAmount":  1850000,
+                                                           "dueDate":  "2025-12-01",
+                                                           "status":  "Paid",
+                                                           "paidDate":  "2025-12-01"
+                                                       },
+                                                       {
+                                                           "id":  "p2",
+                                                           "projectId":  "proj-1",
+                                                           "title":  "Civil \u0026 Material Clearance (40%)",
+                                                           "amount":  7400000,
+                                                           "paidAmount":  7400000,
+                                                           "dueDate":  "2026-01-10",
+                                                           "status":  "Paid",
+                                                           "paidDate":  "2026-01-08"
+                                                       },
+                                                       {
+                                                           "id":  "p3",
+                                                           "projectId":  "proj-1",
+                                                           "title":  "Carpentry \u0026 Finishing Stage (40%)",
+                                                           "amount":  7400000,
+                                                           "paidAmount":  7400000,
+                                                           "dueDate":  "2026-02-20",
+                                                           "status":  "Paid",
+                                                           "paidDate":  "2026-02-18"
+                                                       },
+                                                       {
+                                                           "id":  "p4",
+                                                           "projectId":  "proj-1",
+                                                           "title":  "Handover Final Balance (10%)",
+                                                           "amount":  1850000,
+                                                           "paidAmount":  1850000,
+                                                           "dueDate":  "2026-03-15",
+                                                           "status":  "Paid",
+                                                           "paidDate":  "2026-03-15"
+                                                       }
+                                                   ],
+                                      "messages":  [
+
+                                                   ]
+                                  },
+                                  {
+                                      "id":  "proj-2",
+                                      "title":  "Zenith Tech Park Executive Headquarters",
+                                      "clientName":  "Vikram Kapoor",
+                                      "designerName":  "Priya Sharma (Senior Commercial Interior Lead)",
+                                      "category":  "Commercial",
+                                      "style":  "Modern",
+                                      "coverImage":  "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "galleryImages":  [
+                                                            "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                                            "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format\u0026fit=crop\u0026w=1200\u0026q=80"
+                                                        ],
+                                      "beforeImage":  "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "afterImage":  "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "location":  "Cyber City, Gurugram",
+                                      "area":  "12,500 Sq. Ft.",
+                                      "budget":  "₹ 2.40 Cr",
+                                      "completionTime":  "60 Days",
+                                      "status":  "Completed",
+                                      "progressPercentage":  100,
+                                      "currentStage":  "Handover Completed",
+                                      "expectedCompletion":  "2026-05-10",
+                                      "description":  "An eco-friendly biophilic corporate office with acoustic wooden baffle ceilings, smart access control glass cabins, and custom ergonomic break-out zones.",
+                                      "clientTestimonial":  {
+                                                                "quote":  "Delivered 5 days ahead of schedule! Our team love the biophilic lounge and acoustic conference rooms.",
+                                                                "rating":  5,
+                                                                "clientName":  "Vikram Kapoor",
+                                                                "designation":  "CEO, Zenith Innovations"
+                                                            },
+                                      "milestones":  [
+
+                                                     ],
+                                      "workUpdates":  [
+
+                                                      ],
+                                      "documents":  [
+
+                                                    ],
+                                      "payments":  [
+
+                                                   ],
+                                      "messages":  [
+
+                                                   ]
+                                  },
+                                  {
+                                      "id":  "proj-3",
+                                      "title":  "Villa Serenity at Jubilee Hills",
+                                      "clientId":  "client-user-1",
+                                      "clientName":  "Ananya \u0026 Rohan Reddy",
+                                      "designerName":  "Aarav Mehta (Principal Architect)",
+                                      "category":  "Residential",
+                                      "style":  "Minimal",
+                                      "coverImage":  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "galleryImages":  [
+                                                            "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                                            "https://images.unsplash.com/photo-1600566753086-35f13ebc67df?auto=format\u0026fit=crop\u0026w=1200\u0026q=80"
+                                                        ],
+                                      "location":  "Jubilee Hills, Hyderabad",
+                                      "area":  "6,200 Sq. Ft.",
+                                      "budget":  "₹ 2.10 Cr",
+                                      "completionTime":  "90 Days",
+                                      "status":  "Ongoing",
+                                      "progressPercentage":  68,
+                                      "currentStage":  "Carpentry",
+                                      "expectedCompletion":  "2026-09-30",
+                                      "description":  "A minimalist architectural villa featuring monolithic micro-topping floors, teak wood accents, floating staircase panelling, and a glass-enclosed interior courtyard.",
+                                      "milestones":  [
+                                                         {
+                                                             "id":  "m1",
+                                                             "stage":  "Design Discussion",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-05-10",
+                                                             "completedDate":  "2026-05-10"
+                                                         },
+                                                         {
+                                                             "id":  "m2",
+                                                             "stage":  "Site Measurement",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-05-18",
+                                                             "completedDate":  "2026-05-18"
+                                                         },
+                                                         {
+                                                             "id":  "m3",
+                                                             "stage":  "3D Design",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-06-05",
+                                                             "completedDate":  "2026-06-04"
+                                                         },
+                                                         {
+                                                             "id":  "m4",
+                                                             "stage":  "Material Selection",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-06-15",
+                                                             "completedDate":  "2026-06-15"
+                                                         },
+                                                         {
+                                                             "id":  "m5",
+                                                             "stage":  "Civil Work",
+                                                             "progressPercentage":  100,
+                                                             "status":  "Completed",
+                                                             "targetDate":  "2026-07-05",
+                                                             "completedDate":  "2026-07-04"
+                                                         },
+                                                         {
+                                                             "id":  "m6",
+                                                             "stage":  "Carpentry",
+                                                             "progressPercentage":  65,
+                                                             "status":  "In Progress",
+                                                             "targetDate":  "2026-08-10"
+                                                         },
+                                                         {
+                                                             "id":  "m7",
+                                                             "stage":  "Painting",
+                                                             "progressPercentage":  0,
+                                                             "status":  "Pending",
+                                                             "targetDate":  "2026-08-25"
+                                                         },
+                                                         {
+                                                             "id":  "m8",
+                                                             "stage":  "Electrical",
+                                                             "progressPercentage":  0,
+                                                             "status":  "Pending",
+                                                             "targetDate":  "2026-09-05"
+                                                         },
+                                                         {
+                                                             "id":  "m9",
+                                                             "stage":  "Furniture Installation",
+                                                             "progressPercentage":  0,
+                                                             "status":  "Pending",
+                                                             "targetDate":  "2026-09-20"
+                                                         },
+                                                         {
+                                                             "id":  "m10",
+                                                             "stage":  "Final Inspection",
+                                                             "progressPercentage":  0,
+                                                             "status":  "Pending",
+                                                             "targetDate":  "2026-09-30"
+                                                         }
+                                                     ],
+                                      "workUpdates":  [
+                                                          {
+                                                              "id":  "wu1",
+                                                              "projectId":  "proj-3",
+                                                              "date":  "2026-07-28",
+                                                              "title":  "Master Bedroom Teak Wardrobe \u0026 Veneer Panelling Underway",
+                                                              "description":  "Veneer pressed boards delivered and frame installation in master bedroom unit completed. Hardware fitting starting tomorrow.",
+                                                              "mediaUrls":  [
+                                                                                "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format\u0026fit=crop\u0026w=1200\u0026q=80"
+                                                                            ],
+                                                              "mediaType":  "image",
+                                                              "stage":  "Carpentry"
+                                                          },
+                                                          {
+                                                              "id":  "wu2",
+                                                              "projectId":  "proj-3",
+                                                              "date":  "2026-07-15",
+                                                              "title":  "Civil \u0026 Micro-topping Base Prep Complete",
+                                                              "description":  "Living area floor levelling finished and anti-damp treatment applied across all wet areas.",
+                                                              "mediaUrls":  [
+                                                                                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80"
+                                                                            ],
+                                                              "mediaType":  "image",
+                                                              "stage":  "Civil Work"
+                                                          }
+                                                      ],
+                                      "documents":  [
+                                                        {
+                                                            "id":  "doc1",
+                                                            "projectId":  "proj-3",
+                                                            "title":  "Project Master Contract \u0026 Terms.pdf",
+                                                            "category":  "Agreement",
+                                                            "fileUrl":  "#",
+                                                            "fileSize":  "3.1 MB",
+                                                            "uploadDate":  "2026-05-12"
+                                                        },
+                                                        {
+                                                            "id":  "doc2",
+                                                            "projectId":  "proj-3",
+                                                            "title":  "Approved 3D Floor Layout \u0026 Elevations.pdf",
+                                                            "category":  "3D Design",
+                                                            "fileUrl":  "#",
+                                                            "fileSize":  "14.5 MB",
+                                                            "uploadDate":  "2026-06-06"
+                                                        },
+                                                        {
+                                                            "id":  "doc3",
+                                                            "projectId":  "proj-3",
+                                                            "title":  "Milestone Stage 2 Tax Invoice #D8I-2026-142.pdf",
+                                                            "category":  "Invoice",
+                                                            "fileUrl":  "#",
+                                                            "fileSize":  "1.2 MB",
+                                                            "uploadDate":  "2026-07-06"
+                                                        }
+                                                    ],
+                                      "payments":  [
+                                                       {
+                                                           "id":  "pay1",
+                                                           "projectId":  "proj-3",
+                                                           "title":  "Booking Deposit (10%)",
+                                                           "amount":  2100000,
+                                                           "paidAmount":  2100000,
+                                                           "dueDate":  "2026-05-12",
+                                                           "status":  "Paid",
+                                                           "paidDate":  "2026-05-12"
+                                                       },
+                                                       {
+                                                           "id":  "pay2",
+                                                           "projectId":  "proj-3",
+                                                           "title":  "Civil \u0026 Material Stage (40%)",
+                                                           "amount":  8400000,
+                                                           "paidAmount":  8400000,
+                                                           "dueDate":  "2026-07-06",
+                                                           "status":  "Paid",
+                                                           "paidDate":  "2026-07-05"
+                                                       },
+                                                       {
+                                                           "id":  "pay3",
+                                                           "projectId":  "proj-3",
+                                                           "title":  "Carpentry \u0026 Panelling Stage (35%)",
+                                                           "amount":  7350000,
+                                                           "paidAmount":  0,
+                                                           "dueDate":  "2026-08-15",
+                                                           "status":  "Pending"
+                                                       },
+                                                       {
+                                                           "id":  "pay4",
+                                                           "projectId":  "proj-3",
+                                                           "title":  "Handover Final Settlement (15%)",
+                                                           "amount":  3150000,
+                                                           "paidAmount":  0,
+                                                           "dueDate":  "2026-09-30",
+                                                           "status":  "Pending"
+                                                       }
+                                                   ],
+                                      "messages":  [
+                                                       {
+                                                           "id":  "msg1",
+                                                           "projectId":  "proj-3",
+                                                           "senderId":  "admin-1",
+                                                           "senderName":  "Aarav Mehta (Lead Architect)",
+                                                           "senderRole":  "ADMIN",
+                                                           "text":  "Hello Ananya \u0026 Rohan! The teak veneer selection for your living room media wall is arrived on site today. Please check the photos in Work Updates.",
+                                                           "timestamp":  "2026-07-28 11:30 AM"
+                                                       },
+                                                       {
+                                                           "id":  "msg2",
+                                                           "projectId":  "proj-3",
+                                                           "senderId":  "client-user-1",
+                                                           "senderName":  "Ananya Reddy",
+                                                           "senderRole":  "CLIENT",
+                                                           "text":  "Thanks Aarav! The grain texture looks fantastic. Could you make sure the accent warm LED strip behind the panel is dimmable?",
+                                                           "timestamp":  "2026-07-28 02:15 PM"
+                                                       },
+                                                       {
+                                                           "id":  "msg3",
+                                                           "projectId":  "proj-3",
+                                                           "senderId":  "admin-1",
+                                                           "senderName":  "Aarav Mehta (Lead Architect)",
+                                                           "senderRole":  "ADMIN",
+                                                           "text":  "Absolutely! We are using Lutron 24V COB dimmable strips with wireless smart controller integration as discussed.",
+                                                           "timestamp":  "2026-07-28 03:00 PM"
+                                                       }
+                                                   ]
+                                  },
+                                  {
+                                      "id":  "proj-4",
+                                      "title":  "Aura Fine Dining \u0026 Rooftop Bar",
+                                      "clientName":  "Sidharth Malhotra \u0026 Partners",
+                                      "designerName":  "Karan Shah (Hospitality Specialist)",
+                                      "category":  "Commercial",
+                                      "style":  "Luxury",
+                                      "coverImage":  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "galleryImages":  [
+                                                            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format\u0026fit=crop\u0026w=1200\u0026q=80"
+                                                        ],
+                                      "location":  "UB City, Bengaluru",
+                                      "area":  "8,500 Sq. Ft.",
+                                      "budget":  "₹ 3.20 Cr",
+                                      "completionTime":  "120 Days",
+                                      "status":  "Ongoing",
+                                      "progressPercentage":  45,
+                                      "currentStage":  "Civil Work",
+                                      "expectedCompletion":  "2026-11-15",
+                                      "description":  "An extravagant rooftop restaurant blending onyx backlit bar fronts, velvet booth seating, and weather-proof teak pergola roofing.",
+                                      "milestones":  [
+
+                                                     ],
+                                      "workUpdates":  [
+
+                                                      ],
+                                      "documents":  [
+
+                                                    ],
+                                      "payments":  [
+
+                                                   ],
+                                      "messages":  [
+
+                                                   ]
+                                  }
+                              ],
+                 "articles":  [
+                                  {
+                                      "id":  "art-1",
+                                      "title":  "10 Luxury Interior Trends Dominating High-End Homes in 2026",
+                                      "slug":  "luxury-interior-trends-2026",
+                                      "excerpt":  "From Statuario backlit onyx statement walls to biophilic courtyards and warm tactile minimalism — explore what is defining high-net-worth residences this year.",
+                                      "content":  "\n      \u003ch2\u003eThe Shift Toward Warm Tactile Luxury\u003c/h2\u003e\n      \u003cp\u003eThe era of stark cold minimalism is officially behind us. In 2026, discerning homeowners are favoring organic warmth, tactile micro-cement textures, deep walnut finishes, and hand-patinated brass accents.\u003c/p\u003e\n      \n      \u003ch2\u003e1. Backlit Onyx \u0026 Statement Natural Stones\u003c/h2\u003e\n      \u003cp\u003eNatural quartzite and translucent onyx are taking center stage as backlit feature walls in living rooms, master bedroom headboards, and executive bar counters.\u003c/p\u003e\n      \n      \u003ch2\u003e2. Integrated Smart Automation\u003c/h2\u003e\n      \u003cp\u003eLutron and Control4 smart ecosystems are now seamlessly embedded into architectural panelling with hidden motion sensors and circadian lighting schedules.\u003c/p\u003e\n      \n      \u003ch2\u003e3. Curved Architecture \u0026 Fluted Woodwork\u003c/h2\u003e\n      \u003cp\u003eSweeping curved sofas, rounded drywall archways, and vertical fluted teak wall cladding create a feeling of soft fluidity and grand elegance.\u003c/p\u003e\n    ",
+                                      "category":  "Tips",
+                                      "coverImage":  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "authorName":  "Aarav Mehta",
+                                      "publishedAt":  "2026-07-20",
+                                      "readTime":  "6 min read",
+                                      "featured":  true,
+                                      "status":  "Published"
+                                  },
+                                  {
+                                      "id":  "art-2",
+                                      "title":  "How to Choose the Perfect Lighting Hierarchy for Your Living Room",
+                                      "slug":  "living-room-lighting-guide",
+                                      "excerpt":  "Mastering the 3 layers of illumination: Ambient, Task, and Accent lighting to create a warm, hotel-like atmosphere in your home.",
+                                      "content":  "\n      \u003ch2\u003eThe Science of Ambient vs Accent Lighting\u003c/h2\u003e\n      \u003cp\u003eLighting is the soul of luxury interior design. Without proper color temperature (CCT) and beam angles, even the most expensive Italian marble will look flat.\u003c/p\u003e\n      \u003cp\u003eAlways maintain a warm 2700K to 3000K warm white palette in residential living spaces.\u003c/p\u003e\n    ",
+                                      "category":  "Lighting",
+                                      "coverImage":  "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "authorName":  "Priya Sharma",
+                                      "publishedAt":  "2026-07-15",
+                                      "readTime":  "4 min read",
+                                      "featured":  false,
+                                      "status":  "Published"
+                                  },
+                                  {
+                                      "id":  "art-3",
+                                      "title":  "Biophilic Office Interiors: Boosting Productivity by 25%",
+                                      "slug":  "biophilic-office-design-trends",
+                                      "excerpt":  "How integrating indoor vertical gardens, natural daylighting, and non-toxic materials elevates employee well-being and workspace focus.",
+                                      "content":  "\n      \u003ch2\u003eConnecting Workplace Design with Nature\u003c/h2\u003e\n      \u003cp\u003eModern corporate offices are abandoning sterile white cubicles in favor of moss walls, indoor water features, and acoustic wooden baffles that reduce stress.\u003c/p\u003e\n    ",
+                                      "category":  "Office Trends",
+                                      "coverImage":  "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format\u0026fit=crop\u0026w=1200\u0026q=80",
+                                      "authorName":  "Karan Shah",
+                                      "publishedAt":  "2026-07-02",
+                                      "readTime":  "5 min read",
+                                      "featured":  false,
+                                      "status":  "Published"
+                                  }
+                              ]
+             }
+}

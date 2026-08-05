@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { 
   User, 
   BookingRequest, 
@@ -171,8 +171,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isSiteVisitOpen, setIsSiteVisitOpen] = useState(false);
   const [selectedProjectForSiteVisit, setSelectedProjectForSiteVisit] = useState<string | null>(null);
 
+  const isInitialFetchDone = useRef(false);
+
   // Helper: sync CMS data to GoDaddy MySQL server (fire-and-forget)
   const syncToServer = (key: string, value: any) => {
+    if (!isInitialFetchDone.current) return;
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveCmsData(key, value).catch(err => {
         console.warn(`Server sync failed for ${key}:`, err);
@@ -280,7 +283,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               setTeamMembers(sanitizeTeamMembers(res.data.team_members));
             }
           }
-        }).catch(err => console.warn('Could not fetch CMS data:', err));
+        }).catch(err => console.warn('Could not fetch CMS data:', err))
+          .finally(() => {
+            isInitialFetchDone.current = true;
+          });
       });
     };
 
