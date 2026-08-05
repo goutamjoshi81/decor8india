@@ -116,8 +116,9 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
 
             <div className="space-y-1.5 sm:text-right">
               <div className="text-[11px] font-bold text-[#B8860B] uppercase tracking-wider">Issued By:</div>
-              <div className="font-bold text-sm text-neutral-900">Decor8 India Private Limited</div>
-              <div className="text-neutral-600 font-mono">Indiranagar 100ft Road, Bengaluru, KA</div>
+              <div className="font-bold text-sm text-neutral-900">Decor8 India</div>
+              <div className="text-neutral-600 font-mono">#14, Sy No 36/1, Vasanth Vallabnagar</div>
+              <div className="text-neutral-600 font-mono">Vasanthpura, Uttrahalli Hobilli, Bengaluru - 560061</div>
               <div className="text-neutral-600 font-mono">Email: info@decor8india.com | +91 98765 43210</div>
             </div>
           </div>
