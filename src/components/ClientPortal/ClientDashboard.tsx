@@ -412,10 +412,23 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
                   </div>
 
                   <a 
-                    href={doc.fileUrl} 
-                    onClick={(e) => { e.preventDefault(); alert(`Downloading file: ${doc.title}`); }}
-                    className="p-2.5 rounded-lg bg-white/5 hover:bg-[#D4AF37] text-neutral-300 hover:text-black transition-all"
-                    title="Download Document"
+                    href={doc.fileUrl && doc.fileUrl !== '#' && !doc.fileUrl.includes('/invoices/') ? doc.fileUrl : undefined} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    onClick={(e) => {
+                      if (!doc.fileUrl || doc.fileUrl === '#' || doc.fileUrl.includes('/invoices/') || doc.category === 'Invoice') {
+                        e.preventDefault();
+                        const matchingPay = clientProject.payments.find(p => doc.title.includes(p.title) || doc.id.includes(p.id));
+                        if (matchingPay) {
+                          setSelectedInvoicePayment(matchingPay);
+                        } else {
+                          setIsConsolidatedInvoiceOpen(true);
+                        }
+                      }
+                    }}
+                    className="p-2.5 rounded-lg bg-white/5 hover:bg-[#D4AF37] text-neutral-300 hover:text-black transition-all cursor-pointer flex items-center justify-center"
+                    title="View / Download Document"
                   >
                     <Download className="w-4 h-4" />
                   </a>

@@ -23,7 +23,8 @@ import {
   Layers,
   FilePlus,
   Upload,
-  Award
+  Award,
+  Download
 } from 'lucide-react';
 
 import { InvoiceModal } from '../InvoiceModal';
@@ -1110,7 +1111,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                                 <div className="text-[10px] text-neutral-400 font-mono">{doc.category} • {doc.fileSize} • Uploaded {doc.uploadDate}</div>
                               </div>
                             </div>
-                            <span className="text-[#D4AF37] font-semibold text-[11px]">Published</span>
+                             <div className="flex items-center space-x-2">
+                              <span className="text-[#D4AF37] font-semibold text-[11px]">Published</span>
+                              {doc.fileUrl && doc.fileUrl !== '#' && (
+                                <a 
+                                  href={doc.fileUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  download
+                                  className="p-1.5 rounded-lg bg-white/10 hover:bg-[#D4AF37] text-neutral-300 hover:text-black transition-colors"
+                                  title="Download File"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
