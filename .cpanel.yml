@@ -2,5 +2,4 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/gzbh16pux8ol/public_html
-    - /bin/cp -R dist/* $DEPLOYPATH/
-    - /bin/cp -R api/* $DEPLOYPATH/api/
+    - /bin/cp -R dist/* $DEPLOYPATH
