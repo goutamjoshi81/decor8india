@@ -13,6 +13,15 @@ import type {
   MessageItem,
   TeamMember
 } from '../types';
+import { 
+  INITIAL_SERVICES, 
+  INITIAL_PROJECTS, 
+  INITIAL_ARTICLES, 
+  INITIAL_TESTIMONIALS, 
+  INITIAL_BOOKINGS, 
+  INITIAL_USERS,
+  INITIAL_TEAM_MEMBERS
+} from '../data/initialData';
 
 interface AppContextType {
   currentUser: User | null;
@@ -94,63 +103,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [users, setUsers] = useState<User[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_users');
-      return saved ? JSON.parse(saved) : [];
+      return saved ? JSON.parse(saved) : INITIAL_USERS;
     } catch (e) {
-      return [];
+      return INITIAL_USERS;
     }
   });
 
   const [bookings, setBookings] = useState<BookingRequest[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_bookings');
-      return saved ? JSON.parse(saved) : [];
+      return saved ? JSON.parse(saved) : INITIAL_BOOKINGS;
     } catch (e) {
-      return [];
+      return INITIAL_BOOKINGS;
     }
   });
 
   const [projects, setProjects] = useState<Project[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_projects');
-      return saved ? JSON.parse(saved) : [];
+      return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
     } catch (e) {
-      return [];
+      return INITIAL_PROJECTS;
     }
   });
 
   const [services, setServices] = useState<ServiceItem[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_services');
-      return saved ? JSON.parse(saved) : [];
+      return saved ? JSON.parse(saved) : INITIAL_SERVICES;
     } catch (e) {
-      return [];
+      return INITIAL_SERVICES;
     }
   });
 
   const [articles, setArticles] = useState<Article[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_articles');
-      return saved ? JSON.parse(saved) : [];
+      return saved ? JSON.parse(saved) : INITIAL_ARTICLES;
     } catch (e) {
-      return [];
+      return INITIAL_ARTICLES;
     }
   });
 
   const [testimonials, setTestimonials] = useState<Testimonial[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_testimonials');
-      return saved ? JSON.parse(saved) : [];
+      return saved ? JSON.parse(saved) : INITIAL_TESTIMONIALS;
     } catch (e) {
-      return [];
+      return INITIAL_TESTIMONIALS;
     }
   });
 
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_team_members');
-      return saved ? JSON.parse(saved) : [];
+      return saved ? JSON.parse(saved) : INITIAL_TEAM_MEMBERS;
     } catch (e) {
-      return [];
+      return INITIAL_TEAM_MEMBERS;
     }
   });
 

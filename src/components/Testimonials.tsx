@@ -53,6 +53,7 @@ export const Testimonials: React.FC = () => {
         </div>
 
         {/* Video & Text Highlights */}
+        {testimonials && testimonials.length > 0 && testimonials[currentIdx] && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           {/* Main Showcase Card */}
@@ -60,7 +61,7 @@ export const Testimonials: React.FC = () => {
             <Quote className="w-12 h-12 text-[#D4AF37]/30 absolute top-6 right-6" />
 
             <div className="flex text-amber-400 space-x-1">
-              {[...Array(testimonials[currentIdx].rating)].map((_, i) => (
+              {[...Array(testimonials[currentIdx]?.rating || 5)].map((_, i) => (
                 <Star key={i} className="w-5 h-5 fill-current" />
               ))}
             </div>
@@ -125,6 +126,7 @@ export const Testimonials: React.FC = () => {
           </div>
 
         </div>
+        )}
 
       </div>
 

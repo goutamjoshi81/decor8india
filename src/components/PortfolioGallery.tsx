@@ -316,7 +316,7 @@ export const PortfolioGallery: React.FC = () => {
                   <div className="flex items-center justify-between text-[#D4AF37]">
                     <Quote className="w-6 h-6" />
                     <div className="flex text-amber-400">
-                      {[...Array(selectedProject.clientTestimonial.rating)].map((_, i) => (
+                      {[...Array(selectedProject.clientTestimonial?.rating || 5)].map((_, i) => (
                         <Star key={i} className="w-3.5 h-3.5 fill-current" />
                       ))}
                     </div>
