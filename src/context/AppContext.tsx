@@ -13,15 +13,6 @@ import type {
   MessageItem,
   TeamMember
 } from '../types';
-import { 
-  INITIAL_SERVICES, 
-  INITIAL_PROJECTS, 
-  INITIAL_ARTICLES, 
-  INITIAL_TESTIMONIALS, 
-  INITIAL_BOOKINGS, 
-  INITIAL_USERS,
-  INITIAL_TEAM_MEMBERS
-} from '../data/initialData';
 
 interface AppContextType {
   currentUser: User | null;
@@ -103,62 +94,63 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [users, setUsers] = useState<User[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_users');
-      return saved ? JSON.parse(saved) : INITIAL_USERS;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      console.error('Failed to parse users from localStorage', e);
-      return INITIAL_USERS;
+      return [];
     }
   });
 
   const [bookings, setBookings] = useState<BookingRequest[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_bookings');
-      return saved ? JSON.parse(saved) : INITIAL_BOOKINGS;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      console.error('Failed to parse bookings from localStorage', e);
-      return INITIAL_BOOKINGS;
+      return [];
     }
   });
 
   const [projects, setProjects] = useState<Project[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_projects');
-      return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      console.error('Failed to parse projects from localStorage', e);
-      return INITIAL_PROJECTS;
+      return [];
     }
   });
 
   const [services, setServices] = useState<ServiceItem[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_services');
-      return saved ? JSON.parse(saved) : INITIAL_SERVICES;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      console.error('Failed to parse services from localStorage', e);
-      return INITIAL_SERVICES;
+      return [];
     }
   });
 
   const [articles, setArticles] = useState<Article[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_articles');
-      return saved ? JSON.parse(saved) : INITIAL_ARTICLES;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      console.error('Failed to parse articles from localStorage', e);
-      return INITIAL_ARTICLES;
+      return [];
     }
   });
 
-  const [testimonials] = useState<Testimonial[]>(INITIAL_TESTIMONIALS);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(() => {
+    try {
+      const saved = localStorage.getItem('decor8_testimonials');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_team_members');
-      return saved ? JSON.parse(saved) : INITIAL_TEAM_MEMBERS;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      console.error('Failed to parse teamMembers from localStorage', e);
-      return INITIAL_TEAM_MEMBERS;
+      return [];
     }
   });
 
@@ -222,6 +214,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     syncToServer('services', services);
   }, [services]);
 
+  useEffect(() => {
+    try { localStorage.setItem('decor8_testimonials', JSON.stringify(testimonials)); } catch (e) {}
+    syncToServer('testimonials', testimonials);
+  }, [testimonials]);
+
   // ======== FETCH ALL DATA FROM GODADDY MYSQL ON MOUNT & AUTO-POLL ========
   useEffect(() => {
     const sanitizeUrls = (projList: Project[]): Project[] => {
@@ -267,20 +264,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Fetch ALL data from cms_data table (THE SINGLE SOURCE OF TRUTH)
         apiService.getCmsData().then(res => {
           if (res.success && res.data) {
-            if (Array.isArray(res.data.projects) && res.data.projects.length > 0) {
+            if (Array.isArray(res.data.projects)) {
               setProjects(sanitizeUrls(res.data.projects));
             }
-            if (Array.isArray(res.data.services) && res.data.services.length > 0) {
+            if (Array.isArray(res.data.services)) {
               setServices(res.data.services);
             }
-            if (Array.isArray(res.data.articles) && res.data.articles.length > 0) {
+            if (Array.isArray(res.data.articles)) {
               setArticles(res.data.articles);
             }
-            if (Array.isArray(res.data.team_members) && res.data.team_members.length > 0) {
+            if (Array.isArray(res.data.team_members)) {
               setTeamMembers(sanitizeTeamMembers(res.data.team_members));
             }
-            if (Array.isArray(res.data.users) && res.data.users.length > 0) {
+            if (Array.isArray(res.data.users)) {
               setUsers(res.data.users);
+            }
+            if (Array.isArray(res.data.testimonials)) {
+              setTestimonials(res.data.testimonials);
             }
           }
         }).catch(err => console.warn('Could not fetch CMS data:', err))
