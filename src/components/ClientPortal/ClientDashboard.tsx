@@ -85,6 +85,18 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
     );
   }
 
+  if (!clientProject) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[#0B0C0E] text-white">
+        <div className="max-w-md text-center space-y-4 p-8 glass-panel rounded-2xl border border-[#D4AF37]/30">
+          <Clock className="w-12 h-12 text-[#D4AF37] mx-auto animate-spin" />
+          <h2 className="text-2xl font-serif font-bold">Loading Your Project...</h2>
+          <p className="text-xs text-neutral-400">Fetching project details and site updates from Decor8India database.</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessageText.trim()) return;
@@ -92,8 +104,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
     setNewMessageText('');
   };
 
-  const totalPaid = clientProject.payments.filter(p => p.status === 'Paid').reduce((acc, p) => acc + p.paidAmount, 0);
-  const totalPending = clientProject.payments.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.amount, 0);
+  const totalPaid = (clientProject?.payments || []).filter(p => p.status === 'Paid').reduce((acc, p) => acc + (p.paidAmount || p.amount || 0), 0);
+  const totalPending = (clientProject?.payments || []).filter(p => p.status === 'Pending').reduce((acc, p) => acc + (p.amount || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#0B0C0E] text-[#E5E3DF] pt-24 pb-16">
@@ -312,7 +324,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
             </div>
 
             <div className="relative border-l-2 border-white/10 ml-4 space-y-8 pl-8">
-              {clientProject.milestones.map((m, idx) => {
+              {(clientProject.milestones || []).map((m, idx) => {
                 const isDone = m.status === 'Completed';
                 const isInProg = m.status === 'In Progress';
 
@@ -367,7 +379,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {clientProject.workUpdates.map((update) => (
+              {(clientProject.workUpdates || []).map((update) => (
                 <div key={update.id} className="p-6 rounded-2xl glass-card border border-white/10 space-y-4">
                   <div className="flex items-center justify-between text-xs text-neutral-400 font-mono">
                     <span className="text-[#D4AF37] font-bold">{update.stage}</span>
@@ -376,7 +388,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
 
                   <div className="h-64 rounded-xl overflow-hidden border border-white/10">
                     <img 
-                      src={update.mediaUrls[0]} 
+                      src={update.mediaUrls?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'} 
                       alt={update.title} 
                       className="w-full h-full object-cover"
                     />
@@ -399,7 +411,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {clientProject.documents.map((doc) => (
+              {(clientProject.documents || []).map((doc) => (
                 <div key={doc.id} className="p-4 rounded-xl glass-card border border-white/10 flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="p-3 rounded-lg bg-[#D4AF37]/10 text-[#D4AF37]">
@@ -419,7 +431,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
                     onClick={(e) => {
                       if (!doc.fileUrl || doc.fileUrl === '#' || doc.fileUrl.includes('/invoices/') || doc.category === 'Invoice') {
                         e.preventDefault();
-                        const matchingPay = clientProject.payments.find(p => doc.title.includes(p.title) || doc.id.includes(p.id));
+                        const matchingPay = (clientProject.payments || []).find(p => doc.title.includes(p.title) || doc.id.includes(p.id));
                         if (matchingPay) {
                           setSelectedInvoicePayment(matchingPay);
                         } else {
@@ -468,7 +480,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {clientProject.payments.map((p) => (
+                  {(clientProject.payments || []).map((p) => (
                     <tr key={p.id} className="hover:bg-white/5">
                       <td className="p-4 font-bold text-white">{p.title}</td>
                       <td className="p-4 font-mono font-bold text-white">₹ {p.amount.toLocaleString()}</td>
@@ -511,7 +523,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
 
             {/* Message Box */}
             <div className="space-y-4 max-h-96 overflow-y-auto p-4 rounded-xl bg-black/50 border border-white/10">
-              {clientProject.messages.map((msg) => {
+              {(clientProject.messages || []).map((msg) => {
                 const isMe = msg.senderRole === 'CLIENT';
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
