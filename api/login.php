@@ -13,10 +13,6 @@ try {
     $loginInput = trim(strtolower($data->email));
     $password = trim($data->password);
 
-    if ($loginInput === 'admin@decor8india.com') {
-        $loginInput = 'satish@decor8india.com';
-    }
-
     $cleanPhoneInput = preg_replace('/[^0-9]/', '', $loginInput);
 
     // Auto-migrate columns if users table missing column
