@@ -236,13 +236,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     const sanitizeTeamMembers = (members: TeamMember[]): TeamMember[] => {
-      const defaultPhotos = [
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80'
-      ];
-
-      return members.map((m, idx) => {
+      return members.map(m => {
         let img = m.image || '';
         if (img.startsWith('http://')) {
           img = img.replace(/^http:\/\//i, 'https://');
@@ -250,14 +244,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (img.startsWith('/uploads/')) {
           img = `https://decor8india.com${img}`;
         }
-        // If image is missing, logo_transparent.png, or legacy broken path, use executive portrait
-        if (!img || img.includes('logo') || img.includes('satish_bhat.png') || img.includes('darshan_bhat.png') || img.includes('chandan_bhat.png')) {
-          const initMatch = INITIAL_TEAM_MEMBERS.find(initM => initM.id === m.id || initM.name.toLowerCase() === m.name.toLowerCase());
-          img = initMatch?.image || defaultPhotos[idx % defaultPhotos.length];
-        }
         return {
           ...m,
-          image: img
+          image: img || '/logo_transparent.png'
         };
       });
     };

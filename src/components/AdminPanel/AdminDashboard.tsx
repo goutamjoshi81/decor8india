@@ -1452,7 +1452,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                           const target = e.currentTarget;
                           if (!target.dataset.failed) {
                             target.dataset.failed = 'true';
-                            target.src = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80';
+                            target.src = '/logo_transparent.png';
                           }
                         }}
                       />
