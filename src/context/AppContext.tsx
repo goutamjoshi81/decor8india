@@ -11,7 +11,8 @@ import type {
   DocumentItem,
   PaymentItem,
   MessageItem,
-  TeamMember
+  TeamMember,
+  ProjectMilestone
 } from '../types';
 import { 
   INITIAL_SERVICES, 
@@ -592,7 +593,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const isCompleted = percentage >= 100 && stage === 'Handover Completed';
       const newStatus = isCompleted ? 'Completed' : proj.status;
 
-      const updatedMilestones = proj.milestones.map(m => {
+      const defaultMilestones: ProjectMilestone[] = [
+        { id: 'm1', stage: 'Design Discussion', progressPercentage: 100, status: 'Completed', targetDate: new Date().toISOString().split('T')[0] },
+        { id: 'm2', stage: 'Site Measurement', progressPercentage: 20, status: 'In Progress', targetDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0] },
+        { id: 'm3', stage: '3D Design', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 15*24*60*60*1000).toISOString().split('T')[0] },
+        { id: 'm4', stage: 'Material Selection', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 22*24*60*60*1000).toISOString().split('T')[0] },
+        { id: 'm5', stage: 'Civil Work', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 35*24*60*60*1000).toISOString().split('T')[0] },
+        { id: 'm6', stage: 'Carpentry', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 45*24*60*60*1000).toISOString().split('T')[0] },
+        { id: 'm7', stage: 'Painting', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 52*24*60*60*1000).toISOString().split('T')[0] },
+        { id: 'm8', stage: 'Electrical', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 55*24*60*60*1000).toISOString().split('T')[0] },
+        { id: 'm9', stage: 'Furniture Installation', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 58*24*60*60*1000).toISOString().split('T')[0] },
+        { id: 'm10', stage: 'Final Inspection', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 60*24*60*60*1000).toISOString().split('T')[0] }
+      ];
+
+      const currentMilestones = (proj.milestones && proj.milestones.length > 0) ? proj.milestones : defaultMilestones;
+
+      const updatedMilestones = currentMilestones.map(m => {
         if (m.stage === stage) {
           return {
             ...m,
@@ -629,7 +645,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `wu-${Date.now()}`,
       projectId
     };
-    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, workUpdates: [newUpdate, ...p.workUpdates] } : p));
+    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, workUpdates: [newUpdate, ...(p.workUpdates || [])] } : p));
 
     // Sync daily site photo feed to GoDaddy MySQL
     import('../services/apiService').then(({ apiService }) => {
@@ -646,7 +662,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `doc-${Date.now()}`,
       projectId
     };
-    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, documents: [newDoc, ...p.documents] } : p));
+    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, documents: [newDoc, ...(p.documents || [])] } : p));
 
     // Sync document/invoice to GoDaddy MySQL
     import('../services/apiService').then(({ apiService }) => {
@@ -672,7 +688,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProjects(prev => prev.map(p => {
       if (p.id !== projectId) return p;
 
-      let updatedDocuments = p.documents;
+      let updatedDocuments = p.documents || [];
       if (payData.status === 'Paid') {
         const autoInvoiceDoc: DocumentItem = {
           id: `doc-inv-${Date.now()}`,
@@ -683,12 +699,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           fileSize: '240 KB',
           uploadDate: newPay.paidDate || new Date().toISOString().split('T')[0]
         };
-        updatedDocuments = [autoInvoiceDoc, ...p.documents];
+        updatedDocuments = [autoInvoiceDoc, ...updatedDocuments];
       }
 
       return {
         ...p,
-        payments: [...p.payments, newPay],
+        payments: [...(p.payments || []), newPay],
         documents: updatedDocuments
       };
     }));
@@ -705,7 +721,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       let targetPayTitle = '';
       let targetPayAmount = 0;
 
-      const updatedPayments = p.payments.map(pay => {
+      const updatedPayments = (p.payments || []).map(pay => {
         if (pay.id === paymentId) {
           targetPayTitle = pay.title;
           targetPayAmount = paidAmount !== undefined ? paidAmount : (status === 'Paid' ? pay.amount : pay.paidAmount);
@@ -720,7 +736,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return pay;
       });
 
-      let updatedDocuments = p.documents;
+      let updatedDocuments = p.documents || [];
       if (status === 'Paid') {
         const autoInvoiceDoc: DocumentItem = {
           id: `doc-inv-${Date.now()}`,
@@ -731,7 +747,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           fileSize: '240 KB',
           uploadDate: today
         };
-        updatedDocuments = [autoInvoiceDoc, ...p.documents];
+        updatedDocuments = [autoInvoiceDoc, ...updatedDocuments];
       }
 
       return {
@@ -753,7 +769,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       text,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, messages: [...p.messages, newMsg] } : p));
+    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, messages: [...(p.messages || []), newMsg] } : p));
   };
 
   const addProject = (projData: Omit<Project, 'id'>) => {
