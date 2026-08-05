@@ -270,6 +270,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         }).catch(err => console.warn('Could not fetch bookings:', err));
 
+        // Fetch active client projects from MySQL projects table
+        apiService.getProjects().then(res => {
+          if (res.success && res.projects && Array.isArray(res.projects) && res.projects.length > 0) {
+            setProjects(prev => {
+              const dbIds = new Set(res.projects!.map((p: any) => p.id));
+              const cmsOnly = prev.filter(p => !dbIds.has(p.id));
+              return [...sanitizeUrls(res.projects!), ...cmsOnly];
+            });
+          }
+        }).catch(err => console.warn('Could not fetch MySQL projects:', err));
+
         // Fetch ALL data from cms_data table (THE SINGLE SOURCE OF TRUTH)
         apiService.getCmsData().then(res => {
           if (res.success && res.data) {
