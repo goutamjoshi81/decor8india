@@ -685,6 +685,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       paidDate: payData.status === 'Paid' ? (payData.paidDate || new Date().toISOString().split('T')[0]) : payData.paidDate
     };
 
+    let finalPayments: PaymentItem[] = [];
+    let finalDocuments: DocumentItem[] = [];
+
     setProjects(prev => prev.map(p => {
       if (p.id !== projectId) return p;
 
@@ -702,18 +705,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updatedDocuments = [autoInvoiceDoc, ...updatedDocuments];
       }
 
+      finalPayments = [...(p.payments || []), newPay];
+      finalDocuments = updatedDocuments;
+
       return {
         ...p,
-        payments: [...(p.payments || []), newPay],
-        documents: updatedDocuments
+        payments: finalPayments,
+        documents: finalDocuments
       };
     }));
+
+    // Sync new payment & generated invoice to GoDaddy MySQL
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveProjectUpdate({
+        projectId,
+        payments: finalPayments,
+        documents: finalDocuments
+      }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
+    });
   };
 
   const updatePaymentStatus = (projectId: string, paymentId: string, status: 'Paid' | 'Pending' | 'Overdue', paidAmount?: number) => {
     const invNum = `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`;
     const autoInvoiceUrl = `https://decor8india.com/invoices/${invNum}.pdf`;
     const today = new Date().toISOString().split('T')[0];
+
+    let finalPayments: PaymentItem[] = [];
+    let finalDocuments: DocumentItem[] = [];
 
     setProjects(prev => prev.map(p => {
       if (p.id !== projectId) return p;
@@ -750,12 +768,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updatedDocuments = [autoInvoiceDoc, ...updatedDocuments];
       }
 
+      finalPayments = updatedPayments;
+      finalDocuments = updatedDocuments;
+
       return {
         ...p,
-        payments: updatedPayments,
-        documents: updatedDocuments
+        payments: finalPayments,
+        documents: finalDocuments
       };
     }));
+
+    // Sync updated payment status ('Paid') to GoDaddy MySQL permanently
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveProjectUpdate({
+        projectId,
+        payments: finalPayments,
+        documents: finalDocuments
+      }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
+    });
   };
 
   const sendMessage = (projectId: string, text: string) => {

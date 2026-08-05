@@ -73,19 +73,23 @@ try {
     if (!is_array($documents)) $documents = [];
     if (!is_array($payments)) $payments = [];
 
-    // Append new work update feed item if provided
-    if (!empty($data->workUpdate)) {
-        array_unshift($workUpdates, $data->workUpdate);
+    // Full payments array overwrite (e.g. Mark as Paid) OR single payment push
+    if (!empty($data->payments) && is_array($data->payments)) {
+        $payments = $data->payments;
+    } else if (!empty($data->payment)) {
+        array_unshift($payments, $data->payment);
     }
 
-    // Append new document if provided
-    if (!empty($data->document)) {
+    // Full documents array overwrite OR single document push
+    if (!empty($data->documents) && is_array($data->documents)) {
+        $documents = $data->documents;
+    } else if (!empty($data->document)) {
         array_unshift($documents, $data->document);
     }
 
-    // Append new payment milestone if provided
-    if (!empty($data->payment)) {
-        array_unshift($payments, $data->payment);
+    // Append new work update feed item if provided
+    if (!empty($data->workUpdate)) {
+        array_unshift($workUpdates, $data->workUpdate);
     }
 
     // Prepare fields to update
