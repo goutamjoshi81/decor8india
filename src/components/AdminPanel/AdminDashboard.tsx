@@ -990,11 +990,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
                     {/* Existing Feed List */}
                     <div className="space-y-3 pt-4 border-t border-white/10">
-                      <h5 className="text-xs font-bold text-white uppercase tracking-wider">Previous Site Updates ({selectedProject.workUpdates.length})</h5>
+                      <h5 className="text-xs font-bold text-white uppercase tracking-wider">Previous Site Updates ({(selectedProject.workUpdates || []).length})</h5>
                       <div className="space-y-3">
-                        {selectedProject.workUpdates.map(update => (
+                        {(selectedProject.workUpdates || []).map(update => (
                           <div key={update.id} className="p-4 rounded-xl glass-card border border-white/10 flex items-start space-x-4">
-                            <img src={update.mediaUrls[0]} alt={update.title} className="w-16 h-16 rounded-lg object-cover" />
+                            <img src={(update.mediaUrls || [])[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'} alt={update.title} className="w-16 h-16 rounded-lg object-cover" />
                             <div className="space-y-1 flex-1">
                               <div className="flex items-center justify-between text-[10px] text-neutral-400">
                                 <span className="text-[#D4AF37] font-semibold">{update.stage}</span>
@@ -1100,9 +1100,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
                     {/* Existing Documents List */}
                     <div className="space-y-3 pt-4 border-t border-white/10">
-                      <h5 className="text-xs font-bold text-white uppercase tracking-wider">Client Document Vault ({selectedProject.documents.length})</h5>
+                      <h5 className="text-xs font-bold text-white uppercase tracking-wider">Client Document Vault ({(selectedProject.documents || []).length})</h5>
                       <div className="space-y-2">
-                        {selectedProject.documents.map(doc => (
+                        {(selectedProject.documents || []).map(doc => (
                           <div key={doc.id} className="p-3.5 rounded-xl glass-card border border-white/10 flex items-center justify-between text-xs">
                             <div className="flex items-center space-x-3">
                               <FileText className="w-4 h-4 text-[#D4AF37]" />
@@ -1213,9 +1213,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
                     {/* Existing Payment Ledger */}
                     <div className="space-y-3 pt-4 border-t border-white/10">
-                      <h5 className="text-xs font-bold text-white uppercase tracking-wider">Project Payment Ledger ({selectedProject.payments.length})</h5>
+                      <h5 className="text-xs font-bold text-white uppercase tracking-wider">Project Payment Ledger ({(selectedProject.payments || []).length})</h5>
                       <div className="space-y-2">
-                        {selectedProject.payments.map(pay => (
+                        {(selectedProject.payments || []).map(pay => (
                           <div key={pay.id} className="p-3.5 rounded-xl glass-card border border-white/10 flex items-center justify-between text-xs">
                             <div className="space-y-0.5">
                               <div className="font-bold text-white">{pay.title}</div>
