@@ -13,8 +13,48 @@ try {
 
     $projectId = trim($data->projectId);
 
-    // Auto-migrate projects table columns if missing
+    // Auto-create projects table if not exists
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `projects` (
+      `id` varchar(50) NOT NULL,
+      `title` varchar(150) NOT NULL DEFAULT 'Bespoke Luxury Project',
+      `client_id` varchar(50) DEFAULT NULL,
+      `client_name` varchar(100) DEFAULT NULL,
+      `client_email` varchar(120) DEFAULT NULL,
+      `designer_name` varchar(100) DEFAULT NULL,
+      `category` varchar(50) DEFAULT 'Residential',
+      `style` varchar(50) DEFAULT 'Luxury',
+      `cover_image` text DEFAULT NULL,
+      `location` varchar(150) DEFAULT NULL,
+      `area` varchar(50) DEFAULT NULL,
+      `budget` varchar(50) DEFAULT NULL,
+      `status` varchar(50) NOT NULL DEFAULT 'Ongoing',
+      `progress_percentage` int NOT NULL DEFAULT 0,
+      `current_stage` varchar(100) NOT NULL DEFAULT 'Civil Work',
+      `expected_completion` varchar(50) DEFAULT NULL,
+      `description` text DEFAULT NULL,
+      `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Auto-migrate all project table columns if missing
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN title VARCHAR(150) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN client_id VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN client_name VARCHAR(100) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN client_email VARCHAR(120) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN designer_name VARCHAR(100) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN category VARCHAR(50) DEFAULT 'Residential'"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN service_type VARCHAR(50) DEFAULT 'Residential'"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN estimated_cost DECIMAL(12,2) DEFAULT 0.00"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN style VARCHAR(50) DEFAULT 'Luxury'"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN cover_image TEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN location VARCHAR(150) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN area VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN budget VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Ongoing'"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN progress_percentage INT NOT NULL DEFAULT 0"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN current_stage VARCHAR(100) NOT NULL DEFAULT 'Civil Work'"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN expected_completion VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN description TEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN work_updates_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN documents_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN payments_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
