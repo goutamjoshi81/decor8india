@@ -823,9 +823,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   <div className="flex space-x-2 pt-4 border-t border-white/10 overflow-x-auto">
                     {[
                       { id: 'stage', label: '1. Stage & Progress', icon: Layers },
-                      { id: 'updates', label: `2. Site Feed (${selectedProject.workUpdates.length})`, icon: Camera },
-                      { id: 'documents', label: `3. Documents & Invoices (${selectedProject.documents.length})`, icon: FileText },
-                      { id: 'payments', label: `4. Payout Ledger (${selectedProject.payments.length})`, icon: CreditCard }
+                      { id: 'updates', label: `2. Site Feed (${(selectedProject.workUpdates || []).length})`, icon: Camera },
+                      { id: 'documents', label: `3. Documents & Invoices (${(selectedProject.documents || []).length})`, icon: FileText },
+                      { id: 'payments', label: `4. Payout Ledger (${(selectedProject.payments || []).length})`, icon: CreditCard }
                     ].map(sub => {
                       const SubIcon = sub.icon;
                       const isSubActive = projectSubTab === sub.id;
