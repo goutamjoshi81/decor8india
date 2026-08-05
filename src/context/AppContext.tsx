@@ -209,6 +209,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     try { localStorage.setItem('decor8_users', JSON.stringify(users)); } catch (e) {}
+    syncToServer('users', users);
   }, [users]);
 
   useEffect(() => {
@@ -256,14 +257,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const fetchAllCmsData = () => {
       import('../services/apiService').then(({ apiService }) => {
-        // Fetch bookings from DB
+        // Fetch bookings from DB (THE SINGLE SOURCE OF TRUTH)
         apiService.getBookings().then(res => {
-          if (res.success && res.bookings && Array.isArray(res.bookings) && res.bookings.length > 0) {
-            setBookings(prev => {
-              const dbIds = new Set(res.bookings!.map((b: any) => b.id));
-              const localOnly = prev.filter(b => !dbIds.has(b.id));
-              return [...res.bookings as any, ...localOnly];
-            });
+          if (res.success && res.bookings && Array.isArray(res.bookings)) {
+            setBookings(res.bookings as any);
           }
         }).catch(err => console.warn('Could not fetch bookings:', err));
 
@@ -281,6 +278,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
             if (Array.isArray(res.data.team_members) && res.data.team_members.length > 0) {
               setTeamMembers(sanitizeTeamMembers(res.data.team_members));
+            }
+            if (Array.isArray(res.data.users) && res.data.users.length > 0) {
+              setUsers(res.data.users);
             }
           }
         }).catch(err => console.warn('Could not fetch CMS data:', err))
