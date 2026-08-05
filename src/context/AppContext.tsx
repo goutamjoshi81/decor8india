@@ -320,7 +320,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         setCurrentUser(loggedUser);
         return { success: true, user: loggedUser };
-      } else if (apiRes.message && !apiRes.message.includes('Server connection error')) {
+      } else if (apiRes.message) {
         return { success: false, message: apiRes.message };
       }
     } catch (e) {
@@ -328,11 +328,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // 2. Fallback: Search local memory state
-    const foundUser = users.find(u => 
-      u.email.toLowerCase() === cleanEmail || 
-      (cleanEmail === 'satish@decor8india.com' && u.role === 'ADMIN') ||
-      (cleanEmail === 'admin@decor8india.com' && u.role === 'ADMIN')
-    );
+    const foundUser = users.find(u => u.email.toLowerCase() === cleanEmail);
 
     if (!foundUser) {
       return { 
