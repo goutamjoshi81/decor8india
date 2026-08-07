@@ -746,8 +746,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     <th className="p-4 rounded-l-lg">Client Name</th>
                     <th className="p-4">Contact Info</th>
                     <th className="p-4">Request Type & Site Details</th>
-                    <th className="p-4">Service Plan / Type</th>
-                    <th className="p-4">Est. Package Cost</th>
+                    <th className="p-4">
+                      {clientFilter === 'SITE_VISITS' ? 'Scheduled Visit Date & Time' : clientFilter === 'PACKAGES' ? 'Service Plan / Type' : 'Plan / Scheduled Date'}
+                    </th>
+                    <th className="p-4">
+                      {clientFilter === 'SITE_VISITS' ? 'Inspection Notes & Details' : clientFilter === 'PACKAGES' ? 'Est. Package Cost' : 'Cost / Inspection Details'}
+                    </th>
                     <th className="p-4">Status</th>
                     <th className="p-4 rounded-r-lg text-right">Actions</th>
                   </tr>
@@ -767,20 +771,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                       <td className="p-4">
                         <div className="space-y-1">
                           <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">
-                            <span>📍 Dedicated Site Visit Table</span>
+                            <span>📍 In-Person Site Inspection</span>
                           </span>
                           <div className="font-bold text-white">{sv.projectTitle}</div>
-                          <div className="text-[10px] text-neutral-400">Visit Date: <span className="text-[#D4AF37] font-semibold">{sv.preferredDate}</span> ({sv.timeSlot})</div>
-                          {sv.notes && <div className="text-[10px] text-neutral-300 italic line-clamp-2 mt-0.5 bg-black/40 p-1 rounded">Notes: {sv.notes}</div>}
                         </div>
                       </td>
                       <td className="p-4 font-mono">
-                        <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] uppercase tracking-wider">
-                          <span>In-Person Site Tour</span>
-                        </span>
+                        <div className="space-y-1">
+                          <div className="text-[#D4AF37] font-bold text-xs">📅 {sv.preferredDate}</div>
+                          <span className="inline-block px-2 py-0.5 rounded bg-white/10 text-neutral-300 text-[10px] font-semibold">
+                            {sv.timeSlot || 'Morning (10:00 AM - 1:00 PM)'}
+                          </span>
+                        </div>
                       </td>
-                      <td className="p-4 font-mono text-emerald-400 font-bold">
-                        Site Inspection
+                      <td className="p-4 text-xs text-neutral-300">
+                        {sv.notes ? (
+                          <div className="bg-black/50 p-2 rounded-lg border border-white/10 text-[11px] italic max-w-xs leading-relaxed">
+                            "{sv.notes}"
+                          </div>
+                        ) : (
+                          <span className="text-neutral-500 text-[10px] italic">No specific inspection requests</span>
+                        )}
                       </td>
                       <td className="p-4">
                         <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
@@ -808,6 +819,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                       const isEmi = b.isEmiRequested || b.requirements?.toLowerCase().includes('emi');
                       const isSiteVisit = b.serviceType === 'Site Visit' || b.packageName.toLowerCase().includes('site visit') || b.requirements?.toLowerCase().includes('site visit');
 
+                      // Extract time slot & notes from requirements string if present
+                      const timeSlotMatch = b.requirements?.match(/Preferred Slot:\s*([^|]+)/i);
+                      const timeSlot = timeSlotMatch ? timeSlotMatch[1].trim() : 'Morning (10:00 AM - 1:00 PM)';
+                      const notesMatch = b.requirements?.match(/Notes:\s*(.+)$/i);
+                      const cleanNotes = notesMatch ? notesMatch[1].trim() : (b.requirements?.startsWith('[Site Visit Request]') ? 'General site inspection' : b.requirements);
+
                       return (
                         <tr key={b.id} className={`hover:bg-white/5 ${isSiteVisit ? 'bg-emerald-500/5' : ''}`}>
                           <td className="p-4 font-bold text-white">
@@ -825,12 +842,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                                   <span>📍 In-Person Site Visit Request</span>
                                 </span>
                                 <div className="font-bold text-white">{b.packageName}</div>
-                                <div className="text-[10px] text-neutral-400">Scheduled Date: <span className="text-[#D4AF37] font-semibold">{b.preferredDate}</span></div>
-                                {b.requirements && (
-                                  <div className="text-[10px] text-neutral-300 italic line-clamp-2 mt-0.5 bg-black/40 p-1.5 rounded border border-white/5" title={b.requirements}>
-                                    {b.requirements}
-                                  </div>
-                                )}
                               </div>
                             ) : (
                               <div>
@@ -845,7 +856,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                             )}
                           </td>
                           <td className="p-4 font-mono">
-                            {isEmi ? (
+                            {isSiteVisit ? (
+                              <div className="space-y-1">
+                                <div className="text-[#D4AF37] font-bold text-xs">📅 {b.preferredDate}</div>
+                                <span className="inline-block px-2 py-0.5 rounded bg-white/10 text-neutral-300 text-[10px] font-semibold">
+                                  {timeSlot}
+                                </span>
+                              </div>
+                            ) : isEmi ? (
                               <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] font-bold text-[10px] uppercase tracking-wider shadow-sm shadow-[#D4AF37]/20">
                                 <CreditCard className="w-3 h-3" />
                                 <span>0% EMI Plan</span>
@@ -854,8 +872,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                               <span className="text-neutral-500 text-[10px]">Standard Pay</span>
                             )}
                           </td>
-                          <td className="p-4 font-mono text-emerald-400 font-bold">
-                            ₹ {b.estimatedCost ? (b.estimatedCost / 100000).toFixed(2) : 15} L
+                          <td className="p-4 font-mono">
+                            {isSiteVisit ? (
+                              <div className="text-xs text-neutral-300">
+                                {cleanNotes ? (
+                                  <div className="bg-black/50 p-2 rounded-lg border border-white/10 text-[11px] italic max-w-xs leading-relaxed font-sans">
+                                    "{cleanNotes}"
+                                  </div>
+                                ) : (
+                                  <span className="text-neutral-500 text-[10px] italic font-sans">No specific inspection notes</span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-emerald-400 font-bold">
+                                ₹ {b.estimatedCost ? (b.estimatedCost / 100000).toFixed(2) : 15} L
+                              </span>
+                            )}
                           </td>
                           <td className="p-4">
                             <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
@@ -876,7 +908,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                                   }}
                                   className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
                                 >
-                                  Approve & Grant Login
+                                  {isSiteVisit ? 'Confirm Site Visit' : 'Approve & Grant Login'}
                                 </button>
                                 <button
                                   onClick={() => rejectBooking(b.id)}
