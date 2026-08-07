@@ -188,6 +188,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const isInitialFetchDone = useRef(false);
 
+  // Track admin-toggled showOnLandingPage overrides that must survive background polling
+  const landingPageOverrides = useRef<Map<string, boolean>>(new Map());
+
   // Helper: sync CMS data to GoDaddy MySQL server (fire-and-forget)
   const syncToServer = (key: string, value: any) => {
     if (!isInitialFetchDone.current) return;
@@ -299,7 +302,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setProjects(prev => {
               const dbIds = new Set(res.projects!.map((p: any) => p.id));
               const cmsOnly = prev.filter(p => !dbIds.has(p.id));
-              return [...sanitizeUrls(res.projects!), ...cmsOnly];
+              // Apply admin overrides so polling never reverts toggled visibility
+              const merged = [...sanitizeUrls(res.projects!), ...cmsOnly].map(p => ({
+                ...p,
+                showOnLandingPage: landingPageOverrides.current.has(p.id)
+                  ? landingPageOverrides.current.get(p.id)!
+                  : (p.showOnLandingPage !== false)
+              }));
+              return merged;
             });
           }
         }).catch(err => console.warn('Could not fetch MySQL projects:', err));
@@ -311,6 +321,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               setProjects(prev => {
                 const prevMap = new Map(prev.map(p => [p.id, p]));
                 return sanitizeUrls(res.data.projects).map((p: Project) => {
+                  // Admin overrides take absolute priority over any server data
+                  if (landingPageOverrides.current.has(p.id)) {
+                    return { ...p, showOnLandingPage: landingPageOverrides.current.get(p.id)! };
+                  }
                   const existing = prevMap.get(p.id);
                   return {
                     ...p,
@@ -875,37 +889,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateProject = (id: string, updateData: Partial<Project>) => {
-    let updatedProjectsList: Project[] = [];
-    let updatedProject: Project | null = null;
+    // If toggling showOnLandingPage, lock it in the override ref so no poll can revert it
+    if (updateData.showOnLandingPage !== undefined) {
+      landingPageOverrides.current.set(id, updateData.showOnLandingPage as boolean);
+    }
 
     setProjects(prev => {
-      updatedProjectsList = prev.map(p => {
-        if (p.id === id) {
-          updatedProject = { ...p, ...updateData };
-          return updatedProject;
-        }
-        return p;
-      });
-      return updatedProjectsList;
+      const updated = prev.map(p => p.id === id ? { ...p, ...updateData } : p);
+      return updated;
     });
 
-    // Sync updated project to GoDaddy MySQL database & CMS storage
-    if (updatedProject) {
-      const proj = updatedProject as Project;
-      import('../services/apiService').then(({ apiService }) => {
-        apiService.saveProjectUpdate({
-          projectId: id,
-          title: proj.title,
-          status: proj.status,
-          progressPercentage: proj.progressPercentage,
-          currentStage: proj.currentStage,
-          showOnLandingPage: proj.showOnLandingPage !== false
-        }).catch(err => console.warn('GoDaddy saveProjectUpdate error:', err));
-
-        apiService.saveCmsData('projects', updatedProjectsList)
-          .catch(err => console.warn('GoDaddy saveCmsData projects error:', err));
-      });
-    }
+    // Sync to GoDaddy MySQL projects table
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveProjectUpdate({
+        projectId: id,
+        ...updateData,
+        showOnLandingPage: updateData.showOnLandingPage !== undefined
+          ? updateData.showOnLandingPage
+          : undefined
+      }).catch(err => console.warn('GoDaddy saveProjectUpdate error:', err));
+    });
   };
 
   const deleteProject = (id: string) => {

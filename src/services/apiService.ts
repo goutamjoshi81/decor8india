@@ -82,6 +82,7 @@ export const apiService = {
   async getSiteVisits(): Promise<{ success: boolean; siteVisits?: any[]; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/get_site_visits.php`);
+      if (!response.ok) return { success: false, message: `Server returned ${response.status}` };
       const data = await response.json();
       return data;
     } catch (error) {
