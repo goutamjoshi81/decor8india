@@ -16,7 +16,27 @@ export const ArticleDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { articles } = useApp();
 
-  const article = articles.find(a => a.id === id || a.slug === id);
+  const decodedId = id ? decodeURIComponent(id).toLowerCase().trim() : '';
+
+  const article = articles.find(a => {
+    if (!id) return false;
+    const aId = a.id.toLowerCase();
+    const aTitle = a.title.toLowerCase();
+    const aSlug = (a.slug || aTitle).toLowerCase();
+    const cleanSlug = aSlug.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const cleanId = decodedId.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+    return (
+      a.id === id || 
+      a.id === decodedId || 
+      aId === decodedId || 
+      aTitle === decodedId ||
+      a.slug === id ||
+      a.slug === decodedId ||
+      cleanSlug === cleanId ||
+      aId === cleanId
+    );
+  });
 
   if (!article) {
     return (

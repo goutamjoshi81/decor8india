@@ -15,7 +15,24 @@ export const ServiceDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { services, setIsBookingOpen } = useApp();
 
-  const service = services.find(s => s.id === id || s.title.toLowerCase().replace(/ /g, '-') === id);
+  const decodedId = id ? decodeURIComponent(id).toLowerCase().trim() : '';
+
+  const service = services.find(s => {
+    if (!id) return false;
+    const sId = s.id.toLowerCase();
+    const sTitle = s.title.toLowerCase();
+    const sSlug = sTitle.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const cleanId = decodedId.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+    return (
+      s.id === id || 
+      s.id === decodedId || 
+      sId === decodedId || 
+      sTitle === decodedId ||
+      sSlug === cleanId ||
+      sId === cleanId
+    );
+  });
 
   const [selectedStandard, setSelectedStandard] = useState<'Eco' | 'Urban' | 'Luxe'>('Luxe');
 

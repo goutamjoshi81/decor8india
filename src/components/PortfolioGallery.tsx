@@ -196,11 +196,23 @@ export const PortfolioGallery: React.FC = () => {
             </button>
 
             {/* Modal Header */}
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-xs text-[#D4AF37] font-semibold uppercase tracking-wider">
-                <span>{selectedProject.category}</span>
-                <span>•</span>
-                <span>{selectedProject.style} Style</span>
+            <div className="space-y-2 pr-12">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center space-x-2 text-xs text-[#D4AF37] font-semibold uppercase tracking-wider">
+                  <span>{selectedProject.category}</span>
+                  <span>•</span>
+                  <span>{selectedProject.style} Style</span>
+                </div>
+                <button
+                  onClick={() => {
+                    const projId = selectedProject.id;
+                    setSelectedProject(null);
+                    navigate(`/portfolio/${projId}`);
+                  }}
+                  className="px-3.5 py-1.5 rounded-lg bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity"
+                >
+                  Open Full Project Page →
+                </button>
               </div>
               <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white">
                 {selectedProject.title}

@@ -19,7 +19,24 @@ export const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { projects, setIsBookingOpen, setIsSiteVisitOpen, setSelectedProjectForSiteVisit } = useApp();
 
-  const project = projects.find(p => p.id === id || p.title.toLowerCase().replace(/ /g, '-') === id);
+  const decodedId = id ? decodeURIComponent(id).toLowerCase().trim() : '';
+
+  const project = projects.find(p => {
+    if (!id) return false;
+    const pId = p.id.toLowerCase();
+    const pTitle = p.title.toLowerCase();
+    const pSlug = pTitle.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const cleanId = decodedId.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+    return (
+      p.id === id || 
+      p.id === decodedId || 
+      pId === decodedId || 
+      pTitle === decodedId ||
+      pSlug === cleanId ||
+      pId === cleanId
+    );
+  });
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
