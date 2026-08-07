@@ -70,6 +70,7 @@ export const apiService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(visitData)
       });
+      if (!response.ok) return { success: false, message: `Server returned ${response.status}` };
       const data = await response.json();
       return data;
     } catch (error) {

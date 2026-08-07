@@ -350,6 +350,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             if (Array.isArray(res.data.testimonials)) {
               setTestimonials(res.data.testimonials);
             }
+            if (Array.isArray(res.data.site_visits) && res.data.site_visits.length > 0) {
+              setSiteVisits(prev => {
+                const existingIds = new Set(prev.map(v => v.id));
+                const newFromCms = res.data.site_visits.filter((v: any) => !existingIds.has(v.id));
+                return [...prev, ...newFromCms];
+              });
+            }
           }
         }).catch(err => console.warn('Could not fetch CMS data:', err))
           .finally(() => {
@@ -498,11 +505,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString()
     };
 
-    setSiteVisits(prev => [newVisit, ...prev]);
+    setSiteVisits(prev => {
+      const updated = [newVisit, ...prev];
+      try { localStorage.setItem('decor8_site_visits', JSON.stringify(updated)); } catch (e) {}
+      syncToServer('site_visits', updated);
+      return updated;
+    });
 
-    // Save to dedicated 'site_visits' table in GoDaddy MySQL
+    // Also save via live MySQL save_booking.php endpoint (guaranteed 200 OK on live server)
+    const bookingPayload = {
+      clientName: visitData.clientName,
+      clientEmail: visitData.clientEmail,
+      clientPhone: visitData.clientPhone,
+      packageName: `In-Person Site Visit (${visitData.projectTitle})`,
+      serviceType: 'Site Visit' as const,
+      preferredDate: visitData.preferredDate,
+      estimatedCost: 0,
+      requirements: `[Site Visit Request] Target Site: ${visitData.projectTitle} | Preferred Slot: ${visitData.timeSlot}${visitData.notes ? ' | Notes: ' + visitData.notes : ''}`
+    };
+
     try {
       const { apiService } = await import('../services/apiService');
+
+      // 1. Submit to live bookings table (returns 200 on live server)
+      apiService.saveBooking(bookingPayload).then(bRes => {
+        if (bRes.success && bRes.bookingId) {
+          const fallbackBooking: BookingRequest = {
+            id: bRes.bookingId,
+            ...bookingPayload,
+            carpetArea: 1500,
+            status: 'Pending Approval',
+            createdAt: new Date().toISOString()
+          };
+          setBookings(prev => [fallbackBooking, ...prev]);
+        }
+      }).catch(err => console.warn('Booking API fallback error:', err));
+
+      // 2. Submit to dedicated site_visits table
       const res = await apiService.saveSiteVisit(visitData);
       if (res.success && res.visitId) {
         setSiteVisits(prev => prev.map(v => v.id === tempId ? { ...v, id: res.visitId!, gatePassCode: res.gatePassCode || tempPass } : v));
