@@ -25,7 +25,8 @@ import {
   Upload,
   Award,
   Download,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from 'lucide-react';
 
 import { InvoiceModal } from '../InvoiceModal';
@@ -596,9 +597,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
           <div className="flex items-center space-x-3 shrink-0">
             <button 
               onClick={onReturnToPublic}
-              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/30 text-xs text-neutral-300 font-medium"
+              className="px-4 py-2.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-all flex items-center space-x-2 shadow-lg shadow-[#D4AF37]/20 cursor-pointer"
             >
-              Public Website
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Landing Page</span>
             </button>
             <button 
               onClick={logout}
@@ -744,8 +746,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     <th className="p-4 rounded-l-lg">Client Name</th>
                     <th className="p-4">Contact Info</th>
                     <th className="p-4">Request Type & Site Details</th>
-                    <th className="p-4">Financing / EMI</th>
-                    <th className="p-4">Est. Cost / Gate Pass</th>
+                    <th className="p-4">Service Plan / Type</th>
+                    <th className="p-4">Est. Package Cost</th>
                     <th className="p-4">Status</th>
                     <th className="p-4 rounded-r-lg text-right">Actions</th>
                   </tr>
@@ -773,17 +775,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         </div>
                       </td>
                       <td className="p-4 font-mono">
-                        {sv.isEmiRequested ? (
-                          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] font-bold text-[10px] uppercase tracking-wider">
-                            <CreditCard className="w-3 h-3" />
-                            <span>0% EMI Requested</span>
-                          </span>
-                        ) : (
-                          <span className="text-neutral-500 text-[10px]">Standard Pay</span>
-                        )}
+                        <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-[10px] uppercase tracking-wider">
+                          <span>In-Person Site Tour</span>
+                        </span>
                       </td>
-                      <td className="p-4 font-mono text-[#D4AF37] font-bold">
-                        Pass: {sv.gatePassCode || 'GP-DESK1'}
+                      <td className="p-4 font-mono text-emerald-400 font-bold">
+                        Site Inspection
                       </td>
                       <td className="p-4">
                         <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
@@ -792,10 +789,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                       </td>
                       <td className="p-4 text-right space-x-2">
                         <button
-                          onClick={() => alert(`Gate Pass Code ${sv.gatePassCode || 'GP-DESK1'} confirmed & SMS sent to ${sv.clientPhone}`)}
+                          onClick={() => alert(`Site Visit for ${sv.clientName} confirmed! Confirmation SMS sent to ${sv.clientPhone}`)}
                           className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
                         >
-                          Send Gate Pass SMS
+                          Confirm Visit SMS
                         </button>
                       </td>
                     </tr>
