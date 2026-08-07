@@ -133,7 +133,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
   // Stage progress state
   const [stageProgressInput, setStageProgressInput] = useState<number>(65);
-  const [selectedStage, setSelectedStage] = useState<ProjectStage>('Carpentry');
 
   // Site Update Feed State
   const [feedTitle, setFeedTitle] = useState('');
@@ -455,8 +454,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       alert('Please select a project first.');
       return;
     }
-    updateProjectProgress(targetProjId, selectedStage, stageProgressInput);
-    alert('Project active stage & overall completion updated successfully!');
+
+    const isOver = stageProgressInput >= 100;
+    const newStatus = isOver ? 'Completed' : (selectedProject?.status || 'Ongoing');
+    const targetStage = isOver ? 'Handover Completed' : (selectedProject?.currentStage || 'Design Discussion');
+
+    updateProjectProgress(targetProjId, targetStage, stageProgressInput);
+    updateProject(targetProjId, {
+      progressPercentage: stageProgressInput,
+      status: newStatus,
+      currentStage: targetStage
+    });
+
+    alert(`Overall completion updated to ${stageProgressInput}% and saved to database!`);
   };
 
   const handlePostSiteFeed = (e: React.FormEvent) => {
@@ -899,7 +909,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             <div className="lg:col-span-4 p-6 rounded-2xl glass-panel border border-white/10 space-y-4">
               <h3 className="font-serif text-xl font-bold text-white">Select Client Project</h3>
               <div className="space-y-2">
-                {projects.map(p => (
+                {projects.filter(p => !p.title.toLowerCase().includes('site visit') && !p.title.toLowerCase().includes('in-person')).map(p => (
                   <div
                     key={p.id}
                     onClick={() => setSelectedProjectId(p.id)}
@@ -979,53 +989,73 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                 {/* SUB-TAB 1: STAGE & PROGRESS CONTROL */}
                 {projectSubTab === 'stage' && (
                   <div className="p-6 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-6 animate-in fade-in">
-                    <div className="space-y-1">
-                      <h4 className="font-serif text-xl font-bold text-white">Update Stage & Completion %</h4>
-                      <p className="text-xs text-neutral-400">Controls the main milestone progress bar in the client portal.</p>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                      <div className="space-y-1">
+                        <h4 className="font-serif text-xl font-bold text-white">Overall Completion Progress Bar</h4>
+                        <p className="text-xs text-neutral-400">Controls the single overall project milestone progress bar in the client portal.</p>
+                      </div>
+
+                      {/* Real Sliding Toggle Switch to Confirm Project Over */}
+                      <div className="flex items-center space-x-3 bg-black/60 p-2 sm:p-2.5 rounded-2xl border border-white/15">
+                        <span className="text-xs font-bold text-neutral-300">Confirm Project Over:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const isCurrentlyOver = selectedProject.status === 'Completed' || selectedProject.progressPercentage === 100;
+                            const newStatus = isCurrentlyOver ? 'Ongoing' : 'Completed';
+                            const newPct = isCurrentlyOver ? 10 : 100;
+                            const newStage = isCurrentlyOver ? 'Design Discussion' : 'Handover Completed';
+                            
+                            updateProject(selectedProject.id, {
+                              status: newStatus,
+                              progressPercentage: newPct,
+                              currentStage: newStage
+                            });
+                            updateProjectProgress(selectedProject.id, newStage, newPct);
+                            setStageProgressInput(newPct);
+                          }}
+                          className={`relative inline-flex h-8 w-16 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${
+                            selectedProject.status === 'Completed' || selectedProject.progressPercentage === 100
+                              ? 'bg-emerald-500'
+                              : 'bg-neutral-800'
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-300 ease-in-out ${
+                              selectedProject.status === 'Completed' || selectedProject.progressPercentage === 100
+                                ? 'translate-x-8 bg-black'
+                                : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+                        <span className={`text-xs font-extrabold font-mono ${
+                          selectedProject.status === 'Completed' || selectedProject.progressPercentage === 100 ? 'text-emerald-400' : 'text-neutral-400'
+                        }`}>
+                          {selectedProject.status === 'Completed' || selectedProject.progressPercentage === 100 ? '✓ COMPLETED' : 'ONGOING'}
+                        </span>
+                      </div>
                     </div>
 
-                    <form onSubmit={handleUpdateProgressSubmit} className="space-y-6 pt-4 border-t border-white/10">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-xs text-neutral-300 font-medium">Active Site Stage</label>
-                          <select 
-                            value={selectedStage}
-                            onChange={(e) => setSelectedStage(e.target.value as ProjectStage)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
-                          >
-                            <option value="Design Discussion">Design Discussion</option>
-                            <option value="Site Measurement">Site Measurement</option>
-                            <option value="3D Design">3D Design</option>
-                            <option value="Material Selection">Material Selection</option>
-                            <option value="Civil Work">Civil Work</option>
-                            <option value="Carpentry">Carpentry</option>
-                            <option value="Painting">Painting</option>
-                            <option value="Electrical">Electrical</option>
-                            <option value="Furniture Installation">Furniture Installation</option>
-                            <option value="Final Inspection">Final Inspection</option>
-                            <option value="Handover Completed">Handover Completed (Moves to Previous Projects)</option>
-                          </select>
+                    {/* Single Progress Bar Form (Without Active Site Stage dropdown) */}
+                    <form onSubmit={handleUpdateProgressSubmit} className="space-y-6">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs text-neutral-300 font-medium">
+                          <label className="text-xs font-bold text-white uppercase tracking-wider">Overall Completion Percentage</label>
+                          <span className="text-[#D4AF37] font-mono text-base font-bold">{stageProgressInput}%</span>
                         </div>
-
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs text-neutral-300 font-medium">
-                            <span>Completion Percentage</span>
-                            <span className="text-[#D4AF37] font-bold">{stageProgressInput}%</span>
-                          </div>
-                          <input 
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={stageProgressInput}
-                            onChange={(e) => setStageProgressInput(Number(e.target.value))}
-                            className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37] mt-3"
-                          />
-                        </div>
+                        <input 
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={stageProgressInput}
+                          onChange={(e) => setStageProgressInput(Number(e.target.value))}
+                          className="w-full h-3 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
+                        />
                       </div>
 
                       <button 
                         type="submit"
-                        className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider"
+                        className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg"
                       >
                         Save Stage Progress
                       </button>

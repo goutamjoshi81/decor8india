@@ -532,8 +532,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setUsers(prev => [...prev, clientUser!]);
     }
 
-    // Create new active project for this client
-    const newProject: Project = {
+    // Only create a new active interior project if this is NOT a site visit request
+    const isSiteVisitRequest = booking.serviceType === 'Site Visit' || booking.packageName.toLowerCase().includes('site visit');
+    if (!isSiteVisitRequest) {
+      const newProject: Project = {
       id: newProjId,
       title: `${booking.packageName} for ${booking.clientName}`,
       clientId: clientUser.id,
@@ -612,23 +614,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ]
     };
 
-    setProjects(prev => [newProject, ...prev]);
+      setProjects(prev => [newProject, ...prev]);
 
-    // Sync newly created project to GoDaddy MySQL
-    import('../services/apiService').then(({ apiService }) => {
-      apiService.saveProjectUpdate({
-        projectId: newProjId,
-        title: newProject.title,
-        clientEmail: booking.clientEmail,
-        serviceType: booking.serviceType,
-        estimatedCost: booking.estimatedCost,
-        progressPercentage: 10,
-        currentStage: 'Design Discussion',
-        workUpdate: newProject.workUpdates[0],
-        document: newProject.documents[0],
-        payment: newProject.payments[0]
-      }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
-    });
+      // Sync newly created project to GoDaddy MySQL
+      import('../services/apiService').then(({ apiService }) => {
+        apiService.saveProjectUpdate({
+          projectId: newProjId,
+          title: newProject.title,
+          clientEmail: booking.clientEmail,
+          serviceType: booking.serviceType,
+          estimatedCost: booking.estimatedCost,
+          progressPercentage: 10,
+          currentStage: 'Design Discussion',
+          workUpdate: newProject.workUpdates[0],
+          document: newProject.documents[0],
+          payment: newProject.payments[0]
+        }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
+      });
+    }
   };
 
   const rejectBooking = (bookingId: string) => {
@@ -639,7 +642,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProjects(prev => prev.map(proj => {
       if (proj.id !== projectId) return proj;
 
-      const isCompleted = percentage >= 100 && stage === 'Handover Completed';
+      const isCompleted = percentage >= 100 || stage === 'Handover Completed' || proj.status === 'Completed';
       const newStatus = isCompleted ? 'Completed' : proj.status;
 
       const defaultMilestones: ProjectMilestone[] = [
@@ -683,7 +686,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       apiService.saveProjectUpdate({
         projectId,
         progressPercentage: percentage,
-        currentStage: stage
+        currentStage: stage,
+        status: percentage >= 100 || stage === 'Handover Completed' ? 'Completed' : 'Ongoing'
       }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
     });
   };
