@@ -308,7 +308,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiService.getCmsData().then(res => {
           if (res.success && res.data) {
             if (Array.isArray(res.data.projects)) {
-              setProjects(sanitizeUrls(res.data.projects));
+              setProjects(prev => {
+                const prevMap = new Map(prev.map(p => [p.id, p]));
+                return sanitizeUrls(res.data.projects).map((p: Project) => {
+                  const existing = prevMap.get(p.id);
+                  return {
+                    ...p,
+                    showOnLandingPage: existing?.showOnLandingPage !== undefined
+                      ? existing.showOnLandingPage
+                      : (p.showOnLandingPage !== false)
+                  };
+                });
+              });
             }
             if (Array.isArray(res.data.services)) {
               setServices(res.data.services);
@@ -864,16 +875,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateProject = (id: string, updateData: Partial<Project>) => {
+    let updatedProjectsList: Project[] = [];
     let updatedProject: Project | null = null;
-    setProjects(prev => prev.map(p => {
-      if (p.id === id) {
-        updatedProject = { ...p, ...updateData };
-        return updatedProject;
-      }
-      return p;
-    }));
 
-    // Sync updated project to GoDaddy MySQL database
+    setProjects(prev => {
+      updatedProjectsList = prev.map(p => {
+        if (p.id === id) {
+          updatedProject = { ...p, ...updateData };
+          return updatedProject;
+        }
+        return p;
+      });
+      return updatedProjectsList;
+    });
+
+    // Sync updated project to GoDaddy MySQL database & CMS storage
     if (updatedProject) {
       const proj = updatedProject as Project;
       import('../services/apiService').then(({ apiService }) => {
@@ -885,6 +901,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           currentStage: proj.currentStage,
           showOnLandingPage: proj.showOnLandingPage !== false
         }).catch(err => console.warn('GoDaddy saveProjectUpdate error:', err));
+
+        apiService.saveCmsData('projects', updatedProjectsList)
+          .catch(err => console.warn('GoDaddy saveCmsData projects error:', err));
       });
     }
   };
