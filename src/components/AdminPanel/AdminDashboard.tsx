@@ -941,7 +941,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     </div>
                     <div className="flex items-center space-x-3">
                       <button
-                        onClick={() => updateProject(selectedProject.id, { showOnLandingPage: !selectedProject.showOnLandingPage })}
+                        onClick={() => updateProject(selectedProject.id, { showOnLandingPage: selectedProject.showOnLandingPage !== false ? false : true })}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center space-x-1.5 ${
                           selectedProject.showOnLandingPage !== false
                             ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm'
@@ -1464,7 +1464,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
                   <div className="pt-3 border-t border-white/10 flex items-center justify-between">
                     <button
-                      onClick={() => updateProject(p.id, { showOnLandingPage: p.showOnLandingPage === true ? false : true })}
+                      onClick={() => updateProject(p.id, { showOnLandingPage: p.showOnLandingPage !== false ? false : true })}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center space-x-1.5 ${
                         p.showOnLandingPage !== false
                           ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'

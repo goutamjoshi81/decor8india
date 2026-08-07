@@ -28,6 +28,7 @@ try {
       `area` varchar(50) DEFAULT NULL,
       `budget` varchar(50) DEFAULT NULL,
       `status` varchar(50) NOT NULL DEFAULT 'Ongoing',
+      `show_on_landing_page` TINYINT(1) DEFAULT 1,
       `progress_percentage` int NOT NULL DEFAULT 0,
       `current_stage` varchar(100) NOT NULL DEFAULT 'Civil Work',
       `expected_completion` varchar(50) DEFAULT NULL,
@@ -51,6 +52,7 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN area VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN budget VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Ongoing'"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN show_on_landing_page TINYINT(1) DEFAULT 1"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN progress_percentage INT NOT NULL DEFAULT 0"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN current_stage VARCHAR(100) NOT NULL DEFAULT 'Civil Work'"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN expected_completion VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
@@ -73,7 +75,7 @@ try {
     if (!is_array($documents)) $documents = [];
     if (!is_array($payments)) $payments = [];
 
-    // Full payments array overwrite (e.g. Mark as Paid) OR single payment push
+    // Full payments array overwrite OR single payment push
     if (!empty($data->payments) && is_array($data->payments)) {
         $payments = $data->payments;
     } else if (!empty($data->payment)) {
@@ -97,6 +99,13 @@ try {
     $currentStage = !empty($data->currentStage) ? trim($data->currentStage) : ($existing['current_stage'] ?? 'Civil Work');
     $status = !empty($data->status) ? trim($data->status) : ($existing['status'] ?? 'Ongoing');
 
+    $showOnLandingPage = 1;
+    if (isset($data->showOnLandingPage)) {
+        $showOnLandingPage = $data->showOnLandingPage ? 1 : 0;
+    } else if (isset($existing['show_on_landing_page'])) {
+        $showOnLandingPage = (int)$existing['show_on_landing_page'];
+    }
+
     $workUpdatesJson = json_encode($workUpdates);
     $documentsJson = json_encode($documents);
     $paymentsJson = json_encode($payments);
@@ -106,6 +115,7 @@ try {
             progress_percentage = ?, 
             current_stage = ?, 
             status = ?, 
+            show_on_landing_page = ?,
             work_updates_json = ?, 
             documents_json = ?, 
             payments_json = ? 
@@ -114,6 +124,7 @@ try {
             $progressPercentage,
             $currentStage,
             $status,
+            $showOnLandingPage,
             $workUpdatesJson,
             $documentsJson,
             $paymentsJson,
@@ -125,8 +136,8 @@ try {
         $serviceType = !empty($data->serviceType) ? trim($data->serviceType) : 'Residential';
         $estimatedCost = !empty($data->estimatedCost) ? (float)$data->estimatedCost : 500000.00;
 
-        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, service_type, estimated_cost, progress_percentage, current_stage, status, work_updates_json, documents_json, payments_json) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, service_type, estimated_cost, progress_percentage, current_stage, status, show_on_landing_page, work_updates_json, documents_json, payments_json) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insertStmt->execute([
             $projectId,
             $title,
@@ -137,6 +148,7 @@ try {
             $progressPercentage,
             $currentStage,
             $status,
+            $showOnLandingPage,
             $workUpdatesJson,
             $documentsJson,
             $paymentsJson

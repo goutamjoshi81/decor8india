@@ -14,6 +14,7 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN progress_percentage INT NOT NULL DEFAULT 0"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN current_stage VARCHAR(100) NOT NULL DEFAULT 'Civil Work'"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Ongoing'"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN show_on_landing_page TINYINT(1) DEFAULT 1"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN work_updates_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN documents_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN payments_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
@@ -48,6 +49,7 @@ try {
             "area" => $row['area'] ?? '2,500 Sq. Ft.',
             "budget" => $row['budget'] ?? '₹ 50.00 L',
             "status" => $row['status'] ?? 'Ongoing',
+            "showOnLandingPage" => isset($row['show_on_landing_page']) ? (bool)$row['show_on_landing_page'] : true,
             "progressPercentage" => (int)($row['progress_percentage'] ?? 0),
             "currentStage" => $row['current_stage'] ?? 'Civil Work',
             "expectedCompletion" => $row['expected_completion'] ?? '2026-10-30',

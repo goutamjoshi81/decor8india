@@ -864,7 +864,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateProject = (id: string, updateData: Partial<Project>) => {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updateData } : p));
+    let updatedProject: Project | null = null;
+    setProjects(prev => prev.map(p => {
+      if (p.id === id) {
+        updatedProject = { ...p, ...updateData };
+        return updatedProject;
+      }
+      return p;
+    }));
+
+    // Sync updated project to GoDaddy MySQL database
+    if (updatedProject) {
+      const proj = updatedProject as Project;
+      import('../services/apiService').then(({ apiService }) => {
+        apiService.saveProjectUpdate({
+          projectId: id,
+          title: proj.title,
+          status: proj.status,
+          progressPercentage: proj.progressPercentage,
+          currentStage: proj.currentStage,
+          showOnLandingPage: proj.showOnLandingPage !== false
+        }).catch(err => console.warn('GoDaddy saveProjectUpdate error:', err));
+      });
+    }
   };
 
   const deleteProject = (id: string) => {
