@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 export const ContactSection: React.FC = () => {
-  const { submitBooking } = useApp();
+  const { submitBooking, branchOffices } = useApp();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -55,7 +55,7 @@ export const ContactSection: React.FC = () => {
             Let's Shape Your <span className="gold-gradient-text italic font-normal">Next Dream Space</span>
           </h2>
           <p className="text-neutral-400 font-light text-base sm:text-lg">
-            Visit our flagship design studio in South Mumbai or schedule a private consultation with our principal team.
+            Visit our flagship design studio or schedule a private consultation with our principal architectural team.
           </p>
         </div>
 
@@ -167,7 +167,7 @@ export const ContactSection: React.FC = () => {
               <div className="flex items-start space-x-3">
                 <MapPin className="w-5 h-5 text-[#D4AF37] shrink-0 mt-1" />
                 <div>
-                  <div className="text-xs font-bold text-white uppercase tracking-wider">Flagship Experience Studio & Office</div>
+                  <div className="text-xs font-bold text-white uppercase tracking-wider">Corporate Experience Studio & HQ</div>
                   <p className="text-xs text-neutral-300 pt-1">
                     #14, sy no 36/1, vasanth vallabnagar, vasanthpura, uttrahalli hobilli, bengaluru 560061
                   </p>
@@ -258,6 +258,109 @@ export const ContactSection: React.FC = () => {
           </div>
 
         </div>
+
+        {/* Branch Offices Network Grid */}
+        {branchOffices && branchOffices.length > 0 && (
+          <div className="pt-12 border-t border-white/10 space-y-8">
+            <div className="text-center space-y-2">
+              <div className="text-xs text-[#D4AF37] font-mono uppercase font-bold tracking-widest">Pan-India Architectural Network</div>
+              <h3 className="text-2xl sm:text-4xl font-serif text-white font-bold">
+                Our Official <span className="gold-gradient-text italic font-normal">Branch Offices & Experience Centers</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-400 max-w-xl mx-auto">
+                Visit any of our architectural studios across India for live material experience, 3D VR walkthroughs, and personal design consultations.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {branchOffices.map((b) => (
+                <div 
+                  key={b.id} 
+                  className={`p-6 rounded-2xl glass-panel border transition-all duration-300 flex flex-col justify-between space-y-5 group ${
+                    b.isHeadquarter 
+                      ? 'border-[#D4AF37]/50 shadow-xl shadow-[#D4AF37]/10 hover:border-[#D4AF37]' 
+                      : 'border-white/10 hover:border-[#D4AF37]/40'
+                  }`}
+                >
+                  <div className="space-y-4">
+                    {/* City Badge & Photo */}
+                    <div className="flex items-center justify-between">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        b.isHeadquarter 
+                          ? 'gold-gradient-bg text-black shadow-md' 
+                          : 'bg-white/10 text-neutral-300 border border-white/15'
+                      }`}>
+                        {b.isHeadquarter ? '⭐ Corporate HQ' : `📍 ${b.city} Branch`}
+                      </span>
+                      <span className="text-[11px] text-neutral-400 font-mono font-semibold">{b.city}</span>
+                    </div>
+
+                    {b.imageUrl && (
+                      <div className="h-40 rounded-xl overflow-hidden border border-white/10 relative">
+                        <img 
+                          src={b.imageUrl} 
+                          alt={b.title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <h4 className="font-serif text-xl font-bold text-white leading-snug group-hover:text-[#D4AF37] transition-colors">
+                        {b.title}
+                      </h4>
+                      <p className="text-xs text-neutral-300 leading-relaxed font-sans">
+                        {b.address}
+                      </p>
+                    </div>
+
+                    {/* Info Details */}
+                    <div className="space-y-2 pt-3 border-t border-white/10 text-xs">
+                      <div className="flex items-center space-x-2 text-neutral-300 font-mono">
+                        <Phone className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+                        <a href={`tel:${b.phone.replace(/\s+/g, '')}`} className="hover:text-[#D4AF37] transition-colors">{b.phone}</a>
+                      </div>
+
+                      <div className="flex items-center space-x-2 text-neutral-300 font-mono">
+                        <Mail className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+                        <a href={`mailto:${b.email}`} className="hover:text-[#D4AF37] transition-colors truncate">{b.email}</a>
+                      </div>
+
+                      <div className="flex items-center space-x-2 text-neutral-400">
+                        <Clock className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+                        <span className="text-[11px]">{b.workingHours}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-2 flex items-center gap-2">
+                    {b.mapUrl ? (
+                      <a 
+                        href={b.mapUrl} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="flex-1 py-2.5 px-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 shadow-md hover:opacity-90 transition-opacity"
+                      >
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>Get Directions</span>
+                      </a>
+                    ) : null}
+                    <a 
+                      href={`tel:${b.phone.replace(/\s+/g, '')}`}
+                      className="py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center space-x-1 transition-colors"
+                      title="Call Branch Office"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </section>

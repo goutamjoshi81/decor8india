@@ -206,3 +206,57 @@ export interface Testimonial {
   avatar: string;
   videoUrl?: string;
 }
+
+export interface BranchOffice {
+  id: string;
+  city: string;
+  title: string;
+  address: string;
+  phone: string;
+  email: string;
+  workingHours: string;
+  mapUrl?: string;
+  imageUrl?: string;
+  isHeadquarter?: boolean;
+  createdAt?: string;
+}
+
+export const INITIAL_BRANCH_OFFICES: BranchOffice[] = [
+  {
+    id: 'branch-1',
+    city: 'Bengaluru',
+    title: 'Decor8 India - Corporate HQ & Experience Studio',
+    address: '#14, Sy No 36/1, Vasanth Vallabnagar, Vasanthpura, Uttrahalli Hobli, Bengaluru 560061',
+    phone: '+91 93805 23743',
+    email: 'support@decor8india.com',
+    workingHours: 'Mon - Sat: 10:00 AM - 7:30 PM (Sun by Appointment)',
+    mapUrl: 'https://share.google/3GNXUSyRz9GzGN8D9',
+    imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+    isHeadquarter: true
+  },
+  {
+    id: 'branch-2',
+    city: 'Hyderabad',
+    title: 'Decor8 India - Jubilee Hills Experience Studio',
+    address: 'Plot No. 450, Road No. 36, Jubilee Hills, Hyderabad, Telangana 500033',
+    phone: '+91 98765 43210',
+    email: 'hyderabad@decor8india.com',
+    workingHours: 'Mon - Sat: 9:30 AM - 7:30 PM',
+    mapUrl: 'https://maps.google.com/?q=Jubilee+Hills+Hyderabad',
+    imageUrl: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80',
+    isHeadquarter: false
+  },
+  {
+    id: 'branch-3',
+    city: 'Mumbai',
+    title: 'Decor8 India - South Mumbai Architectural Design Hub',
+    address: 'Suite 802, Maker Chambers V, Nariman Point, Mumbai, Maharashtra 400021',
+    phone: '+91 98200 11223',
+    email: 'mumbai@decor8india.com',
+    workingHours: 'Mon - Sat: 10:00 AM - 7:00 PM',
+    mapUrl: 'https://maps.google.com/?q=Nariman+Point+Mumbai',
+    imageUrl: 'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=800&q=80',
+    isHeadquarter: false
+  }
+];
+

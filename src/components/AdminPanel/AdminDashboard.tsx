@@ -23,8 +23,10 @@ import {
   Award,
   Download,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  MapPin
 } from 'lucide-react';
+import type { BranchOffice } from '../../types';
 
 import { InvoiceModal } from '../InvoiceModal';
 
@@ -63,10 +65,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     teamMembers,
     addTeamMember,
     updateTeamMember,
-    deleteTeamMember
+    deleteTeamMember,
+    branchOffices,
+    addBranchOffice,
+    updateBranchOffice,
+    deleteBranchOffice
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine' | 'branches'>('analytics');
   const [clientFilter, setClientFilter] = useState<'ALL' | 'PACKAGES' | 'SITE_VISITS'>('ALL');
 
   // Reusable file-to-server uploader (saves to GoDaddy /uploads/ directory so all devices see photos/docs)
@@ -414,6 +420,76 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [newArtCategory, setNewArtCategory] = useState<'Tips' | 'Decoration' | 'Office Trends' | 'Architecture' | 'Color Guides' | 'Furniture' | 'Lighting' | 'Smart Home'>('Tips');
   const [newArtExcerpt, setNewArtExcerpt] = useState('');
 
+  // ---------------- BRANCH OFFICE FORM STATE ----------------
+  const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
+  const [editingBranch, setEditingBranch] = useState<BranchOffice | null>(null);
+  const [branchCity, setBranchCity] = useState('');
+  const [branchTitle, setBranchTitle] = useState('');
+  const [branchAddress, setBranchAddress] = useState('');
+  const [branchPhone, setBranchPhone] = useState('');
+  const [branchEmail, setBranchEmail] = useState('');
+  const [branchHours, setBranchHours] = useState('Mon - Sat: 9:30 AM - 7:30 PM');
+  const [branchMapUrl, setBranchMapUrl] = useState('');
+  const [branchImageUrl, setBranchImageUrl] = useState('');
+  const [branchIsHQ, setBranchIsHQ] = useState(false);
+
+  const handleOpenBranchModal = (branch?: BranchOffice) => {
+    if (branch) {
+      setEditingBranch(branch);
+      setBranchCity(branch.city);
+      setBranchTitle(branch.title);
+      setBranchAddress(branch.address);
+      setBranchPhone(branch.phone);
+      setBranchEmail(branch.email);
+      setBranchHours(branch.workingHours);
+      setBranchMapUrl(branch.mapUrl || '');
+      setBranchImageUrl(branch.imageUrl || '');
+      setBranchIsHQ(!!branch.isHeadquarter);
+    } else {
+      setEditingBranch(null);
+      setBranchCity('');
+      setBranchTitle('');
+      setBranchAddress('');
+      setBranchPhone('+91 ');
+      setBranchEmail('support@decor8india.com');
+      setBranchHours('Mon - Sat: 9:30 AM - 7:30 PM');
+      setBranchMapUrl('');
+      setBranchImageUrl('');
+      setBranchIsHQ(false);
+    }
+    setIsBranchModalOpen(true);
+  };
+
+  const handleSaveBranch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!branchCity || !branchTitle || !branchAddress) {
+      alert('City, Title, and Address are required.');
+      return;
+    }
+
+    const payload = {
+      city: branchCity,
+      title: branchTitle,
+      address: branchAddress,
+      phone: branchPhone,
+      email: branchEmail,
+      workingHours: branchHours,
+      mapUrl: branchMapUrl,
+      imageUrl: branchImageUrl,
+      isHeadquarter: branchIsHQ
+    };
+
+    if (editingBranch) {
+      updateBranchOffice(editingBranch.id, payload);
+      alert('Branch Office details updated successfully!');
+    } else {
+      addBranchOffice(payload);
+      alert('New Branch Office added successfully!');
+    }
+
+    setIsBranchModalOpen(false);
+  };
+
   if (!currentUser || currentUser.role !== 'ADMIN') {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-[#0B0C0E] text-white">
@@ -613,7 +689,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             { id: 'portfolio', label: 'Portfolio CMS', icon: ImageIcon },
             { id: 'services', label: 'Service & Pricing CMS', icon: DollarSign },
             { id: 'team', label: 'Master Architects CMS', icon: Award },
-            { id: 'magazine', label: 'Magazine CMS', icon: BookOpen }
+            { id: 'magazine', label: 'Magazine CMS', icon: BookOpen },
+            { id: 'branches', label: 'Branch Offices CMS', icon: MapPin }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1822,6 +1899,95 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
           </div>
         )}
 
+        {/* TAB 8: BRANCH OFFICES CMS */}
+        {activeTab === 'branches' && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl glass-panel border border-white/10">
+              <div className="space-y-1">
+                <div className="text-xs text-[#D4AF37] font-mono font-bold uppercase tracking-wider">Multi-City Network Management</div>
+                <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white">Branch Offices & Official Contact Info</h2>
+                <p className="text-xs text-neutral-400">Manage official branch locations, experience centers, working hours, and maps displayed live on the landing page.</p>
+              </div>
+              <button 
+                onClick={() => handleOpenBranchModal()}
+                className="px-5 py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider flex items-center space-x-2 shrink-0 shadow-lg hover:opacity-95 transition-opacity"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Branch Office</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {branchOffices.map((b) => (
+                <div key={b.id} className="p-6 rounded-2xl glass-panel border border-white/10 hover:border-[#D4AF37]/40 transition-all space-y-4 relative flex flex-col justify-between">
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                        b.isHeadquarter ? 'bg-amber-500/20 text-[#D4AF37] border border-[#D4AF37]/50 font-mono' : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
+                      }`}>
+                        {b.isHeadquarter ? '⭐ Corporate HQ' : `📍 ${b.city} Branch`}
+                      </span>
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={() => handleOpenBranchModal(b)}
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-colors"
+                          title="Edit Branch Office"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Delete branch office ${b.title}?`)) {
+                              deleteBranchOffice(b.id);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white transition-colors"
+                          title="Delete Branch Office"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {b.imageUrl && (
+                      <div className="h-36 rounded-xl overflow-hidden border border-white/10">
+                        <img src={b.imageUrl} alt={b.title} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      <h3 className="font-serif text-lg font-bold text-white leading-snug">{b.title}</h3>
+                      <div className="text-xs text-neutral-300 leading-relaxed font-sans">{b.address}</div>
+                    </div>
+
+                    <div className="space-y-1.5 pt-2 border-t border-white/10 text-xs text-neutral-300 font-mono">
+                      <div><strong className="text-white">Phone:</strong> {b.phone}</div>
+                      <div><strong className="text-white">Email:</strong> {b.email}</div>
+                      <div><strong className="text-white">Hours:</strong> {b.workingHours}</div>
+                    </div>
+                  </div>
+
+                  {b.mapUrl && (
+                    <div className="pt-3">
+                      <a 
+                        href={b.mapUrl} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="w-full py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-[#D4AF37] font-semibold flex items-center justify-center space-x-1.5 transition-colors"
+                      >
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>View Location Map</span>
+                      </a>
+                    </div>
+                  )}
+
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
 
 
       </div>
@@ -2301,6 +2467,172 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                 className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider shadow-lg hover:opacity-90 transition-all"
               >
                 {editingTeamMember ? 'Save Architect Profile' : 'Add Master Architect'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Single Milestone Tax Invoice Viewer Modal */}
+      <InvoiceModal 
+        isOpen={Boolean(selectedInvoicePayment)}
+        onClose={() => setSelectedInvoicePayment(null)}
+        payment={selectedInvoicePayment}
+        project={selectedProject}
+      />
+
+      {/* ---------------- BRANCH OFFICE ADD / EDIT MODAL ---------------- */}
+      {isBranchModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="bg-[#121318] border border-[#D4AF37]/40 rounded-2xl p-6 sm:p-8 max-w-xl w-full space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button 
+              onClick={() => setIsBranchModalOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="space-y-1">
+              <div className="text-xs text-[#D4AF37] font-mono uppercase font-bold">Branch Office Info Editor</div>
+              <h3 className="text-2xl font-serif font-bold text-white">
+                {editingBranch ? `Edit Branch: ${editingBranch.city}` : 'Add Official Branch Office'}
+              </h3>
+            </div>
+
+            <form onSubmit={handleSaveBranch} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-neutral-300">City Name *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. Bengaluru / Hyderabad / Mumbai"
+                    value={branchCity}
+                    onChange={(e) => setBranchCity(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-neutral-300">Office Designation / Title *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. Corporate HQ & Experience Studio"
+                    value={branchTitle}
+                    onChange={(e) => setBranchTitle(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-neutral-300">Full Official Address *</label>
+                <textarea 
+                  rows={3}
+                  required
+                  placeholder="#14, Sy No 36/1, Vasanth Vallabnagar, Vasanthpura, Uttrahalli Hobli, Bengaluru 560061"
+                  value={branchAddress}
+                  onChange={(e) => setBranchAddress(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-neutral-300">Contact Phone Number *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="+91 93805 23743"
+                    value={branchPhone}
+                    onChange={(e) => setBranchPhone(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-neutral-300">Official Email Address *</label>
+                  <input 
+                    type="email" 
+                    required
+                    placeholder="support@decor8india.com"
+                    value={branchEmail}
+                    onChange={(e) => setBranchEmail(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-neutral-300">Working Hours *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="Mon - Sat: 9:30 AM - 7:30 PM"
+                    value={branchHours}
+                    onChange={(e) => setBranchHours(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-neutral-300">Google Maps Link / URL</label>
+                  <input 
+                    type="text" 
+                    placeholder="https://maps.google.com/?q=..."
+                    value={branchMapUrl}
+                    onChange={(e) => setBranchMapUrl(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-neutral-300">Studio Photo Image URL / Upload</label>
+                <input 
+                  type="text" 
+                  placeholder="https://images.unsplash.com/..."
+                  value={branchImageUrl}
+                  onChange={(e) => setBranchImageUrl(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                />
+                <label className="flex items-center justify-center w-full px-3.5 py-3 rounded-xl bg-black/60 border border-dashed border-white/20 hover:border-[#D4AF37]/60 transition-colors cursor-pointer group">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(file, setBranchImageUrl);
+                    }}
+                  />
+                  <div className="flex items-center space-x-2">
+                    <Upload className="w-4 h-4 text-neutral-400 group-hover:text-[#D4AF37] transition-colors" />
+                    <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors">Click to upload studio photo</span>
+                  </div>
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-2 pt-2">
+                <input 
+                  type="checkbox" 
+                  id="branchIsHQ"
+                  checked={branchIsHQ}
+                  onChange={(e) => setBranchIsHQ(e.target.checked)}
+                  className="w-4 h-4 accent-[#D4AF37] rounded"
+                />
+                <label htmlFor="branchIsHQ" className="text-xs text-white font-medium cursor-pointer">
+                  Set as Main Corporate Headquarters ⭐
+                </label>
+              </div>
+
+              <button 
+                type="submit"
+                className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider font-semibold"
+              >
+                {editingBranch ? 'Save Branch Office Changes' : 'Create Branch Office'}
               </button>
             </form>
           </div>

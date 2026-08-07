@@ -13,8 +13,10 @@ import type {
   MessageItem,
   TeamMember,
   ProjectMilestone,
-  SiteVisitRequest
+  SiteVisitRequest,
+  BranchOffice
 } from '../types';
+import { INITIAL_BRANCH_OFFICES } from '../types';
 import { 
   INITIAL_SERVICES, 
   INITIAL_PROJECTS, 
@@ -91,6 +93,11 @@ interface AppContextType {
   deleteService: (id: string) => void;
   updateServicePrice: (serviceId: string, newPrice: number) => void;
   toggleServiceStatus: (serviceId: string) => void;
+
+  branchOffices: BranchOffice[];
+  addBranchOffice: (branch: Omit<BranchOffice, 'id'>) => void;
+  updateBranchOffice: (id: string, updated: Partial<BranchOffice>) => void;
+  deleteBranchOffice: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -179,6 +186,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
+  const [branchOffices, setBranchOffices] = useState<BranchOffice[]>(() => {
+    try {
+      const saved = localStorage.getItem('decor8_branch_offices');
+      return saved ? JSON.parse(saved) : INITIAL_BRANCH_OFFICES;
+    } catch (e) {
+      return INITIAL_BRANCH_OFFICES;
+    }
+  });
+
   // Modal States
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState<ServiceItem | null>(null);
@@ -223,6 +239,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Only sync team members to server AFTER initial DB fetch is done (so we never overwrite DB with stale local data)
     syncToServer('team_members', teamMembers);
   }, [teamMembers]);
+
+  useEffect(() => {
+    try { localStorage.setItem('decor8_branch_offices', JSON.stringify(branchOffices)); } catch (e) {}
+    syncToServer('branch_offices', branchOffices);
+  }, [branchOffices]);
 
 
   useEffect(() => {
@@ -345,6 +366,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
             if (Array.isArray(res.data.team_members)) {
               setTeamMembers(sanitizeTeamMembers(res.data.team_members));
+            }
+            if (Array.isArray(res.data.branch_offices)) {
+              setBranchOffices(res.data.branch_offices);
             }
             if (Array.isArray(res.data.users)) {
               setUsers(res.data.users);
@@ -1030,6 +1054,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTeamMembers(prev => prev.filter(m => m.id !== id));
   };
 
+  const addBranchOffice = (branchData: Omit<BranchOffice, 'id'>) => {
+    const newBranch: BranchOffice = {
+      ...branchData,
+      id: `branch-${Date.now()}`
+    };
+    setBranchOffices(prev => {
+      const updated = [newBranch, ...prev];
+      try { localStorage.setItem('decor8_branch_offices', JSON.stringify(updated)); } catch (e) {}
+      syncToServer('branch_offices', updated);
+      return updated;
+    });
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveBranchOffice(newBranch).catch(err => console.warn('saveBranchOffice error:', err));
+    });
+  };
+
+  const updateBranchOffice = (id: string, updateData: Partial<BranchOffice>) => {
+    setBranchOffices(prev => {
+      const newList = prev.map(b => b.id === id ? { ...b, ...updateData } : b);
+      try { localStorage.setItem('decor8_branch_offices', JSON.stringify(newList)); } catch (e) {}
+      syncToServer('branch_offices', newList);
+      const target = newList.find(b => b.id === id);
+      if (target) {
+        import('../services/apiService').then(({ apiService }) => {
+          apiService.saveBranchOffice(target).catch(err => console.warn('saveBranchOffice error:', err));
+        });
+      }
+      return newList;
+    });
+  };
+
+  const deleteBranchOffice = (id: string) => {
+    setBranchOffices(prev => {
+      const updated = prev.filter(b => b.id !== id);
+      try { localStorage.setItem('decor8_branch_offices', JSON.stringify(updated)); } catch (e) {}
+      syncToServer('branch_offices', updated);
+      return updated;
+    });
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.deleteBranchOffice(id).catch(err => console.warn('deleteBranchOffice error:', err));
+    });
+  };
+
   return (
     <AppContext.Provider value={{
       currentUser,
@@ -1083,7 +1150,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateService,
       deleteService,
       updateServicePrice,
-      toggleServiceStatus
+      toggleServiceStatus,
+      branchOffices,
+      addBranchOffice,
+      updateBranchOffice,
+      deleteBranchOffice
     }}>
       {children}
     </AppContext.Provider>

@@ -77,6 +77,22 @@ CREATE TABLE IF NOT EXISTS `payments` (
   CONSTRAINT `fk_payments_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Table 5: Branch Offices
+CREATE TABLE IF NOT EXISTS `branch_offices` (
+  `id` varchar(50) NOT NULL,
+  `city` varchar(100) NOT NULL,
+  `title` varchar(150) NOT NULL,
+  `address` text NOT NULL,
+  `phone` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `working_hours` varchar(100) DEFAULT 'Mon - Sat: 9:30 AM - 7:30 PM',
+  `map_url` text DEFAULT NULL,
+  `image_url` text DEFAULT NULL,
+  `is_headquarter` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Seed Default Admin Account (Email: satish@decor8india.com / Password: Decor8#India2026)
 INSERT INTO `users` (`id`, `name`, `email`, `phone`, `role`, `password_hash`, `is_approved`, `must_change_password`) VALUES
 ('admin-1', 'Mr. Satish Bhat (CEO & Principal Architect)', 'satish@decor8india.com', '+91 98765 43210', 'ADMIN', '$2y$10$v0N16QfH2wNlXlB3hU8Fse1a1uGZ11vS2e48r6B0a9A7N1x0m0m1O', 1, 0)

@@ -241,5 +241,47 @@ export const apiService = {
       console.warn('Backend API getInstagramFeed error:', error);
       return { success: false };
     }
+  },
+
+  // Branch Offices API methods
+  async getBranchOffices(): Promise<{ success: boolean; branchOffices?: any[]; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_branch_offices.php`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getBranchOffices error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async saveBranchOffice(branchData: any): Promise<{ success: boolean; branchId?: string; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_branch_office.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(branchData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveBranchOffice error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async deleteBranchOffice(id: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/delete_branch_office.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API deleteBranchOffice error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
   }
 };
