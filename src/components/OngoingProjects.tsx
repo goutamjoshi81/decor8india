@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { 
   Activity, 
@@ -11,6 +12,7 @@ import {
 
 export const OngoingProjects: React.FC = () => {
   const { projects, setIsSiteVisitOpen, setSelectedProjectForSiteVisit } = useApp();
+  const navigate = useNavigate();
   
   const landingSelected = projects.filter(p => p.showOnLandingPage === true);
   const ongoingList = landingSelected.length > 0 
@@ -46,7 +48,8 @@ export const OngoingProjects: React.FC = () => {
           {ongoingList.map((project) => (
             <div 
               key={project.id} 
-              className="glass-card rounded-2xl overflow-hidden border border-white/10 p-6 space-y-6 hover:border-[#D4AF37]/40 transition-all flex flex-col justify-between"
+              onClick={() => navigate(`/projects/${project.id}`)}
+              className="glass-card rounded-2xl overflow-hidden border border-white/10 p-6 space-y-6 hover:border-[#D4AF37]/40 transition-all flex flex-col justify-between cursor-pointer"
             >
               
               <div className="space-y-6">
@@ -119,14 +122,20 @@ export const OngoingProjects: React.FC = () => {
               {/* Action: Book In-Person Site Visit & View Live Updates */}
               <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-2">
                 <button
-                  onClick={() => window.location.href = `/projects/${project.id}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/projects/${project.id}`);
+                  }}
                   className="px-3.5 py-2 rounded-xl bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider transition-all hover:opacity-90 flex items-center space-x-1.5"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span>View Live Updates</span>
                 </button>
                 <button
-                  onClick={() => handleBookVisitForProject(project.title)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBookVisitForProject(project.title);
+                  }}
                   className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition-all border border-white/15"
                 >
                   <span>Inspect Live Site</span>

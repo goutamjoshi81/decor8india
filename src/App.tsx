@@ -37,6 +37,10 @@ const MainAppContent: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   const isDashboardRoute = location.pathname.startsWith('/client') || location.pathname.startsWith('/admin');
 
   return (

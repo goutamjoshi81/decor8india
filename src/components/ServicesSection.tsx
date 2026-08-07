@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import type { ServiceItem } from '../types';
 import { 
@@ -38,6 +39,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
 
 export const ServicesSection: React.FC = () => {
   const { services, setIsBookingOpen, setSelectedServiceForBooking, setIsEstimatorOpen } = useApp();
+  const navigate = useNavigate();
   const [activeType, setActiveType] = useState<'All' | 'Residential' | 'Commercial' | 'Construction'>('All');
 
   const filteredServices = activeType === 'All' 
@@ -132,7 +134,8 @@ export const ServicesSection: React.FC = () => {
             return (
               <div 
                 key={service.id} 
-                className="group glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500"
+                onClick={() => navigate(`/services/${service.id}`)}
+                className="group glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500 cursor-pointer"
               >
                 <div>
                   
@@ -194,7 +197,10 @@ export const ServicesSection: React.FC = () => {
                     </div>
                     
                     <button
-                      onClick={() => setIsEstimatorOpen(true)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEstimatorOpen(true);
+                      }}
                       className="text-[11px] text-neutral-400 hover:text-white flex items-center space-x-1 transition-colors"
                       title="Calculate custom estimate"
                     >
@@ -205,13 +211,19 @@ export const ServicesSection: React.FC = () => {
 
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => window.location.href = `/services/${service.id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/services/${service.id}`);
+                      }}
                       className="w-1/2 py-3 rounded-xl bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider text-center transition-all hover:opacity-90"
                     >
                       View Package Details
                     </button>
                     <button
-                      onClick={() => handleBookService(service)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBookService(service);
+                      }}
                       className="w-1/2 py-3 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-200 font-bold text-xs uppercase tracking-wider text-center transition-all border border-white/10"
                     >
                       Book Consultation

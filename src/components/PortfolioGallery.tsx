@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import type { Project } from '../types';
 import { 
@@ -15,6 +16,7 @@ import {
 
 export const PortfolioGallery: React.FC = () => {
   const { projects } = useApp();
+  const navigate = useNavigate();
   
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -83,11 +85,7 @@ export const PortfolioGallery: React.FC = () => {
           {filteredProjects.map((project) => (
             <div 
               key={project.id}
-              onClick={() => {
-                setSelectedProject(project);
-                setActiveGalleryIdx(0);
-                setBeforeAfterPos(50);
-              }}
+              onClick={() => navigate(`/portfolio/${project.id}`)}
               className="group glass-card rounded-2xl overflow-hidden border border-white/10 cursor-pointer flex flex-col justify-between hover:border-[#D4AF37]/50 transition-all duration-500 transform hover:-translate-y-1"
             >
               <div>
@@ -155,17 +153,18 @@ export const PortfolioGallery: React.FC = () => {
                 </div>
 
                 <div className="flex space-x-2">
-                  <div 
+                  <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.location.href = `/portfolio/${project.id}`;
+                      navigate(`/portfolio/${project.id}`);
                     }}
                     className="w-1/2 py-2.5 rounded-lg bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider text-center transition-all hover:opacity-90"
                   >
                     View Project Details
-                  </div>
-                  <div 
-                    onClick={() => {
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setSelectedProject(project);
                       setActiveGalleryIdx(0);
                       setBeforeAfterPos(50);
@@ -173,7 +172,7 @@ export const PortfolioGallery: React.FC = () => {
                     className="w-1/2 py-2.5 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-300 font-bold text-xs uppercase tracking-wider text-center transition-all"
                   >
                     Quick Preview
-                  </div>
+                  </button>
                 </div>
               </div>
 
