@@ -10,12 +10,9 @@ import {
   Trash2, 
   DollarSign, 
   BookOpen, 
-  Bell, 
   Image as ImageIcon, 
   LogOut, 
-  Send, 
   ShieldAlert,
-  CheckCircle2,
   X,
   FileText,
   Camera,
@@ -69,7 +66,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     deleteTeamMember
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine' | 'notifications'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine'>('analytics');
   const [clientFilter, setClientFilter] = useState<'ALL' | 'PACKAGES' | 'SITE_VISITS'>('ALL');
 
   // Reusable file-to-server uploader (saves to GoDaddy /uploads/ directory so all devices see photos/docs)
@@ -417,10 +414,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [newArtCategory, setNewArtCategory] = useState<'Tips' | 'Decoration' | 'Office Trends' | 'Architecture' | 'Color Guides' | 'Furniture' | 'Lighting' | 'Smart Home'>('Tips');
   const [newArtExcerpt, setNewArtExcerpt] = useState('');
 
-  // Broadcast notification state
-  const [notifMessage, setNotifMessage] = useState('');
-  const [notifSent, setNotifSent] = useState(false);
-
   if (!currentUser || currentUser.role !== 'ADMIN') {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-[#0B0C0E] text-white">
@@ -558,16 +551,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     alert('New article published live to homepage!');
   };
 
-  const handleSendNotification = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!notifMessage) return;
-    setNotifSent(true);
-    setTimeout(() => {
-      setNotifMessage('');
-      setNotifSent(false);
-    }, 3000);
-  };
-
   const totalClients = bookings.length;
   const activeProjectsCount = projects.filter(p => p.status === 'Ongoing').length;
   const completedProjectsCount = projects.filter(p => p.status === 'Completed').length;
@@ -630,8 +613,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             { id: 'portfolio', label: 'Portfolio CMS', icon: ImageIcon },
             { id: 'services', label: 'Service & Pricing CMS', icon: DollarSign },
             { id: 'team', label: 'Master Architects CMS', icon: Award },
-            { id: 'magazine', label: 'Magazine CMS', icon: BookOpen },
-            { id: 'notifications', label: 'Send Notifications', icon: Bell }
+            { id: 'magazine', label: 'Magazine CMS', icon: BookOpen }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1840,45 +1822,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
           </div>
         )}
 
-        {/* TAB 7: BROADCAST NOTIFICATIONS */}
-        {activeTab === 'notifications' && (
-          <div className="p-8 rounded-2xl glass-panel border border-white/10 space-y-6 max-w-xl mx-auto animate-in fade-in">
-            <div className="space-y-1">
-              <h2 className="font-serif text-3xl font-bold text-white">Broadcast Client Notification</h2>
-              <p className="text-xs text-neutral-400">Send instant email & in-portal push notices to active clients.</p>
-            </div>
 
-            {!notifSent ? (
-              <form onSubmit={handleSendNotification} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-300 font-medium">Notification Message</label>
-                  <textarea 
-                    rows={4}
-                    required
-                    placeholder="e.g. Mandatory site inspection notice or holiday schedule update..."
-                    value={notifMessage}
-                    onChange={(e) => setNotifMessage(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
-                  />
-                </div>
-
-                <button 
-                  type="submit"
-                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Send Notification Alert</span>
-                </button>
-              </form>
-            ) : (
-              <div className="p-6 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-center space-y-2">
-                <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                <div className="text-base font-bold text-white font-serif">Broadcast Notification Sent!</div>
-                <p className="text-xs text-neutral-300">Sent to all active client accounts.</p>
-              </div>
-            )}
-          </div>
-        )}
 
       </div>
 

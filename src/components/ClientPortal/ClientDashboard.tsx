@@ -5,11 +5,9 @@ import {
   Clock, 
   FileText, 
   Download, 
-  Send, 
   DollarSign, 
   UserCheck, 
   Calendar, 
-  MessageSquare, 
   ShieldCheck, 
   Image as ImageIcon,
   LogOut,
@@ -25,9 +23,8 @@ interface ClientDashboardProps {
 }
 
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPublic }) => {
-  const { currentUser, logout, projects, sendMessage, updatePassword } = useApp();
-  const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'updates' | 'documents' | 'payments' | 'messages' | 'profile'>('overview');
-  const [newMessageText, setNewMessageText] = useState('');
+  const { currentUser, logout, projects, updatePassword } = useApp();
+  const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'updates' | 'documents' | 'payments' | 'profile'>('overview');
   const [selectedInvoicePayment, setSelectedInvoicePayment] = useState<PaymentItem | null>(null);
   const [isConsolidatedInvoiceOpen, setIsConsolidatedInvoiceOpen] = useState(false);
 
@@ -97,12 +94,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
     );
   }
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessageText.trim()) return;
-    sendMessage(clientProject.id, newMessageText);
-    setNewMessageText('');
-  };
+
 
   const totalPaid = (clientProject?.payments || []).filter(p => p.status === 'Paid').reduce((acc, p) => acc + (p.paidAmount || p.amount || 0), 0);
   const totalPending = (clientProject?.payments || []).filter(p => p.status === 'Pending').reduce((acc, p) => acc + (p.amount || 0), 0);
@@ -176,7 +168,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
             { id: 'updates', label: 'Site Updates Feed', icon: ImageIcon },
             { id: 'documents', label: 'Documents & Designs', icon: FileText },
             { id: 'payments', label: 'Payment Ledger', icon: DollarSign },
-            { id: 'messages', label: 'Architect Chat', icon: MessageSquare },
             { id: 'profile', label: 'Account Profile', icon: UserCheck }
           ].map(tab => {
             const Icon = tab.icon;
@@ -283,7 +274,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
             )}
 
             {/* Quick Actions Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div 
                 onClick={() => setActiveTab('documents')}
                 className="p-6 rounded-2xl glass-card border border-white/10 hover:border-[#D4AF37]/40 cursor-pointer space-y-3"
@@ -291,15 +282,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
                 <FileText className="w-8 h-8 text-[#D4AF37]" />
                 <h4 className="font-serif text-xl font-bold text-white">Download Drawings & Invoices</h4>
                 <p className="text-xs text-neutral-400">Access signed agreement, 3D renders, and tax invoices.</p>
-              </div>
-
-              <div 
-                onClick={() => setActiveTab('messages')}
-                className="p-6 rounded-2xl glass-card border border-white/10 hover:border-[#D4AF37]/40 cursor-pointer space-y-3"
-              >
-                <MessageSquare className="w-8 h-8 text-[#D4AF37]" />
-                <h4 className="font-serif text-xl font-bold text-white">Chat with Lead Architect</h4>
-                <p className="text-xs text-neutral-400">Direct secure channel with {clientProject.designerName}.</p>
               </div>
 
               <div 
@@ -513,55 +495,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
           </div>
         )}
 
-        {/* TAB 6: MESSAGES */}
-        {activeTab === 'messages' && (
-          <div className="p-8 rounded-2xl glass-panel border border-white/10 space-y-6 animate-in fade-in">
-            <div className="space-y-1">
-              <h2 className="font-serif text-3xl font-bold text-white">Direct Communication Channel</h2>
-              <p className="text-xs text-neutral-400">Encrypted messaging with assigned architect {clientProject.designerName}</p>
-            </div>
 
-            {/* Message Box */}
-            <div className="space-y-4 max-h-96 overflow-y-auto p-4 rounded-xl bg-black/50 border border-white/10">
-              {(clientProject.messages || []).map((msg) => {
-                const isMe = msg.senderRole === 'CLIENT';
-                return (
-                  <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-lg p-4 rounded-2xl text-xs space-y-1 ${
-                      isMe 
-                        ? 'gold-gradient-bg text-black font-medium rounded-tr-none' 
-                        : 'bg-white/10 text-white rounded-tl-none border border-white/10'
-                    }`}>
-                      <div className="font-bold flex items-center justify-between text-[10px] opacity-80">
-                        <span>{msg.senderName}</span>
-                        <span>{msg.timestamp}</span>
-                      </div>
-                      <p className="leading-relaxed">{msg.text}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Input Form */}
-            <form onSubmit={handleSendMessage} className="flex space-x-2">
-              <input 
-                type="text" 
-                placeholder="Type your message or query for the architect..."
-                value={newMessageText}
-                onChange={(e) => setNewMessageText(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
-              />
-              <button 
-                type="submit"
-                className="px-6 py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center space-x-2 shrink-0"
-              >
-                <Send className="w-4 h-4" />
-                <span>Send</span>
-              </button>
-            </form>
-          </div>
-        )}
 
         {/* TAB 7: PROFILE */}
         {activeTab === 'profile' && (
