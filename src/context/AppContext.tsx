@@ -59,6 +59,8 @@ interface AppContextType {
   logout: () => void;
   submitBooking: (booking: Omit<BookingRequest, 'id' | 'createdAt' | 'status'>) => BookingRequest;
   submitSiteVisit: (visit: Omit<SiteVisitRequest, 'id' | 'createdAt' | 'status' | 'gatePassCode'>) => Promise<SiteVisitRequest>;
+  confirmSiteVisit: (visitId: string) => void;
+  rejectSiteVisit: (visitId: string) => void;
   approveBooking: (bookingId: string) => void;
   rejectBooking: (bookingId: string) => void;
   
@@ -553,6 +555,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newVisit;
   };
 
+  const confirmSiteVisit = (visitId: string) => {
+    setSiteVisits(prev => {
+      const updated = prev.map(sv => sv.id === visitId ? { ...sv, status: 'Confirmed' as const } : sv);
+      try { localStorage.setItem('decor8_site_visits', JSON.stringify(updated)); } catch (e) {}
+      syncToServer('site_visits', updated);
+      return updated;
+    });
+  };
+
+  const rejectSiteVisit = (visitId: string) => {
+    setSiteVisits(prev => {
+      const updated = prev.map(sv => sv.id === visitId ? { ...sv, status: 'Rejected' as const } : sv);
+      try { localStorage.setItem('decor8_site_visits', JSON.stringify(updated)); } catch (e) {}
+      syncToServer('site_visits', updated);
+      return updated;
+    });
+  };
+
   const approveBooking = (bookingId: string) => {
     const booking = bookings.find(b => b.id === bookingId);
     if (!booking) return;
@@ -1040,6 +1060,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       logout,
       submitBooking,
       submitSiteVisit,
+      confirmSiteVisit,
+      rejectSiteVisit,
       approveBooking,
       rejectBooking,
       updateProjectProgress,

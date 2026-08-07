@@ -43,6 +43,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     siteVisits,
     approveBooking, 
     rejectBooking, 
+    confirmSiteVisit,
+    rejectSiteVisit,
     projects, 
     updateProjectProgress,
     addWorkUpdate,
@@ -801,17 +803,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         )}
                       </td>
                       <td className="p-4">
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-                          {sv.status || 'Scheduled'}
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                          sv.status === 'Confirmed' || sv.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                          sv.status === 'Rejected' ? 'bg-red-500/20 text-red-400 border border-red-500/40' :
+                          'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse'
+                        }`}>
+                          {sv.status === 'Confirmed' || sv.status === 'Approved' ? '✓ CONFIRMED' : sv.status === 'Rejected' ? '✕ REJECTED' : (sv.status || 'SCHEDULED')}
                         </span>
                       </td>
                       <td className="p-4 text-right space-x-2">
-                        <button
-                          onClick={() => alert(`Site Visit for ${sv.clientName} confirmed!`)}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
-                        >
-                          Confirm Site Visit
-                        </button>
+                        {sv.status !== 'Confirmed' && sv.status !== 'Approved' && sv.status !== 'Rejected' ? (
+                          <>
+                            <button
+                              onClick={() => {
+                                confirmSiteVisit(sv.id);
+                                alert(`Site Visit for ${sv.clientName} confirmed!`);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
+                            >
+                              Confirm Site Visit
+                            </button>
+                            <button
+                              onClick={() => {
+                                rejectSiteVisit(sv.id);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white text-xs"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        ) : sv.status === 'Confirmed' || sv.status === 'Approved' ? (
+                          <span className="text-emerald-400 text-[11px] font-bold">✓ Confirmed</span>
+                        ) : (
+                          <span className="text-red-400 text-[11px] font-bold">✕ Rejected</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -914,21 +939,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                                 <button
                                   onClick={() => {
                                     approveBooking(b.id);
-                                    alert(`Approved request for ${b.clientName}. Account activated!`);
+                                    const svMatch = siteVisits.find(sv => sv.clientEmail.toLowerCase() === b.clientEmail.toLowerCase());
+                                    if (svMatch) confirmSiteVisit(svMatch.id);
+                                    alert(`Site Visit for ${b.clientName} confirmed!`);
                                   }}
                                   className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
                                 >
                                   {isSiteVisit ? 'Confirm Site Visit' : 'Approve & Grant Login'}
                                 </button>
                                 <button
-                                  onClick={() => rejectBooking(b.id)}
+                                  onClick={() => {
+                                    rejectBooking(b.id);
+                                    const svMatch = siteVisits.find(sv => sv.clientEmail.toLowerCase() === b.clientEmail.toLowerCase());
+                                    if (svMatch) rejectSiteVisit(svMatch.id);
+                                  }}
                                   className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white text-xs"
                                 >
                                   Reject
                                 </button>
                               </>
+                            ) : b.status === 'Approved' ? (
+                              <span className="text-emerald-400 text-[11px] font-bold">✓ Approved</span>
                             ) : (
-                              <span className="text-neutral-500 text-[11px]">Approved</span>
+                              <span className="text-red-400 text-[11px] font-bold">✕ Rejected</span>
                             )}
                           </td>
                         </tr>

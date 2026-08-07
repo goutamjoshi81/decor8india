@@ -46,7 +46,7 @@ export interface BookingRequest {
   isEmiRequested?: boolean;
 }
 
-export type SiteVisitStatus = 'Scheduled' | 'Gate Pass Sent' | 'Visited' | 'Converted' | 'Cancelled';
+export type SiteVisitStatus = 'Scheduled' | 'Confirmed' | 'Approved' | 'Rejected' | 'Gate Pass Sent' | 'Visited' | 'Converted' | 'Cancelled';
 
 export interface SiteVisitRequest {
   id: string;
