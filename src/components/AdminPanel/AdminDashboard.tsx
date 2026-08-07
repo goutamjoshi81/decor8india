@@ -24,7 +24,8 @@ import {
   FilePlus,
   Upload,
   Award,
-  Download
+  Download,
+  Sparkles
 } from 'lucide-react';
 
 import { InvoiceModal } from '../InvoiceModal';
@@ -37,7 +38,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const { 
     currentUser, 
     logout, 
-    bookings, 
+    bookings,
+    siteVisits,
     approveBooking, 
     rejectBooking, 
     projects, 
@@ -65,6 +67,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine' | 'notifications'>('analytics');
+  const [clientFilter, setClientFilter] = useState<'ALL' | 'PACKAGES' | 'SITE_VISITS'>('ALL');
 
   // Reusable file-to-server uploader (saves to GoDaddy /uploads/ directory so all devices see photos/docs)
   const handleFileUpload = useCallback((file: File, setter: (url: string) => void) => {
@@ -681,9 +684,47 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         {/* TAB 2: CLIENT MANAGEMENT & APPROVALS */}
         {activeTab === 'clients' && (
           <div className="p-8 rounded-2xl glass-panel border border-white/10 space-y-6 animate-in fade-in">
-            <div className="space-y-1">
-              <h2 className="font-serif text-3xl font-bold text-white">Client Booking Approval Pipeline</h2>
-              <p className="text-xs text-neutral-400">Rule: Only approved clients receive access credentials for the Client Portal.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <h2 className="font-serif text-3xl font-bold text-white">Client Booking & Site Visit Pipeline</h2>
+                <p className="text-xs text-neutral-400">Rule: Approved clients receive login access to the Client Portal.</p>
+              </div>
+
+              {/* Sub-Filter Tabs */}
+              <div className="flex space-x-2 bg-black/60 p-1.5 rounded-xl border border-white/10 shrink-0">
+                <button
+                  onClick={() => setClientFilter('ALL')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                    clientFilter === 'ALL'
+                      ? 'gold-gradient-bg text-black shadow-md'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  All Requests ({bookings.length})
+                </button>
+
+                <button
+                  onClick={() => setClientFilter('PACKAGES')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                    clientFilter === 'PACKAGES'
+                      ? 'gold-gradient-bg text-black shadow-md'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  Package Consultations ({bookings.filter(b => b.serviceType !== 'Site Visit' && !b.packageName.toLowerCase().includes('site visit')).length})
+                </button>
+
+                <button
+                  onClick={() => setClientFilter('SITE_VISITS')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                    clientFilter === 'SITE_VISITS'
+                      ? 'bg-emerald-500 text-black shadow-md font-bold'
+                      : 'text-emerald-400 hover:text-white bg-emerald-500/10'
+                  }`}
+                >
+                  <span>📍 Site Visit Requests ({siteVisits.length + bookings.filter(b => b.serviceType === 'Site Visit' || b.packageName.toLowerCase().includes('site visit') || b.requirements?.toLowerCase().includes('site visit')).length})</span>
+                </button>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -692,83 +733,158 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   <tr>
                     <th className="p-4 rounded-l-lg">Client Name</th>
                     <th className="p-4">Contact Info</th>
-                    <th className="p-4">Package & Specs</th>
+                    <th className="p-4">Request Type & Site Details</th>
                     <th className="p-4">Financing / EMI</th>
-                    <th className="p-4">Est. Cost</th>
+                    <th className="p-4">Est. Cost / Gate Pass</th>
                     <th className="p-4">Status</th>
                     <th className="p-4 rounded-r-lg text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {bookings.map((b) => {
-                    const isEmi = b.isEmiRequested || b.requirements?.toLowerCase().includes('emi');
-                    return (
-                      <tr key={b.id} className="hover:bg-white/5">
-                        <td className="p-4 font-bold text-white">
-                          {b.clientName}
-                          <div className="text-[10px] text-neutral-400 font-mono">ID: {b.id}</div>
-                        </td>
-                        <td className="p-4 font-mono">
-                          <div>{b.clientEmail}</div>
-                          <div className="text-neutral-500">{b.clientPhone}</div>
-                        </td>
-                        <td className="p-4">
-                          <span className="font-semibold text-white">{b.packageName}</span>
-                          <div className="text-[10px] text-neutral-400">{b.serviceType}</div>
-                          {b.requirements && (
-                            <div className="text-[10px] text-neutral-400 italic line-clamp-1 mt-0.5" title={b.requirements}>
-                              Note: {b.requirements}
-                            </div>
-                          )}
-                        </td>
-                        <td className="p-4 font-mono">
-                          {isEmi ? (
-                            <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] font-bold text-[10px] uppercase tracking-wider shadow-sm shadow-[#D4AF37]/20">
-                              <CreditCard className="w-3 h-3" />
-                              <span>0% EMI Plan</span>
-                            </span>
-                          ) : (
-                            <span className="text-neutral-500 text-[10px]">Standard Pay</span>
-                          )}
-                        </td>
-                        <td className="p-4 font-mono text-emerald-400 font-bold">
-                          ₹ {b.estimatedCost ? (b.estimatedCost / 100000).toFixed(2) : 15} L
-                        </td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                            b.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
-                            b.status === 'Pending Approval' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse' :
-                            'bg-red-500/20 text-red-400'
-                          }`}>
-                            {b.status}
+                  {/* Dedicated site_visits DB Table Records */}
+                  {(clientFilter === 'ALL' || clientFilter === 'SITE_VISITS') && siteVisits.map((sv) => (
+                    <tr key={sv.id} className="bg-emerald-500/10 hover:bg-emerald-500/15 border-l-4 border-l-emerald-400">
+                      <td className="p-4 font-bold text-white">
+                        {sv.clientName}
+                        <div className="text-[10px] text-emerald-400 font-mono font-bold">ID: {sv.id}</div>
+                      </td>
+                      <td className="p-4 font-mono">
+                        <div>{sv.clientEmail}</div>
+                        <div className="text-neutral-300">{sv.clientPhone}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="space-y-1">
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold uppercase tracking-wider">
+                            <span>📍 Dedicated Site Visit Table</span>
                           </span>
-                        </td>
-                        <td className="p-4 text-right space-x-2">
-                          {b.status === 'Pending Approval' ? (
-                            <>
-                              <button
-                                onClick={() => {
-                                  approveBooking(b.id);
-                                  alert(`Approved booking for ${b.clientName}. Project initialized and Client Portal account activated!`);
-                                }}
-                                className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
-                              >
-                                Approve & Grant Login
-                              </button>
-                              <button
-                                onClick={() => rejectBooking(b.id)}
-                                className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white text-xs"
-                              >
-                                Reject
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-neutral-500 text-[11px]">Approved</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          <div className="font-bold text-white">{sv.projectTitle}</div>
+                          <div className="text-[10px] text-neutral-400">Visit Date: <span className="text-[#D4AF37] font-semibold">{sv.preferredDate}</span> ({sv.timeSlot})</div>
+                          {sv.notes && <div className="text-[10px] text-neutral-300 italic line-clamp-2 mt-0.5 bg-black/40 p-1 rounded">Notes: {sv.notes}</div>}
+                        </div>
+                      </td>
+                      <td className="p-4 font-mono">
+                        {sv.isEmiRequested ? (
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] font-bold text-[10px] uppercase tracking-wider">
+                            <CreditCard className="w-3 h-3" />
+                            <span>0% EMI Requested</span>
+                          </span>
+                        ) : (
+                          <span className="text-neutral-500 text-[10px]">Standard Pay</span>
+                        )}
+                      </td>
+                      <td className="p-4 font-mono text-[#D4AF37] font-bold">
+                        Pass: {sv.gatePassCode || 'GP-DESK1'}
+                      </td>
+                      <td className="p-4">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                          {sv.status || 'Scheduled'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right space-x-2">
+                        <button
+                          onClick={() => alert(`Gate Pass Code ${sv.gatePassCode || 'GP-DESK1'} confirmed & SMS sent to ${sv.clientPhone}`)}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
+                        >
+                          Send Gate Pass SMS
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {bookings
+                    .filter((b) => {
+                      const isSiteVisit = b.serviceType === 'Site Visit' || b.packageName.toLowerCase().includes('site visit') || b.requirements?.toLowerCase().includes('site visit');
+                      if (clientFilter === 'SITE_VISITS') return isSiteVisit;
+                      if (clientFilter === 'PACKAGES') return !isSiteVisit;
+                      return true;
+                    })
+                    .map((b) => {
+                      const isEmi = b.isEmiRequested || b.requirements?.toLowerCase().includes('emi');
+                      const isSiteVisit = b.serviceType === 'Site Visit' || b.packageName.toLowerCase().includes('site visit') || b.requirements?.toLowerCase().includes('site visit');
+
+                      return (
+                        <tr key={b.id} className={`hover:bg-white/5 ${isSiteVisit ? 'bg-emerald-500/5' : ''}`}>
+                          <td className="p-4 font-bold text-white">
+                            {b.clientName}
+                            <div className="text-[10px] text-neutral-400 font-mono">ID: {b.id}</div>
+                          </td>
+                          <td className="p-4 font-mono">
+                            <div>{b.clientEmail}</div>
+                            <div className="text-neutral-400">{b.clientPhone}</div>
+                          </td>
+                          <td className="p-4">
+                            {isSiteVisit ? (
+                              <div className="space-y-1">
+                                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                                  <span>📍 In-Person Site Visit Request</span>
+                                </span>
+                                <div className="font-bold text-white">{b.packageName}</div>
+                                <div className="text-[10px] text-neutral-400">Scheduled Date: <span className="text-[#D4AF37] font-semibold">{b.preferredDate}</span></div>
+                                {b.requirements && (
+                                  <div className="text-[10px] text-neutral-300 italic line-clamp-2 mt-0.5 bg-black/40 p-1.5 rounded border border-white/5" title={b.requirements}>
+                                    {b.requirements}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-semibold text-white">{b.packageName}</span>
+                                <div className="text-[10px] text-neutral-400">{b.serviceType}</div>
+                                {b.requirements && (
+                                  <div className="text-[10px] text-neutral-400 italic line-clamp-1 mt-0.5" title={b.requirements}>
+                                    Note: {b.requirements}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                          <td className="p-4 font-mono">
+                            {isEmi ? (
+                              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] font-bold text-[10px] uppercase tracking-wider shadow-sm shadow-[#D4AF37]/20">
+                                <CreditCard className="w-3 h-3" />
+                                <span>0% EMI Plan</span>
+                              </span>
+                            ) : (
+                              <span className="text-neutral-500 text-[10px]">Standard Pay</span>
+                            )}
+                          </td>
+                          <td className="p-4 font-mono text-emerald-400 font-bold">
+                            ₹ {b.estimatedCost ? (b.estimatedCost / 100000).toFixed(2) : 15} L
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                              b.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
+                              b.status === 'Pending Approval' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse' :
+                              'bg-red-500/20 text-red-400'
+                            }`}>
+                              {b.status}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right space-x-2">
+                            {b.status === 'Pending Approval' ? (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    approveBooking(b.id);
+                                    alert(`Approved request for ${b.clientName}. Account activated!`);
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
+                                >
+                                  Approve & Grant Login
+                                </button>
+                                <button
+                                  onClick={() => rejectBooking(b.id)}
+                                  className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white text-xs"
+                                >
+                                  Reject
+                                </button>
+                              </>
+                            ) : (
+                              <span className="text-neutral-500 text-[11px]">Approved</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
@@ -813,9 +929,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                       <h3 className="font-serif text-2xl font-bold text-white">{selectedProject.title}</h3>
                       <p className="text-xs text-neutral-400 font-mono">Client: {selectedProject.clientName} • Architect: {selectedProject.designerName}</p>
                     </div>
-                    <div className="px-3 py-1.5 rounded-lg bg-black/60 border border-[#D4AF37]/40 text-right">
-                      <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Budget</span>
-                      <span className="text-sm font-bold text-[#D4AF37] font-mono">{selectedProject.budget}</span>
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => updateProject(selectedProject.id, { showOnLandingPage: !selectedProject.showOnLandingPage })}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center space-x-1.5 ${
+                          selectedProject.showOnLandingPage !== false
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm'
+                            : 'bg-white/5 text-neutral-400 border-white/10 hover:text-white'
+                        }`}
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>{selectedProject.showOnLandingPage !== false ? '⭐ Displayed on Landing Page' : 'Hidden from Landing Page'}</span>
+                      </button>
+                      <div className="px-3 py-1.5 rounded-lg bg-black/60 border border-[#D4AF37]/40 text-right">
+                        <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Budget</span>
+                        <span className="text-sm font-bold text-[#D4AF37] font-mono">{selectedProject.budget}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -1303,25 +1432,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
                   <p className="text-xs text-neutral-300 line-clamp-2 italic">{p.description}</p>
 
-                  <div className="pt-3 border-t border-white/10 flex justify-end space-x-2">
-                    <button 
-                      onClick={() => openEditPortfolioModal(p)}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#D4AF37] hover:text-black text-xs text-neutral-200 font-medium flex items-center space-x-1 transition-all"
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                    <button
+                      onClick={() => updateProject(p.id, { showOnLandingPage: p.showOnLandingPage === true ? false : true })}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center space-x-1.5 ${
+                        p.showOnLandingPage !== false
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                          : 'bg-white/5 text-neutral-400 border-white/10 hover:text-white'
+                      }`}
                     >
-                      <Edit className="w-3.5 h-3.5" />
-                      <span>Edit Details</span>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>{p.showOnLandingPage !== false ? '⭐ Landing Page Visible' : 'Hidden from Landing Page'}</span>
                     </button>
-                    <button 
-                      onClick={() => {
-                        if (confirm(`Are you sure you want to delete "${p.title}"?`)) {
-                          deleteProject(p.id);
-                        }
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white text-xs font-medium flex items-center space-x-1 transition-all"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Delete</span>
-                    </button>
+
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => openEditPortfolioModal(p)}
+                        className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#D4AF37] hover:text-black text-xs text-neutral-200 font-medium flex items-center space-x-1 transition-all"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>Edit Details</span>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to delete "${p.title}"?`)) {
+                            deleteProject(p.id);
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white text-xs font-medium flex items-center space-x-1 transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

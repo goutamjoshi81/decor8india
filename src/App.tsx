@@ -1,71 +1,91 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { AboutUs } from './components/AboutUs';
-import { ServicesSection } from './components/ServicesSection';
-import { CostEstimator } from './components/CostEstimator';
-import { PartnersSection } from './components/PartnersSection';
-import { PortfolioGallery } from './components/PortfolioGallery';
-import { OngoingProjects } from './components/OngoingProjects';
-import { MagazineSection } from './components/MagazineSection';
-import { InstagramSection } from './components/InstagramSection';
-import { Testimonials } from './components/Testimonials';
-import { FAQ } from './components/FAQ';
-import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { BookingModal } from './components/BookingModal';
 import { AuthModal } from './components/AuthModal';
 import { SiteVisitModal } from './components/SiteVisitModal';
-import { ClientDashboard } from './components/ClientPortal/ClientDashboard';
-import { AdminDashboard } from './components/AdminPanel/AdminDashboard';
+import { CostEstimator } from './components/CostEstimator';
+
+// Main Pages
+import { HomePage } from './pages/HomePage';
+import { AboutPage } from './pages/AboutPage';
+import { ServicesPage } from './pages/ServicesPage';
+import { EstimatorPage } from './pages/EstimatorPage';
+import { PortfolioPage } from './pages/PortfolioPage';
+import { OngoingProjectsPage } from './pages/OngoingProjectsPage';
+import { BlogsPage } from './pages/BlogsPage';
+import { ContactPage } from './pages/ContactPage';
+import { ClientPage } from './pages/ClientPage';
+import { AdminPage } from './pages/AdminPage';
+
+// Individual Thread Detail Pages
+import { ArticleDetailPage } from './pages/ArticleDetailPage';
+import { ProjectDetailPage } from './pages/ProjectDetailPage';
+import { ServiceDetailPage } from './pages/ServiceDetailPage';
 
 const MainAppContent: React.FC = () => {
   const { 
-    currentUser, 
     isEstimatorOpen, 
     setIsEstimatorOpen, 
     isSiteVisitOpen, 
     setIsSiteVisitOpen, 
     selectedProjectForSiteVisit 
   } = useApp();
-  const [activeTab, setActiveTab] = useState<'public' | 'client' | 'admin'>('public');
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isDashboardRoute = location.pathname.startsWith('/client') || location.pathname.startsWith('/admin');
 
   return (
     <div className="min-h-screen bg-[#0B0C0E] text-[#E5E3DF] font-sans antialiased selection:bg-[#D4AF37] selection:text-black">
       
       {/* Navigation Header */}
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      {!isDashboardRoute && <Navbar />}
 
-      {/* Main Views */}
-      {activeTab === 'client' && currentUser?.role === 'CLIENT' ? (
-        <ClientDashboard onReturnToPublic={() => setActiveTab('public')} />
-      ) : activeTab === 'admin' && currentUser?.role === 'ADMIN' ? (
-        <AdminDashboard onReturnToPublic={() => setActiveTab('public')} />
-      ) : (
-        /* Public Landing Website */
-        <main>
-          <Hero />
-          <AboutUs />
-          <ServicesSection />
-          <PartnersSection />
-          <CostEstimator />
-          <PortfolioGallery />
-          <OngoingProjects />
-          <MagazineSection />
-          <InstagramSection />
-          <Testimonials />
-          <FAQ />
-          <ContactSection />
-        </main>
-      )}
+      {/* Main Multi-Page Routes */}
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        
+        {/* Services */}
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/services/:id" element={<ServiceDetailPage />} />
+        
+        {/* Estimator */}
+        <Route path="/estimator" element={<EstimatorPage />} />
+        
+        {/* Portfolio & Ongoing Works */}
+        <Route path="/portfolio" element={<PortfolioPage />} />
+        <Route path="/portfolio/:id" element={<ProjectDetailPage />} />
+        <Route path="/projects" element={<OngoingProjectsPage />} />
+        <Route path="/projects/:id" element={<ProjectDetailPage />} />
+        
+        {/* Magazine & Blogs */}
+        <Route path="/blogs" element={<BlogsPage />} />
+        <Route path="/blogs/:id" element={<ArticleDetailPage />} />
+        <Route path="/magazine" element={<BlogsPage />} />
+        <Route path="/magazine/:id" element={<ArticleDetailPage />} />
+        
+        {/* Contact */}
+        <Route path="/contact" element={<ContactPage />} />
+        
+        {/* Dashboards */}
+        <Route path="/client" element={<ClientPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+        
+        {/* Fallback to Home */}
+        <Route path="*" element={<HomePage />} />
+      </Routes>
 
       {/* Footer */}
-      {activeTab === 'public' && <Footer />}
+      {!isDashboardRoute && <Footer />}
 
       {/* Interactive Global Modals */}
       <BookingModal />
-      <AuthModal onSuccessRedirect={(tab) => setActiveTab(tab)} />
+      <AuthModal onSuccessRedirect={(role) => navigate(role === 'admin' ? '/admin' : '/client')} />
 
       {/* Site Visit Modal */}
       <SiteVisitModal 

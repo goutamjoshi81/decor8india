@@ -62,6 +62,34 @@ export const apiService = {
     }
   },
 
+  // Save Site Visit Endpoint (Saves to dedicated 'site_visits' table)
+  async saveSiteVisit(visitData: any): Promise<{ success: boolean; visitId?: string; gatePassCode?: string; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_site_visit.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(visitData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveSiteVisit error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  // Fetch Site Visits Endpoint (Loads live MySQL site_visits in Admin panel)
+  async getSiteVisits(): Promise<{ success: boolean; siteVisits?: any[]; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_site_visits.php`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getSiteVisits error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
   // Approve Booking Endpoint (Transfers client to 'users' table)
   async approveBooking(bookingId: string): Promise<{ success: boolean; user?: any; message?: string }> {
     try {
@@ -198,6 +226,18 @@ export const apiService = {
     } catch (error) {
       console.warn(`Backend API getCmsData(${key}) error:`, error);
       return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  // Fetch Live Instagram Feed Endpoint
+  async getInstagramFeed(): Promise<{ success: boolean; username?: string; followers?: string; posts_count?: string; posts?: any[] }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_instagram_feed.php`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getInstagramFeed error:', error);
+      return { success: false };
     }
   }
 };

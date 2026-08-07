@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { 
   Check, 
@@ -9,7 +10,7 @@ import {
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const { setIsEstimatorOpen, setIsBookingOpen } = useApp();
+  const { setIsBookingOpen } = useApp();
 
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -24,11 +25,6 @@ export const Footer: React.FC = () => {
     }, 4000);
   };
 
-  const handleScrollTo = (id: string) => {
-    const elem = document.getElementById(id);
-    if (elem) elem.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <footer className="bg-[#07080A] text-neutral-400 border-t border-white/10 pt-16 pb-12 relative overflow-hidden">
       
@@ -38,7 +34,7 @@ export const Footer: React.FC = () => {
           
           {/* Col 1: Brand */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => handleScrollTo('hero')}>
+            <Link to="/" className="flex items-center space-x-3 cursor-pointer group">
               <img 
                 src="/logo_icon.png" 
                 alt="Decor8 India Logo" 
@@ -52,7 +48,7 @@ export const Footer: React.FC = () => {
                   Affordable Luxury
                 </span>
               </div>
-            </div>
+            </Link>
 
             <p className="text-xs text-neutral-400 leading-relaxed max-w-sm">
               Decor8India is an award-winning luxury interior architecture, turnkey civil construction, and fitout firm, creating timeless residential penthouses, minimalist villas, and high-performance commercial headquarters.
@@ -101,12 +97,12 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <div className="text-xs font-bold text-white uppercase tracking-wider font-mono">Company</div>
             <ul className="space-y-2 text-xs">
-              <li><button onClick={() => handleScrollTo('about')} className="hover:text-[#D4AF37] transition-colors">About Story</button></li>
-              <li><button onClick={() => handleScrollTo('services')} className="hover:text-[#D4AF37] transition-colors">Our Services</button></li>
-              <li><button onClick={() => setIsEstimatorOpen(true)} className="hover:text-[#D4AF37] transition-colors text-[#D4AF37] font-semibold">Cost Estimator</button></li>
-              <li><button onClick={() => handleScrollTo('portfolio')} className="hover:text-[#D4AF37] transition-colors">Completed Projects</button></li>
-              <li><button onClick={() => handleScrollTo('ongoing')} className="hover:text-[#D4AF37] transition-colors">Live Ongoing Sites</button></li>
-              <li><button onClick={() => handleScrollTo('magazine')} className="hover:text-[#D4AF37] transition-colors">Design Magazine</button></li>
+              <li><Link to="/about" className="hover:text-[#D4AF37] transition-colors">About Story</Link></li>
+              <li><Link to="/services" className="hover:text-[#D4AF37] transition-colors">Our Services</Link></li>
+              <li><Link to="/estimator" className="hover:text-[#D4AF37] transition-colors text-[#D4AF37] font-semibold">Cost Estimator</Link></li>
+              <li><Link to="/portfolio" className="hover:text-[#D4AF37] transition-colors">Completed Projects</Link></li>
+              <li><Link to="/projects" className="hover:text-[#D4AF37] transition-colors">Live Ongoing Sites</Link></li>
+              <li><Link to="/blogs" className="hover:text-[#D4AF37] transition-colors">Design Magazine</Link></li>
             </ul>
           </div>
 
@@ -114,12 +110,12 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <div className="text-xs font-bold text-white uppercase tracking-wider font-mono">Popular Packages</div>
             <ul className="space-y-2 text-xs">
-              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors">1 BHK Luxury Package</button></li>
-              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors">2 BHK Premium Interior</button></li>
-              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors">3 BHK Royal Residency</button></li>
-              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors">Grand Villa Turnkey</button></li>
-              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors">Corporate Office Fitouts</button></li>
-              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors">Fine Dining Restaurant</button></li>
+              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors text-left">1 BHK Luxury Package</button></li>
+              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors text-left">2 BHK Premium Interior</button></li>
+              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors text-left">3 BHK Royal Residency</button></li>
+              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors text-left">Grand Villa Turnkey</button></li>
+              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors text-left">Corporate Office Fitouts</button></li>
+              <li><button onClick={() => setIsBookingOpen(true)} className="hover:text-[#D4AF37] transition-colors text-left">Fine Dining Restaurant</button></li>
             </ul>
           </div>
 
@@ -165,10 +161,10 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="flex space-x-6">
-            <a href="#privacy" className="hover:text-neutral-300 transition-colors">Privacy Policy</a>
-            <a href="#terms" className="hover:text-neutral-300 transition-colors">Terms of Service</a>
-            <a href="#careers" className="hover:text-neutral-300 transition-colors">Careers at Decor8India</a>
-            <a href="#sitemap" className="hover:text-neutral-300 transition-colors">Sitemap</a>
+            <Link to="/contact" className="hover:text-neutral-300 transition-colors">Privacy Policy</Link>
+            <Link to="/contact" className="hover:text-neutral-300 transition-colors">Terms of Service</Link>
+            <Link to="/about" className="hover:text-neutral-300 transition-colors">Careers at Decor8India</Link>
+            <Link to="/contact" className="hover:text-neutral-300 transition-colors">Contact Us</Link>
           </div>
         </div>
 

@@ -19,7 +19,7 @@ interface SiteVisitModalProps {
 }
 
 export const SiteVisitModal: React.FC<SiteVisitModalProps> = ({ isOpen, onClose, initialProjectTitle }) => {
-  const { projects, submitBooking } = useApp();
+  const { projects, submitSiteVisit } = useApp();
 
   const activeProjects = projects.filter(p => p.status === 'Ongoing' || p.status === 'Completed');
 
@@ -44,16 +44,14 @@ export const SiteVisitModal: React.FC<SiteVisitModalProps> = ({ isOpen, onClose,
       return;
     }
 
-    const targetProjectObj = activeProjects.find(p => p.title === selectedProject);
-
-    submitBooking({
+    submitSiteVisit({
       clientName,
       clientEmail,
       clientPhone,
-      serviceType: targetProjectObj?.category || 'Residential',
-      packageName: `In-Person Site Visit: ${selectedProject}`,
+      projectTitle: selectedProject,
       preferredDate: preferredDate || new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      requirements: `📍 IN-PERSON LIVE SITE VISIT REQUEST: Chosen Site [${selectedProject}] (${targetProjectObj?.location || 'Bengaluru'}). Preferred Slot: ${timeSlot}. Notes: ${notes || 'Client wants to inspect live execution in person.'}`,
+      timeSlot,
+      notes,
       isEmiRequested
     });
 

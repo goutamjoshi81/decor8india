@@ -154,8 +154,26 @@ export const PortfolioGallery: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="w-full py-2.5 rounded-lg bg-white/5 group-hover:bg-[#D4AF37] text-neutral-300 group-hover:text-black font-bold text-xs uppercase tracking-wider text-center transition-all">
-                  View Full Case Study & Gallery
+                <div className="flex space-x-2">
+                  <div 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.location.href = `/portfolio/${project.id}`;
+                    }}
+                    className="w-1/2 py-2.5 rounded-lg bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider text-center transition-all hover:opacity-90"
+                  >
+                    View Project Details
+                  </div>
+                  <div 
+                    onClick={() => {
+                      setSelectedProject(project);
+                      setActiveGalleryIdx(0);
+                      setBeforeAfterPos(50);
+                    }}
+                    className="w-1/2 py-2.5 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-300 font-bold text-xs uppercase tracking-wider text-center transition-all"
+                  >
+                    Quick Preview
+                  </div>
                 </div>
               </div>
 

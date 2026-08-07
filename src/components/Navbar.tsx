@@ -1,22 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { 
   UserCheck, 
   Menu, 
   X, 
-  Calculator, 
   PhoneCall, 
   ChevronRight,
   LogOut,
   LayoutDashboard
 } from 'lucide-react';
 
-interface NavbarProps {
-  activeTab: 'public' | 'client' | 'admin';
-  setActiveTab: (tab: 'public' | 'client' | 'admin') => void;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
+export const Navbar: React.FC = () => {
   const { 
     currentUser, 
     logout, 
@@ -28,6 +23,8 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,16 +34,21 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNavClick = (sectionId: string) => {
-    setActiveTab('public');
+  // Close mobile drawer on route change
+  useEffect(() => {
     setMobileMenuOpen(false);
-    setTimeout(() => {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100);
-  };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [location.pathname]);
+
+  const navItems = [
+    { label: 'About Us', path: '/about' },
+    { label: 'Services', path: '/services' },
+    { label: 'Cost Estimator', path: '/estimator' },
+    { label: 'Portfolio', path: '/portfolio' },
+    { label: 'Ongoing Works', path: '/projects' },
+    { label: 'Magazine', path: '/blogs' },
+    { label: 'Contact', path: '/contact' },
+  ];
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
@@ -55,7 +57,10 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
         <span className="px-1.5 py-0.5 rounded bg-[#D4AF37] text-black font-extrabold uppercase text-[8px] sm:text-[9px] tracking-wider font-mono shrink-0">0% EMI</span>
         <span className="font-medium text-neutral-200 truncate sm:whitespace-normal">Easy Monthly EMI Financing Available Up to 36 Months</span>
         <button 
-          onClick={() => setIsEstimatorOpen(true)}
+          onClick={() => {
+            navigate('/estimator');
+            setIsEstimatorOpen(true);
+          }}
           className="hidden sm:inline-flex items-center space-x-1 text-[#D4AF37] font-bold hover:underline ml-2 shrink-0"
         >
           <span>Calculate EMI</span>
@@ -74,8 +79,8 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
         <div className="flex items-center justify-between">
           
           {/* Logo */}
-          <div 
-            onClick={() => handleNavClick('hero')} 
+          <Link 
+            to="/" 
             className="flex items-center space-x-2.5 cursor-pointer group py-1 shrink-0 mr-4 sm:mr-6"
           >
             <img 
@@ -91,77 +96,41 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
                 Affordable Luxury
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden xl:flex items-center space-x-4 2xl:space-x-6 text-xs 2xl:text-sm font-medium tracking-wide text-neutral-300">
-            <button 
-              onClick={() => handleNavClick('about')} 
-              className="hover:text-[#D4AF37] transition-colors py-1 relative group whitespace-nowrap"
-            >
-              About Us
-              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full"></span>
-            </button>
-            <button 
-              onClick={() => handleNavClick('services')} 
-              className="hover:text-[#D4AF37] transition-colors py-1 relative group whitespace-nowrap"
-            >
-              Services
-              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full"></span>
-            </button>
-            <button 
-              onClick={() => handleNavClick('estimator')} 
-              className="hover:text-[#D4AF37] transition-colors py-1 relative group flex items-center space-x-1 whitespace-nowrap"
-            >
-              <span>Cost Estimator</span>
-            </button>
-            <button 
-              onClick={() => handleNavClick('portfolio')} 
-              className="hover:text-[#D4AF37] transition-colors py-1 relative group whitespace-nowrap"
-            >
-              Portfolio
-              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full"></span>
-            </button>
-            <button 
-              onClick={() => handleNavClick('magazine')} 
-              className="hover:text-[#D4AF37] transition-colors py-1 relative group whitespace-nowrap"
-            >
-              Magazine
-              <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full"></span>
-            </button>
-            <button 
-              onClick={() => handleNavClick('instagram-feed')} 
-              className="hover:text-pink-400 transition-colors py-1 relative group flex items-center space-x-1 whitespace-nowrap"
-            >
-              <span>Instagram</span>
-            </button>
-            <button 
-              onClick={() => handleNavClick('contact')} 
-              className="hover:text-[#D4AF37] transition-colors py-1 relative group whitespace-nowrap"
-            >
-              Contact
-            </button>
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `transition-colors py-1 relative group whitespace-nowrap ${
+                    isActive ? 'text-[#D4AF37] font-bold' : 'hover:text-[#D4AF37]'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span>{item.label}</span>
+                    <span className={`absolute bottom-0 left-0 h-[2px] bg-[#D4AF37] transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                  </>
+                )}
+              </NavLink>
+            ))}
           </nav>
 
           {/* Action CTAs & Auth Switches */}
           <div className="hidden lg:flex items-center space-x-2.5 xl:space-x-3 shrink-0">
             
-            {/* Quick Estimator Button */}
-            <button 
-              onClick={() => setIsEstimatorOpen(true)}
-              className="hidden 2xl:flex items-center space-x-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 text-neutral-200 hover:text-[#D4AF37] transition-all whitespace-nowrap"
-            >
-              <Calculator className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Get Estimate</span>
-            </button>
 
             {/* User Auth state / Portal Navigation */}
             {currentUser ? (
               <div className="flex items-center space-x-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
                 <button 
                   onClick={() => {
-                    if (currentUser.role === 'ADMIN') setActiveTab('admin');
-                    else setActiveTab('client');
+                    if (currentUser.role === 'ADMIN') navigate('/admin');
+                    else navigate('/client');
                   }}
                   className="flex items-center space-x-1.5 text-xs text-[#D4AF37] hover:underline font-medium whitespace-nowrap"
                 >
@@ -170,7 +139,10 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
                 </button>
                 <div className="w-px h-3 bg-white/20"></div>
                 <button 
-                  onClick={logout} 
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                  }} 
                   title="Sign Out" 
                   className="text-neutral-400 hover:text-red-400 transition-colors"
                 >
@@ -229,42 +201,24 @@ export const Navbar: React.FC<NavbarProps> = ({ setActiveTab }) => {
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#0D0E12]/95 backdrop-blur-2xl border-b border-white/10 px-6 py-6 space-y-4 animate-in slide-in-from-top duration-300">
           <div className="flex flex-col space-y-3 font-medium text-base text-neutral-300">
-            <button onClick={() => handleNavClick('hero')} className="text-left py-2 border-b border-white/5 flex items-center justify-between">
+            <Link to="/" className="text-left py-2 border-b border-white/5 flex items-center justify-between">
               <span>Home</span>
               <ChevronRight className="w-4 h-4 text-neutral-500" />
-            </button>
-            <button onClick={() => handleNavClick('about')} className="text-left py-2 border-b border-white/5 flex items-center justify-between">
-              <span>About Us</span>
-              <ChevronRight className="w-4 h-4 text-neutral-500" />
-            </button>
-            <button onClick={() => handleNavClick('services')} className="text-left py-2 border-b border-white/5 flex items-center justify-between">
-              <span>Services</span>
-              <ChevronRight className="w-4 h-4 text-neutral-500" />
-            </button>
-            <button onClick={() => handleNavClick('estimator')} className="text-left py-2 border-b border-white/5 flex items-center justify-between text-[#D4AF37]">
-              <span>Cost Estimator Calculator</span>
-              <ChevronRight className="w-4 h-4 text-[#D4AF37]" />
-            </button>
-            <button onClick={() => handleNavClick('portfolio')} className="text-left py-2 border-b border-white/5 flex items-center justify-between">
-              <span>Portfolio & Projects</span>
-              <ChevronRight className="w-4 h-4 text-neutral-500" />
-            </button>
-            <button onClick={() => handleNavClick('magazine')} className="text-left py-2 border-b border-white/5 flex items-center justify-between">
-              <span>Design Magazine</span>
-              <ChevronRight className="w-4 h-4 text-neutral-500" />
-            </button>
-            <button onClick={() => handleNavClick('contact')} className="text-left py-2 border-b border-white/5 flex items-center justify-between">
-              <span>Contact Us</span>
-              <ChevronRight className="w-4 h-4 text-neutral-500" />
-            </button>
+            </Link>
+            {navItems.map((item) => (
+              <Link key={item.path} to={item.path} className="text-left py-2 border-b border-white/5 flex items-center justify-between">
+                <span>{item.label}</span>
+                <ChevronRight className="w-4 h-4 text-neutral-500" />
+              </Link>
+            ))}
           </div>
 
           <div className="pt-4 border-t border-white/10 space-y-3">
             {currentUser ? (
               <button 
                 onClick={() => {
-                  if (currentUser.role === 'ADMIN') setActiveTab('admin');
-                  else setActiveTab('client');
+                  if (currentUser.role === 'ADMIN') navigate('/admin');
+                  else navigate('/client');
                   setMobileMenuOpen(false);
                 }}
                 className="w-full py-3 rounded-lg bg-white/10 text-[#D4AF37] font-semibold text-center flex items-center justify-center space-x-2"

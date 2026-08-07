@@ -31,7 +31,7 @@ export interface BookingRequest {
   clientName: string;
   clientEmail: string;
   clientPhone: string;
-  serviceType: 'Residential' | 'Commercial' | 'Construction';
+  serviceType: 'Residential' | 'Commercial' | 'Construction' | 'Site Visit';
   packageName: string;
   propertyType?: string;
   bhkSize?: string;
@@ -44,6 +44,24 @@ export interface BookingRequest {
   createdAt: string;
   estimatedCost?: number;
   isEmiRequested?: boolean;
+}
+
+export type SiteVisitStatus = 'Scheduled' | 'Gate Pass Sent' | 'Visited' | 'Converted' | 'Cancelled';
+
+export interface SiteVisitRequest {
+  id: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  projectTitle: string;
+  preferredDate: string;
+  timeSlot: string;
+  notes?: string;
+  isEmiRequested?: boolean;
+  gatePassCode?: string;
+  assignedManager?: string;
+  status: SiteVisitStatus;
+  createdAt: string;
 }
 
 export type ProjectStage = 
@@ -132,6 +150,7 @@ export interface Project {
   budget: string;
   completionTime: string;
   status: 'Ongoing' | 'Completed';
+  showOnLandingPage?: boolean;
   progressPercentage: number;
   currentStage: ProjectStage;
   expectedCompletion: string;

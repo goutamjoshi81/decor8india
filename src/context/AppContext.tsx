@@ -12,7 +12,8 @@ import type {
   PaymentItem,
   MessageItem,
   TeamMember,
-  ProjectMilestone
+  ProjectMilestone,
+  SiteVisitRequest
 } from '../types';
 import { 
   INITIAL_SERVICES, 
@@ -32,6 +33,7 @@ interface AppContextType {
   services: ServiceItem[];
   articles: Article[];
   testimonials: Testimonial[];
+  siteVisits: SiteVisitRequest[];
   
   // Modals & UI state
   isBookingOpen: boolean;
@@ -56,6 +58,7 @@ interface AppContextType {
   updatePassword: (userId: string, newPassword: string) => boolean;
   logout: () => void;
   submitBooking: (booking: Omit<BookingRequest, 'id' | 'createdAt' | 'status'>) => BookingRequest;
+  submitSiteVisit: (visit: Omit<SiteVisitRequest, 'id' | 'createdAt' | 'status' | 'gatePassCode'>) => Promise<SiteVisitRequest>;
   approveBooking: (bookingId: string) => void;
   rejectBooking: (bookingId: string) => void;
   
@@ -116,6 +119,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return saved ? JSON.parse(saved) : INITIAL_BOOKINGS;
     } catch (e) {
       return INITIAL_BOOKINGS;
+    }
+  });
+
+  const [siteVisits, setSiteVisits] = useState<SiteVisitRequest[]>(() => {
+    try {
+      const saved = localStorage.getItem('decor8_site_visits');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
     }
   });
 
@@ -273,6 +285,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setBookings(res.bookings as any);
           }
         }).catch(err => console.warn('Could not fetch bookings:', err));
+
+        // Fetch dedicated site visits from DB
+        apiService.getSiteVisits().then(res => {
+          if (res.success && res.siteVisits && Array.isArray(res.siteVisits)) {
+            setSiteVisits(res.siteVisits as any);
+          }
+        }).catch(err => console.warn('Could not fetch siteVisits:', err));
 
         // Fetch active client projects from MySQL projects table
         apiService.getProjects().then(res => {
@@ -443,6 +462,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newBooking;
   };
 
+  const submitSiteVisit = async (visitData: Omit<SiteVisitRequest, 'id' | 'createdAt' | 'status' | 'gatePassCode'>): Promise<SiteVisitRequest> => {
+    const tempId = `sv-${Date.now().toString().slice(-4)}`;
+    const tempPass = 'GP-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const newVisit: SiteVisitRequest = {
+      ...visitData,
+      id: tempId,
+      gatePassCode: tempPass,
+      status: 'Scheduled',
+      createdAt: new Date().toISOString()
+    };
+
+    setSiteVisits(prev => [newVisit, ...prev]);
+
+    // Save to dedicated 'site_visits' table in GoDaddy MySQL
+    try {
+      const { apiService } = await import('../services/apiService');
+      const res = await apiService.saveSiteVisit(visitData);
+      if (res.success && res.visitId) {
+        setSiteVisits(prev => prev.map(v => v.id === tempId ? { ...v, id: res.visitId!, gatePassCode: res.gatePassCode || tempPass } : v));
+      }
+    } catch (err) {
+      console.warn('GoDaddy MySQL API saveSiteVisit fallback:', err);
+    }
+
+    return newVisit;
+  };
+
   const approveBooking = (bookingId: string) => {
     const booking = bookings.find(b => b.id === bookingId);
     if (!booking) return;
@@ -494,7 +540,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clientEmail: booking.clientEmail,
       clientName: booking.clientName,
       designerName: 'Aarav Mehta (Principal Architect)',
-      category: booking.serviceType,
+      category: booking.serviceType === 'Site Visit' ? 'Residential' : booking.serviceType,
       style: 'Modern',
       coverImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
       galleryImages: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'],
@@ -886,6 +932,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       services,
       articles,
       testimonials,
+      siteVisits,
       teamMembers,
       isBookingOpen,
       setIsBookingOpen,
@@ -905,6 +952,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updatePassword,
       logout,
       submitBooking,
+      submitSiteVisit,
       approveBooking,
       rejectBooking,
       updateProjectProgress,

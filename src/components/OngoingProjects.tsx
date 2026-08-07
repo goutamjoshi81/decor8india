@@ -12,7 +12,10 @@ import {
 export const OngoingProjects: React.FC = () => {
   const { projects, setIsSiteVisitOpen, setSelectedProjectForSiteVisit } = useApp();
   
-  const ongoingList = projects.filter(p => p.status === 'Ongoing');
+  const landingSelected = projects.filter(p => p.showOnLandingPage === true);
+  const ongoingList = landingSelected.length > 0 
+    ? landingSelected 
+    : projects.filter(p => p.status === 'Ongoing' && p.showOnLandingPage !== false);
 
   const handleBookVisitForProject = (projectTitle: string) => {
     setSelectedProjectForSiteVisit(projectTitle);
@@ -113,14 +116,19 @@ export const OngoingProjects: React.FC = () => {
                 </div>
               </div>
 
-              {/* Action: Book In-Person Site Visit */}
-              <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                <span className="text-[11px] text-[#D4AF37] font-mono font-medium">📍 Live Inspection Available</span>
+              {/* Action: Book In-Person Site Visit & View Live Updates */}
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-2">
                 <button
-                  onClick={() => handleBookVisitForProject(project.title)}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-[#D4AF37] text-white hover:text-black font-bold text-xs uppercase tracking-wider transition-all flex items-center space-x-1.5 border border-white/15 hover:border-[#D4AF37]"
+                  onClick={() => window.location.href = `/projects/${project.id}`}
+                  className="px-3.5 py-2 rounded-xl bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider transition-all hover:opacity-90 flex items-center space-x-1.5"
                 >
                   <Eye className="w-3.5 h-3.5" />
+                  <span>View Live Updates</span>
+                </button>
+                <button
+                  onClick={() => handleBookVisitForProject(project.title)}
+                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition-all border border-white/15"
+                >
                   <span>Inspect Live Site</span>
                 </button>
               </div>

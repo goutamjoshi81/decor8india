@@ -15,7 +15,6 @@ import {
   Sparkles, 
   CheckCircle2, 
   Clock, 
-  ArrowRight,
   Calculator,
   HardHat,
   Hammer
@@ -204,13 +203,20 @@ export const ServicesSection: React.FC = () => {
                     </button>
                   </div>
 
-                  <button
-                    onClick={() => handleBookService(service)}
-                    className="w-full py-3 rounded-xl glass-panel-gold text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-all duration-300 group/btn"
-                  >
-                    <span>Book Service Package</span>
-                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => window.location.href = `/services/${service.id}`}
+                      className="w-1/2 py-3 rounded-xl bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider text-center transition-all hover:opacity-90"
+                    >
+                      View Package Details
+                    </button>
+                    <button
+                      onClick={() => handleBookService(service)}
+                      className="w-1/2 py-3 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-200 font-bold text-xs uppercase tracking-wider text-center transition-all border border-white/10"
+                    >
+                      Book Consultation
+                    </button>
+                  </div>
                 </div>
 
               </div>

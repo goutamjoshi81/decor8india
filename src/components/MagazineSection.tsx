@@ -1,24 +1,22 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import type { Article } from '../types';
 import { 
   BookOpen, 
   Search, 
   Rss, 
   Clock, 
-  User, 
   X, 
   ArrowRight, 
-  Share2, 
   Check
 } from 'lucide-react';
 
 export const MagazineSection: React.FC = () => {
   const { articles } = useApp();
+  const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [activeArticle, setActiveArticle] = useState<Article | null>(null);
   const [showRssModal, setShowRssModal] = useState(false);
   const [copiedRss, setCopiedRss] = useState(false);
 
@@ -106,7 +104,7 @@ export const MagazineSection: React.FC = () => {
         {/* Featured Article Hero Card */}
         {featuredArticle && selectedCategory === 'All' && !searchQuery && (
           <div 
-            onClick={() => setActiveArticle(featuredArticle)}
+            onClick={() => navigate(`/blogs/${featuredArticle.id}`)}
             className="group glass-card rounded-2xl overflow-hidden border border-[#D4AF37]/40 cursor-pointer grid grid-cols-1 lg:grid-cols-12 gap-8 items-center hover:shadow-2xl transition-all duration-500"
           >
             <div className="lg:col-span-7 h-80 sm:h-96 relative overflow-hidden">
@@ -115,7 +113,6 @@ export const MagazineSection: React.FC = () => {
                 alt={featuredArticle.title} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent lg:hidden" />
               <div className="absolute top-4 left-4 px-3 py-1 rounded-full gold-gradient-bg text-black text-xs font-bold uppercase tracking-wider">
                 FEATURED ARTICLE
               </div>
@@ -137,11 +134,7 @@ export const MagazineSection: React.FC = () => {
               </p>
 
               <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2 text-neutral-400">
-                  <User className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>By {featuredArticle.authorName}</span>
-                </div>
-
+                <span className="text-neutral-400">By {featuredArticle.authorName}</span>
                 <div className="text-[#D4AF37] font-bold flex items-center space-x-1 group-hover:translate-x-1 transition-transform">
                   <span>Read Article</span>
                   <ArrowRight className="w-4 h-4" />
@@ -154,10 +147,10 @@ export const MagazineSection: React.FC = () => {
         {/* Grid of Articles */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredArticles.map((article) => (
-            <div 
+            <Link 
               key={article.id}
-              onClick={() => setActiveArticle(article)}
-              className="group glass-card rounded-2xl overflow-hidden border border-white/10 cursor-pointer flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500"
+              to={`/blogs/${article.id}`}
+              className="group glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500"
             >
               <div>
                 <div className="relative h-52 overflow-hidden">
@@ -166,8 +159,6 @@ export const MagazineSection: React.FC = () => {
                     alt={article.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-transparent" />
-                  
                   <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-black/80 border border-white/10 text-[10px] font-semibold text-[#D4AF37]">
                     {article.category}
                   </div>
@@ -195,68 +186,17 @@ export const MagazineSection: React.FC = () => {
                 <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-neutral-400">
                   <span>By {article.authorName}</span>
                   <span className="text-[#D4AF37] font-semibold flex items-center space-x-1 group-hover:translate-x-1 transition-transform">
-                    <span>Read</span>
+                    <span>Read Article</span>
                     <ArrowRight className="w-3 h-3" />
                   </span>
                 </div>
               </div>
 
-            </div>
+            </Link>
           ))}
         </div>
 
       </div>
-
-      {/* Article Reader Modal */}
-      {activeArticle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl overflow-y-auto">
-          <div className="relative w-full max-w-4xl bg-[#0D0E12] border border-white/10 rounded-2xl p-6 sm:p-10 max-h-[92vh] overflow-y-auto space-y-6">
-            
-            <button 
-              onClick={() => setActiveArticle(null)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-neutral-400 hover:text-white"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3 text-xs text-[#D4AF37] font-semibold">
-                <span className="px-3 py-1 rounded-full bg-[#D4AF37]/20">{activeArticle.category}</span>
-                <span>•</span>
-                <span>{activeArticle.readTime}</span>
-                <span>•</span>
-                <span>Published {activeArticle.publishedAt}</span>
-              </div>
-
-              <h1 className="text-3xl sm:text-4xl font-serif font-bold text-white leading-tight">
-                {activeArticle.title}
-              </h1>
-
-              <div className="flex items-center justify-between text-xs text-neutral-400 pb-4 border-b border-white/10">
-                <span className="text-white font-medium">Written by {activeArticle.authorName}</span>
-                <button className="flex items-center space-x-1 text-[#D4AF37] hover:underline" onClick={handleCopyRss}>
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>Share Article</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="h-96 rounded-2xl overflow-hidden border border-white/10">
-              <img 
-                src={activeArticle.coverImage} 
-                alt={activeArticle.title} 
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <div 
-              className="text-neutral-300 text-sm sm:text-base leading-relaxed space-y-4 font-light prose prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: activeArticle.content }}
-            />
-
-          </div>
-        </div>
-      )}
 
       {/* RSS Feed Integration Modal */}
       {showRssModal && (
@@ -295,11 +235,6 @@ export const MagazineSection: React.FC = () => {
                   {copiedRss ? <Check className="w-4 h-4" /> : <span>Copy</span>}
                 </button>
               </div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-[11px] text-neutral-400 space-y-1">
-              <div className="font-bold text-white">Auto-Publish Status: ACTIVE</div>
-              <div>Articles published by Admin instantly sync to the public homepage and RSS subscribers.</div>
             </div>
 
           </div>
