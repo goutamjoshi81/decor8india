@@ -571,6 +571,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const completedProjectsCount = projects.filter(p => p.status === 'Completed').length;
   const pendingApprovalsCount = bookings.filter(b => b.status === 'Pending Approval').length;
 
+  const existingSiteVisitEmails = new Set(siteVisits.map(sv => sv.clientEmail.toLowerCase()));
+  const uniqueBookingSiteVisits = bookings.filter(b => {
+    const isSiteVisit = b.serviceType === 'Site Visit' || b.packageName.toLowerCase().includes('site visit') || b.requirements?.toLowerCase().includes('site visit');
+    return isSiteVisit && !existingSiteVisitEmails.has(b.clientEmail.toLowerCase());
+  });
+  const totalSiteVisitsCount = siteVisits.length + uniqueBookingSiteVisits.length;
+
   return (
     <div className="min-h-screen bg-[#0B0C0E] text-[#E5E3DF] pt-24 pb-16">
       
@@ -734,7 +741,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                       : 'text-emerald-400 hover:text-white bg-emerald-500/10'
                   }`}
                 >
-                  <span>📍 Site Visit Requests ({siteVisits.length + bookings.filter(b => b.serviceType === 'Site Visit' || b.packageName.toLowerCase().includes('site visit') || b.requirements?.toLowerCase().includes('site visit')).length})</span>
+                  <span>📍 Site Visit Requests ({totalSiteVisitsCount})</span>
                 </button>
               </div>
             </div>
@@ -800,10 +807,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                       </td>
                       <td className="p-4 text-right space-x-2">
                         <button
-                          onClick={() => alert(`Site Visit for ${sv.clientName} confirmed! Confirmation SMS sent to ${sv.clientPhone}`)}
+                          onClick={() => alert(`Site Visit for ${sv.clientName} confirmed!`)}
                           className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
                         >
-                          Confirm Visit SMS
+                          Confirm Site Visit
                         </button>
                       </td>
                     </tr>
@@ -811,6 +818,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   {bookings
                     .filter((b) => {
                       const isSiteVisit = b.serviceType === 'Site Visit' || b.packageName.toLowerCase().includes('site visit') || b.requirements?.toLowerCase().includes('site visit');
+                      if (isSiteVisit && existingSiteVisitEmails.has(b.clientEmail.toLowerCase())) {
+                        return false; // Prevent duplicate display if already rendered in siteVisits list
+                      }
                       if (clientFilter === 'SITE_VISITS') return isSiteVisit;
                       if (clientFilter === 'PACKAGES') return !isSiteVisit;
                       return true;
