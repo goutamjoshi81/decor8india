@@ -48,9 +48,13 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN estimated_cost DECIMAL(12,2) DEFAULT 0.00"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN style VARCHAR(50) DEFAULT 'Luxury'"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN cover_image TEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN gallery_images_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN before_image TEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN after_image TEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN location VARCHAR(150) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN area VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN budget VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN completion_time VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Ongoing'"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN show_on_landing_page TINYINT(1) DEFAULT 1"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN progress_percentage INT NOT NULL DEFAULT 0"); } catch (\PDOException $ex) {}
@@ -95,6 +99,25 @@ try {
     }
 
     // Prepare fields to update
+    $title = !empty($data->title) ? trim($data->title) : ($existing['title'] ?? 'Bespoke Luxury Interior Project');
+    $clientName = !empty($data->clientName) ? trim($data->clientName) : ($existing['client_name'] ?? 'Client');
+    $designerName = !empty($data->designerName) ? trim($data->designerName) : ($existing['designer_name'] ?? 'Aarav Mehta');
+    $category = !empty($data->category) ? trim($data->category) : ($existing['category'] ?? 'Residential');
+    $style = !empty($data->style) ? trim($data->style) : ($existing['style'] ?? 'Luxury');
+    $coverImage = !empty($data->coverImage) ? trim($data->coverImage) : ($existing['cover_image'] ?? null);
+    $beforeImage = isset($data->beforeImage) ? trim($data->beforeImage) : ($existing['before_image'] ?? null);
+    $afterImage = isset($data->afterImage) ? trim($data->afterImage) : ($existing['after_image'] ?? null);
+    $location = !empty($data->location) ? trim($data->location) : ($existing['location'] ?? null);
+    $area = !empty($data->area) ? trim($data->area) : ($existing['area'] ?? null);
+    $budget = !empty($data->budget) ? trim($data->budget) : ($existing['budget'] ?? null);
+    $completionTime = !empty($data->completionTime) ? trim($data->completionTime) : ($existing['completion_time'] ?? null);
+    $description = isset($data->description) ? trim($data->description) : ($existing['description'] ?? null);
+
+    $galleryImages = isset($data->galleryImages) && is_array($data->galleryImages) 
+        ? $data->galleryImages 
+        : (!empty($existing['gallery_images_json']) ? json_decode($existing['gallery_images_json'], true) : []);
+    if (!is_array($galleryImages)) $galleryImages = [];
+
     $progressPercentage = isset($data->progressPercentage) ? (int)$data->progressPercentage : ($existing['progress_percentage'] ?? 0);
     $currentStage = !empty($data->currentStage) ? trim($data->currentStage) : ($existing['current_stage'] ?? 'Civil Work');
     $status = !empty($data->status) ? trim($data->status) : ($existing['status'] ?? 'Ongoing');
@@ -109,9 +132,24 @@ try {
     $workUpdatesJson = json_encode($workUpdates);
     $documentsJson = json_encode($documents);
     $paymentsJson = json_encode($payments);
+    $galleryImagesJson = json_encode($galleryImages);
 
     if ($existing) {
         $updateStmt = $pdo->prepare("UPDATE projects SET 
+            title = ?,
+            client_name = ?,
+            designer_name = ?,
+            category = ?,
+            style = ?,
+            cover_image = ?,
+            gallery_images_json = ?,
+            before_image = ?,
+            after_image = ?,
+            location = ?,
+            area = ?,
+            budget = ?,
+            completion_time = ?,
+            description = ?,
             progress_percentage = ?, 
             current_stage = ?, 
             status = ?, 
@@ -121,6 +159,20 @@ try {
             payments_json = ? 
             WHERE id = ?");
         $updateStmt->execute([
+            $title,
+            $clientName,
+            $designerName,
+            $category,
+            $style,
+            $coverImage,
+            $galleryImagesJson,
+            $beforeImage,
+            $afterImage,
+            $location,
+            $area,
+            $budget,
+            $completionTime,
+            $description,
             $progressPercentage,
             $currentStage,
             $status,
@@ -131,18 +183,30 @@ try {
             $projectId
         ]);
     } else {
-        $title = !empty($data->title) ? trim($data->title) : 'Bespoke Luxury Interior Project';
         $clientEmail = !empty($data->clientEmail) ? trim($data->clientEmail) : 'client@decor8india.com';
         $serviceType = !empty($data->serviceType) ? trim($data->serviceType) : 'Residential';
         $estimatedCost = !empty($data->estimatedCost) ? (float)$data->estimatedCost : 500000.00;
 
-        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, service_type, estimated_cost, progress_percentage, current_stage, status, show_on_landing_page, work_updates_json, documents_json, payments_json) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, client_name, designer_name, category, style, cover_image, gallery_images_json, before_image, after_image, location, area, budget, completion_time, description, service_type, estimated_cost, progress_percentage, current_stage, status, show_on_landing_page, work_updates_json, documents_json, payments_json) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insertStmt->execute([
             $projectId,
             $title,
             $clientEmail,
             $clientEmail,
+            $clientName,
+            $designerName,
+            $category,
+            $style,
+            $coverImage,
+            $galleryImagesJson,
+            $beforeImage,
+            $afterImage,
+            $location,
+            $area,
+            $budget,
+            $completionTime,
+            $description,
             $serviceType,
             $estimatedCost,
             $progressPercentage,

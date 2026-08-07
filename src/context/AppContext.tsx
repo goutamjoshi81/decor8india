@@ -276,6 +276,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return projList.map(p => ({
         ...p,
         coverImage: p.coverImage?.replace(/^http:\/\//i, 'https://'),
+        galleryImages: (p.galleryImages || []).map(url => url.replace(/^http:\/\//i, 'https://')),
+        beforeImage: p.beforeImage?.replace(/^http:\/\//i, 'https://'),
+        afterImage: p.afterImage?.replace(/^http:\/\//i, 'https://'),
         workUpdates: (p.workUpdates || []).map(u => ({
           ...u,
           mediaUrls: (u.mediaUrls || []).map(url => url.replace(/^http:\/\//i, 'https://'))
@@ -323,15 +326,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiService.getProjects().then(res => {
           if (res.success && res.projects && Array.isArray(res.projects) && res.projects.length > 0) {
             setProjects(prev => {
+              const prevMap = new Map(prev.map(p => [p.id, p]));
               const dbIds = new Set(res.projects!.map((p: any) => p.id));
               const cmsOnly = prev.filter(p => !dbIds.has(p.id));
-              // Apply admin overrides so polling never reverts toggled visibility
-              const merged = [...sanitizeUrls(res.projects!), ...cmsOnly].map(p => ({
-                ...p,
-                showOnLandingPage: landingPageOverrides.current.has(p.id)
-                  ? landingPageOverrides.current.get(p.id)!
-                  : (p.showOnLandingPage !== false)
-              }));
+              // Apply admin overrides and preserve galleryImages so polling never reverts them
+              const merged = [...sanitizeUrls(res.projects!), ...cmsOnly].map(p => {
+                const existing = prevMap.get(p.id);
+                const gallery = (p.galleryImages && p.galleryImages.length > 0)
+                  ? p.galleryImages
+                  : (existing?.galleryImages || (p.coverImage ? [p.coverImage] : []));
+                return {
+                  ...p,
+                  galleryImages: gallery,
+                  showOnLandingPage: landingPageOverrides.current.has(p.id)
+                    ? landingPageOverrides.current.get(p.id)!
+                    : (existing?.showOnLandingPage !== undefined ? existing.showOnLandingPage : (p.showOnLandingPage !== false))
+                };
+              });
               return merged;
             });
           }
@@ -344,16 +355,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               setProjects(prev => {
                 const prevMap = new Map(prev.map(p => [p.id, p]));
                 return sanitizeUrls(res.data.projects).map((p: Project) => {
-                  // Admin overrides take absolute priority over any server data
-                  if (landingPageOverrides.current.has(p.id)) {
-                    return { ...p, showOnLandingPage: landingPageOverrides.current.get(p.id)! };
-                  }
                   const existing = prevMap.get(p.id);
+                  const gallery = (p.galleryImages && p.galleryImages.length > 0)
+                    ? p.galleryImages
+                    : (existing?.galleryImages || (p.coverImage ? [p.coverImage] : []));
                   return {
                     ...p,
-                    showOnLandingPage: existing?.showOnLandingPage !== undefined
-                      ? existing.showOnLandingPage
-                      : (p.showOnLandingPage !== false)
+                    galleryImages: gallery,
+                    showOnLandingPage: landingPageOverrides.current.has(p.id)
+                      ? landingPageOverrides.current.get(p.id)!
+                      : (existing?.showOnLandingPage !== undefined ? existing.showOnLandingPage : (p.showOnLandingPage !== false))
                   };
                 });
               });
@@ -969,6 +980,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `proj-${Date.now()}`
     };
     setProjects(prev => [newProj, ...prev]);
+
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveProjectUpdate({
+        projectId: newProj.id,
+        ...newProj
+      }).catch(err => console.warn('GoDaddy saveProjectUpdate error:', err));
+    });
   };
 
   const updateProject = (id: string, updateData: Partial<Project>) => {

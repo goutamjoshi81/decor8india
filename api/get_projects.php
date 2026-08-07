@@ -11,6 +11,10 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN client_id VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN client_name VARCHAR(100) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN client_email VARCHAR(120) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN gallery_images_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN before_image TEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN after_image TEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN completion_time VARCHAR(50) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN progress_percentage INT NOT NULL DEFAULT 0"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN current_stage VARCHAR(100) NOT NULL DEFAULT 'Civil Work'"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Ongoing'"); } catch (\PDOException $ex) {}
@@ -34,6 +38,10 @@ try {
         $workUpdates = !empty($row['work_updates_json']) ? json_decode($row['work_updates_json'], true) : [];
         $documents = !empty($row['documents_json']) ? json_decode($row['documents_json'], true) : [];
         $payments = !empty($row['payments_json']) ? json_decode($row['payments_json'], true) : [];
+        $galleryImages = !empty($row['gallery_images_json']) ? json_decode($row['gallery_images_json'], true) : [];
+        if (!is_array($galleryImages) || count($galleryImages) === 0) {
+            $galleryImages = !empty($row['cover_image']) ? [$row['cover_image']] : [];
+        }
 
         $projects[] = [
             "id" => $row['id'],
@@ -45,9 +53,13 @@ try {
             "category" => $row['category'] ?? 'Residential',
             "style" => $row['style'] ?? 'Luxury',
             "coverImage" => $row['cover_image'] ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+            "galleryImages" => $galleryImages,
+            "beforeImage" => $row['before_image'] ?? null,
+            "afterImage" => $row['after_image'] ?? null,
             "location" => $row['location'] ?? 'Mumbai',
             "area" => $row['area'] ?? '2,500 Sq. Ft.',
             "budget" => $row['budget'] ?? '₹ 50.00 L',
+            "completionTime" => $row['completion_time'] ?? '75 Days',
             "status" => $row['status'] ?? 'Ongoing',
             "showOnLandingPage" => isset($row['show_on_landing_page']) ? (bool)$row['show_on_landing_page'] : true,
             "progressPercentage" => (int)($row['progress_percentage'] ?? 0),
