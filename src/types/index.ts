@@ -142,7 +142,7 @@ export interface Project {
   category: 'Residential' | 'Commercial' | 'Construction';
   style: 'Luxury' | 'Modern' | 'Minimal' | 'Traditional';
   coverImage: string;
-  galleryImages: string[];
+  galleryImages?: string[];
   beforeImage?: string;
   afterImage?: string;
   location: string;

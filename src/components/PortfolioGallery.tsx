@@ -272,50 +272,60 @@ export const PortfolioGallery: React.FC = () => {
             )}
 
             {/* Gallery Image Viewer */}
-            <div className="space-y-4">
-              <div className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Project Photography Gallery</div>
-              <div className="relative h-96 rounded-2xl overflow-hidden border border-white/10">
-                <img 
-                  src={selectedProject.galleryImages[activeGalleryIdx] || selectedProject.coverImage} 
-                  alt="Gallery View" 
-                  className="w-full h-full object-cover"
-                />
+            {(() => {
+              const galleryImages = (selectedProject.galleryImages && selectedProject.galleryImages.length > 0)
+                ? selectedProject.galleryImages
+                : [selectedProject.coverImage].filter(Boolean);
 
-                {/* Nav Buttons */}
-                {selectedProject.galleryImages.length > 1 && (
-                  <>
-                    <button 
-                      onClick={() => setActiveGalleryIdx(prev => (prev > 0 ? prev - 1 : selectedProject.galleryImages.length - 1))}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-white hover:text-[#D4AF37]"
-                    >
-                      <ChevronLeft className="w-6 h-6" />
-                    </button>
+              return (
+                <div className="space-y-4">
+                  <div className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Project Photography Gallery</div>
+                  <div className="relative h-96 rounded-2xl overflow-hidden border border-white/10">
+                    <img 
+                      src={galleryImages[activeGalleryIdx] || selectedProject.coverImage} 
+                      alt="Gallery View" 
+                      className="w-full h-full object-cover"
+                    />
 
-                    <button 
-                      onClick={() => setActiveGalleryIdx(prev => (prev < selectedProject.galleryImages.length - 1 ? prev + 1 : 0))}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-white hover:text-[#D4AF37]"
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
-                  </>
-                )}
-              </div>
+                    {/* Nav Buttons */}
+                    {galleryImages.length > 1 && (
+                      <>
+                        <button 
+                          onClick={() => setActiveGalleryIdx(prev => (prev > 0 ? prev - 1 : galleryImages.length - 1))}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-white hover:text-[#D4AF37]"
+                        >
+                          <ChevronLeft className="w-6 h-6" />
+                        </button>
 
-              {/* Gallery Thumbnails */}
-              <div className="flex space-x-3 overflow-x-auto pb-2">
-                {selectedProject.galleryImages.map((img, idx) => (
-                  <img 
-                    key={idx}
-                    src={img}
-                    alt="Thumb"
-                    onClick={() => setActiveGalleryIdx(idx)}
-                    className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-all ${
-                      activeGalleryIdx === idx ? 'border-[#D4AF37] scale-105' : 'border-transparent opacity-60 hover:opacity-100'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
+                        <button 
+                          onClick={() => setActiveGalleryIdx(prev => (prev < galleryImages.length - 1 ? prev + 1 : 0))}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-white hover:text-[#D4AF37]"
+                        >
+                          <ChevronRight className="w-6 h-6" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Gallery Thumbnails */}
+                  {galleryImages.length > 1 && (
+                    <div className="flex space-x-3 overflow-x-auto pb-2">
+                      {galleryImages.map((img, idx) => (
+                        <img 
+                          key={idx}
+                          src={img}
+                          alt="Thumb"
+                          onClick={() => setActiveGalleryIdx(idx)}
+                          className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-all ${
+                            activeGalleryIdx === idx ? 'border-[#D4AF37] scale-105' : 'border-transparent opacity-60 hover:opacity-100'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Description & Testimonial */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4 border-t border-white/10">
