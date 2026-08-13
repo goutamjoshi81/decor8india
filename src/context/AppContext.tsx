@@ -209,13 +209,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Track admin-toggled showOnLandingPage overrides that must survive background polling
   const landingPageOverrides = useRef<Map<string, boolean>>(new Map());
 
-  // Helper: sync CMS data to GoDaddy MySQL server (fire-and-forget)
+  // Helper: sync data to GoDaddy MySQL server via dedicated endpoints (fire-and-forget)
   const syncToServer = (key: string, value: any) => {
     if (!isInitialFetchDone.current) return;
     import('../services/apiService').then(({ apiService }) => {
-      apiService.saveCmsData(key, value).catch(err => {
-        console.warn(`Server sync failed for ${key}:`, err);
-      });
+      // Use dedicated table endpoints instead of generic cms_data
+      switch (key) {
+        case 'services':
+          apiService.saveServicesBulk(value).catch(err => console.warn('Server sync failed for services:', err));
+          break;
+        case 'articles':
+          apiService.saveArticlesBulk(value).catch(err => console.warn('Server sync failed for articles:', err));
+          break;
+        case 'team_members':
+          apiService.saveTeamMembersBulk(value).catch(err => console.warn('Server sync failed for team_members:', err));
+          break;
+        case 'testimonials':
+          apiService.saveTestimonialsBulk(value).catch(err => console.warn('Server sync failed for testimonials:', err));
+          break;
+        case 'projects':
+          // Projects already have a dedicated table, keep using saveCmsData as fallback for CMS-level project data
+          apiService.saveCmsData(key, value).catch(err => console.warn('Server sync failed for projects:', err));
+          break;
+        case 'users':
+          // Users already have a dedicated table; no need to sync to cms_data
+          break;
+        case 'branch_offices':
+          // Branch offices already have dedicated endpoints
+          break;
+        default:
+          // Fallback to legacy cms_data for any unknown keys
+          apiService.saveCmsData(key, value).catch(err => console.warn(`Server sync failed for ${key}:`, err));
+      }
     });
   };
 
@@ -306,9 +331,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
     };
 
-    const fetchAllCmsData = () => {
+    const fetchAllData = () => {
       import('../services/apiService').then(({ apiService }) => {
-        // Fetch bookings from DB (THE SINGLE SOURCE OF TRUTH)
+        // Fetch bookings from DB (dedicated table)
         apiService.getBookings().then(res => {
           if (res.success && res.bookings && Array.isArray(res.bookings)) {
             setBookings(res.bookings as any);
@@ -329,7 +354,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               const prevMap = new Map(prev.map(p => [p.id, p]));
               const dbIds = new Set(res.projects!.map((p: any) => p.id));
               const cmsOnly = prev.filter(p => !dbIds.has(p.id));
-              // Apply admin overrides and preserve galleryImages so polling never reverts them
               const merged = [...sanitizeUrls(res.projects!), ...cmsOnly].map(p => {
                 const existing = prevMap.get(p.id);
                 const gallery = (p.galleryImages && p.galleryImages.length > 0)
@@ -348,9 +372,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         }).catch(err => console.warn('Could not fetch MySQL projects:', err));
 
-        // Fetch ALL data from cms_data table (THE SINGLE SOURCE OF TRUTH)
+        // Fetch services from dedicated table
+        apiService.getServices().then(res => {
+          if (res.success && Array.isArray(res.services) && res.services.length > 0) {
+            setServices(res.services);
+          }
+        }).catch(err => console.warn('Could not fetch services:', err));
+
+        // Fetch articles from dedicated table
+        apiService.getArticles().then(res => {
+          if (res.success && Array.isArray(res.articles) && res.articles.length > 0) {
+            setArticles(res.articles);
+          }
+        }).catch(err => console.warn('Could not fetch articles:', err));
+
+        // Fetch team members from dedicated table
+        apiService.getTeamMembers().then(res => {
+          if (res.success && Array.isArray(res.team_members) && res.team_members.length > 0) {
+            setTeamMembers(sanitizeTeamMembers(res.team_members));
+          }
+        }).catch(err => console.warn('Could not fetch team members:', err));
+
+        // Fetch testimonials from dedicated table
+        apiService.getTestimonials().then(res => {
+          if (res.success && Array.isArray(res.testimonials) && res.testimonials.length > 0) {
+            setTestimonials(res.testimonials);
+          }
+        }).catch(err => console.warn('Could not fetch testimonials:', err));
+
+        // Fetch branch offices from dedicated endpoint
+        apiService.getBranchOffices().then(res => {
+          if (res.success && Array.isArray(res.branchOffices) && res.branchOffices.length > 0) {
+            setBranchOffices(res.branchOffices);
+          }
+        }).catch(err => console.warn('Could not fetch branch offices:', err));
+
+        // Fallback: Also try getCmsData for any data not yet migrated to new tables
         apiService.getCmsData().then(res => {
           if (res.success && res.data) {
+            // Only use CMS data as fallback for projects (which store CMS-level data like milestones, payments etc.)
             if (Array.isArray(res.data.projects)) {
               setProjects(prev => {
                 const prevMap = new Map(prev.map(p => [p.id, p]));
@@ -369,33 +429,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 });
               });
             }
-            if (Array.isArray(res.data.services)) {
-              setServices(res.data.services);
-            }
-            if (Array.isArray(res.data.articles)) {
-              setArticles(res.data.articles);
-            }
-            if (Array.isArray(res.data.team_members)) {
-              setTeamMembers(sanitizeTeamMembers(res.data.team_members));
-            }
-            if (Array.isArray(res.data.branch_offices)) {
-              setBranchOffices(res.data.branch_offices);
-            }
-            if (Array.isArray(res.data.users)) {
-              setUsers(res.data.users);
-            }
-            if (Array.isArray(res.data.testimonials)) {
-              setTestimonials(res.data.testimonials);
-            }
-            if (Array.isArray(res.data.site_visits) && res.data.site_visits.length > 0) {
-              setSiteVisits(prev => {
-                const existingIds = new Set(prev.map(v => v.id));
-                const newFromCms = res.data.site_visits.filter((v: any) => !existingIds.has(v.id));
-                return [...prev, ...newFromCms];
-              });
-            }
           }
-        }).catch(err => console.warn('Could not fetch CMS data:', err))
+        }).catch(err => console.warn('Could not fetch CMS data (fallback):', err))
           .finally(() => {
             isInitialFetchDone.current = true;
           });
@@ -403,10 +438,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     // Fetch immediately on mount
-    fetchAllCmsData();
+    fetchAllData();
 
-    // Auto-poll every 10 seconds so client devices stay continuously updated
-    const interval = setInterval(fetchAllCmsData, 10000);
+    // Auto-poll every 60 seconds (reduced from 10s since individual endpoints are lighter)
+    const interval = setInterval(fetchAllData, 60000);
     return () => clearInterval(interval);
   }, []);
 

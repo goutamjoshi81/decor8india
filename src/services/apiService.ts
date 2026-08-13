@@ -283,5 +283,244 @@ export const apiService = {
       console.warn('Backend API deleteBranchOffice error:', error);
       return { success: false, message: 'Server connection error.' };
     }
+  },
+
+  // ============ NEW NORMALIZED TABLE ENDPOINTS ============
+
+  // Services (dedicated table)
+  async getServices(activeOnly?: boolean): Promise<{ success: boolean; services?: any[]; message?: string }> {
+    try {
+      const url = activeOnly
+        ? `${API_BASE_URL}/get_services.php?active=1`
+        : `${API_BASE_URL}/get_services.php`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getServices error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async saveService(serviceData: any): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_service.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(serviceData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveService error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async saveServicesBulk(services: any[]): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_service.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _bulk: true, services, id: 'bulk', title: 'bulk' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveServicesBulk error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async deleteService(id: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_service.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, title: '_delete', _action: 'delete' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API deleteService error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  // Articles (dedicated table)
+  async getArticles(publishedOnly?: boolean): Promise<{ success: boolean; articles?: any[]; message?: string }> {
+    try {
+      const url = publishedOnly
+        ? `${API_BASE_URL}/get_articles.php?published=1`
+        : `${API_BASE_URL}/get_articles.php`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getArticles error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async saveArticle(articleData: any): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_article.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(articleData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveArticle error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async saveArticlesBulk(articles: any[]): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_article.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _bulk: true, articles, id: 'bulk', title: 'bulk' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveArticlesBulk error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async deleteArticle(id: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_article.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, title: '_delete', _action: 'delete' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API deleteArticle error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  // Team Members (dedicated table)
+  async getTeamMembers(): Promise<{ success: boolean; team_members?: any[]; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_team_members.php`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getTeamMembers error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async saveTeamMember(memberData: any): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_team_member.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(memberData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveTeamMember error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async saveTeamMembersBulk(teamMembers: any[]): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_team_member.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _bulk: true, team_members: teamMembers, id: 'bulk', name: 'bulk' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveTeamMembersBulk error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async deleteTeamMember(id: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_team_member.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name: '_delete', _action: 'delete' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API deleteTeamMember error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  // Testimonials (dedicated table)
+  async getTestimonials(visibleOnly?: boolean): Promise<{ success: boolean; testimonials?: any[]; message?: string }> {
+    try {
+      const url = visibleOnly
+        ? `${API_BASE_URL}/get_testimonials.php?visible=1`
+        : `${API_BASE_URL}/get_testimonials.php`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getTestimonials error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async saveTestimonial(testimonialData: any): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_testimonial.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testimonialData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveTestimonial error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async saveTestimonialsBulk(testimonials: any[]): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_testimonial.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ _bulk: true, testimonials, id: 'bulk' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveTestimonialsBulk error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async deleteTestimonial(id: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_testimonial.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, _action: 'delete' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API deleteTestimonial error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
   }
 };
