@@ -75,6 +75,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine' | 'branches'>('analytics');
   const [clientFilter, setClientFilter] = useState<'ALL' | 'PACKAGES' | 'SITE_VISITS'>('ALL');
 
+  // Approval Confirmation Modal State
+  const [approvalModalBookingId, setApprovalModalBookingId] = useState<string | null>(null);
+  const [finalContractPrice, setFinalContractPrice] = useState<number>(0);
+  const approvalBooking = bookings.find(b => b.id === approvalModalBookingId);
+
+  // Budget Editing State (Project Workspace)
+  const [isEditingBudget, setIsEditingBudget] = useState(false);
+  const [editBudgetValue, setEditBudgetValue] = useState('');
+
   // Reusable file-to-server uploader (saves to GoDaddy /uploads/ directory so all devices see photos/docs)
   const handleFileUpload = useCallback((file: File, setter: (url: string) => void) => {
     if (!file) return;
@@ -1006,10 +1015,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                               <>
                                 <button
                                   onClick={() => {
-                                    approveBooking(b.id);
-                                    const svMatch = siteVisits.find(sv => sv.clientEmail.toLowerCase() === b.clientEmail.toLowerCase());
-                                    if (svMatch) confirmSiteVisit(svMatch.id);
-                                    alert(`Site Visit for ${b.clientName} confirmed!`);
+                                    // Open approval confirmation modal with editable price
+                                    setFinalContractPrice(b.estimatedCost || 0);
+                                    setApprovalModalBookingId(b.id);
                                   }}
                                   className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs"
                                 >
@@ -1091,10 +1099,52 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>{selectedProject.showOnLandingPage !== false ? '⭐ Displayed on Landing Page' : 'Hidden from Landing Page'}</span>
                       </button>
-                      <div className="px-3 py-1.5 rounded-lg bg-black/60 border border-[#D4AF37]/40 text-right">
-                        <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Budget</span>
-                        <span className="text-sm font-bold text-[#D4AF37] font-mono">{selectedProject.budget}</span>
-                      </div>
+                      {isEditingBudget ? (
+                        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-black/60 border border-[#D4AF37]/40">
+                          <span className="text-[10px] text-neutral-400 uppercase tracking-wider">Budget</span>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-sm text-[#D4AF37] font-bold">₹</span>
+                            <input
+                              type="text"
+                              value={editBudgetValue}
+                              onChange={(e) => setEditBudgetValue(e.target.value)}
+                              className="w-28 px-2 py-0.5 rounded bg-white/10 border border-[#D4AF37]/40 text-sm font-bold text-[#D4AF37] font-mono focus:outline-none focus:border-[#D4AF37]"
+                              placeholder="e.g. 15.00 Lakhs"
+                              autoFocus
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              const cleaned = editBudgetValue.trim();
+                              const budgetStr = cleaned.includes('₹') ? cleaned : `₹ ${cleaned}`;
+                              const finalBudget = budgetStr.toLowerCase().includes('lakh') ? budgetStr : `${budgetStr}${cleaned.match(/\d/) ? ' Lakhs' : ''}`;
+                              updateProject(selectedProject.id, { budget: finalBudget });
+                              setIsEditingBudget(false);
+                            }}
+                            className="px-2 py-0.5 rounded bg-emerald-500 text-black text-[10px] font-bold hover:bg-emerald-400"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setIsEditingBudget(false)}
+                            className="px-2 py-0.5 rounded bg-white/10 text-neutral-400 text-[10px] font-bold hover:text-white"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={() => {
+                            setEditBudgetValue(selectedProject.budget.replace(/^₹\s*/, ''));
+                            setIsEditingBudget(true);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-black/60 border border-[#D4AF37]/40 text-right cursor-pointer hover:border-[#D4AF37] transition-all group"
+                          title="Click to edit budget"
+                        >
+                          <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Budget <Edit className="w-2.5 h-2.5 inline opacity-0 group-hover:opacity-100 transition-opacity ml-1" /></span>
+                          <span className="text-sm font-bold text-[#D4AF37] font-mono">{selectedProject.budget}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2752,6 +2802,84 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         project={selectedProject}
         isConsolidated={true}
       />
+
+
+      {/* ============ APPROVAL CONFIRMATION MODAL ============ */}
+      {approvalModalBookingId && approvalBooking && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setApprovalModalBookingId(null)}>
+          <div className="bg-[#1a1a2e] border border-[#D4AF37]/30 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-5" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-serif font-bold text-white">Confirm Approval</h3>
+                <p className="text-xs text-neutral-400 mt-1">Review & set the final contract price before approving</p>
+              </div>
+              <button onClick={() => setApprovalModalBookingId(null)} className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Client Info */}
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-neutral-400">Client</span>
+                <span className="text-white font-semibold">{approvalBooking.clientName}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-neutral-400">Package</span>
+                <span className="text-white font-semibold">{approvalBooking.packageName}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-neutral-400">Service Type</span>
+                <span className="text-white">{approvalBooking.serviceType}</span>
+              </div>
+              <div className="flex justify-between text-sm border-t border-white/10 pt-2">
+                <span className="text-neutral-400">Est. Package Cost</span>
+                <span className="text-amber-300 font-bold font-mono">₹ {approvalBooking.estimatedCost ? (approvalBooking.estimatedCost / 100000).toFixed(2) : '15.00'} Lakhs</span>
+              </div>
+            </div>
+
+            {/* Editable Final Contract Price */}
+            <div className="space-y-2">
+              <label className="text-xs text-[#D4AF37] uppercase tracking-wider font-bold">Final Contract Price (₹)</label>
+              <div className="flex items-center space-x-2">
+                <span className="text-lg text-[#D4AF37] font-bold">₹</span>
+                <input
+                  type="number"
+                  value={finalContractPrice || ''}
+                  onChange={e => setFinalContractPrice(Number(e.target.value))}
+                  className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-[#D4AF37]/40 text-lg font-bold text-[#D4AF37] font-mono focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37]/30"
+                  placeholder="Enter negotiated price"
+                  autoFocus
+                />
+              </div>
+              <p className="text-[10px] text-neutral-500">This amount will be used as the project budget and for calculating payment milestones (10% token deposit).</p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3 pt-2">
+              <button
+                onClick={() => setApprovalModalBookingId(null)}
+                className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-neutral-400 font-bold text-xs uppercase tracking-wider hover:text-white hover:bg-white/10 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  approveBooking(approvalBooking.id, finalContractPrice || undefined);
+                  const svMatch = siteVisits.find(sv => sv.clientEmail.toLowerCase() === approvalBooking.clientEmail.toLowerCase());
+                  if (svMatch) confirmSiteVisit(svMatch.id);
+                  setApprovalModalBookingId(null);
+                  alert(`✅ ${approvalBooking.clientName} approved with contract price ₹ ${finalContractPrice ? (finalContractPrice / 100000).toFixed(2) : (approvalBooking.estimatedCost ? (approvalBooking.estimatedCost / 100000).toFixed(2) : '15.00')} Lakhs`);
+                }}
+                className="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/20"
+              >
+                ✓ Approve & Create Project
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

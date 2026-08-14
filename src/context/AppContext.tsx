@@ -63,7 +63,7 @@ interface AppContextType {
   submitSiteVisit: (visit: Omit<SiteVisitRequest, 'id' | 'createdAt' | 'status' | 'gatePassCode'>) => Promise<SiteVisitRequest>;
   confirmSiteVisit: (visitId: string) => void;
   rejectSiteVisit: (visitId: string) => void;
-  approveBooking: (bookingId: string) => void;
+  approveBooking: (bookingId: string, finalContractPrice?: number) => void;
   rejectBooking: (bookingId: string) => void;
   
   // Project Actions
@@ -643,9 +643,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const approveBooking = (bookingId: string) => {
+  const approveBooking = (bookingId: string, finalContractPrice?: number) => {
     const booking = bookings.find(b => b.id === bookingId);
     if (!booking) return;
+
+    // Use the admin-entered final contract price if provided, otherwise fall back to estimated cost
+    const contractPrice = finalContractPrice || booking.estimatedCost || 0;
 
     // Update booking status
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Approved' } : b));
@@ -702,7 +705,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       galleryImages: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'],
       location: 'City Center',
       area: `${booking.carpetArea || 1500} Sq. Ft.`,
-      budget: `₹ ${(booking.estimatedCost ? (booking.estimatedCost / 100000).toFixed(2) : 15)} Lakhs`,
+      budget: `₹ ${(contractPrice ? (contractPrice / 100000).toFixed(2) : 15)} Lakhs`,
       completionTime: '60 Days',
       status: 'Ongoing',
       progressPercentage: 10,
@@ -749,7 +752,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           id: `pay-${Date.now()}`,
           projectId: newProjId,
           title: 'Token Deposit (10%)',
-          amount: booking.estimatedCost ? Math.round(booking.estimatedCost * 0.1) : 100000,
+          amount: contractPrice ? Math.round(contractPrice * 0.1) : 100000,
           paidAmount: 0,
           dueDate: new Date(Date.now() + 3*24*60*60*1000).toISOString().split('T')[0],
           status: 'Pending'
@@ -777,7 +780,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           title: newProject.title,
           clientEmail: booking.clientEmail,
           serviceType: booking.serviceType,
-          estimatedCost: booking.estimatedCost,
+          estimatedCost: contractPrice || booking.estimatedCost,
           progressPercentage: 10,
           currentStage: 'Design Discussion',
           workUpdate: newProject.workUpdates[0],
