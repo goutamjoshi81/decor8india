@@ -93,12 +93,12 @@ export const apiService = {
   },
 
   // Approve Booking Endpoint (Transfers client to 'users' table)
-  async approveBooking(bookingId: string): Promise<{ success: boolean; user?: any; message?: string }> {
+  async approveBooking(bookingId: string, contractPrice?: number): Promise<{ success: boolean; user?: any; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/approve_booking.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId })
+        body: JSON.stringify({ bookingId, contractPrice })
       });
       const data = await response.json();
       return data;

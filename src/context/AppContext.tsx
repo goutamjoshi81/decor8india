@@ -653,9 +653,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Update booking status
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Approved' } : b));
 
-    // Call live MySQL backend API asynchronously
+    // Call live MySQL backend API asynchronously (with contract price)
     import('../services/apiService').then(({ apiService }) => {
-      apiService.approveBooking(bookingId).catch(err => {
+      apiService.approveBooking(bookingId, contractPrice || undefined).catch(err => {
         console.warn('GoDaddy MySQL API approveBooking fallback:', err);
       });
     });

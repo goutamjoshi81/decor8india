@@ -30,7 +30,10 @@ try {
             "is_emi_requested" => !empty($b["is_emi_requested"]),
             "status" => $b["status"] ?? 'Pending Approval',
             "createdAt" => $b["created_at"] ?? date('Y-m-d H:i:s'),
-            "created_at" => $b["created_at"] ?? date('Y-m-d H:i:s')
+            "created_at" => $b["created_at"] ?? date('Y-m-d H:i:s'),
+            "contractPrice" => isset($b["contract_price"]) ? (float)$b["contract_price"] : null,
+            "contract_price" => isset($b["contract_price"]) ? (float)$b["contract_price"] : null
+
         ];
     }, $rawBookings);
 
