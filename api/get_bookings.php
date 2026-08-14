@@ -3,6 +3,10 @@ require_once 'db_config.php';
 
 try {
     $pdo = getDbConnection();
+    // Auto-migrate column & backfill NULL rows
+    try { $pdo->exec("ALTER TABLE bookings ADD COLUMN contract_price DECIMAL(12,2) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("UPDATE bookings SET contract_price = estimated_cost WHERE (contract_price IS NULL OR contract_price = 0) AND estimated_cost > 0"); } catch (\PDOException $ex) {}
+
     $stmt = $pdo->query("SELECT * FROM bookings ORDER BY created_at DESC");
     $rawBookings = $stmt->fetchAll();
 

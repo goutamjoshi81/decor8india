@@ -46,10 +46,13 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN progress_percentage INT NOT NULL DEFAULT 0"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN current_stage VARCHAR(100) NOT NULL DEFAULT 'Civil Work'"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'Ongoing'"); } catch (\PDOException $ex) {}
-    // Add contract_price column to bookings (safe auto-migration)
+    // Add contract_price column to bookings & projects (safe auto-migration)
     try { $pdo->exec("ALTER TABLE bookings ADD COLUMN contract_price DECIMAL(12,2) DEFAULT NULL"); } catch (\PDOException $ex) {}
-    // Add contract_price column to projects
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN contract_price DECIMAL(12,2) DEFAULT NULL"); } catch (\PDOException $ex) {}
+
+    // Auto-backfill existing approved rows where contract_price was NULL
+    try { $pdo->exec("UPDATE bookings SET contract_price = estimated_cost WHERE (contract_price IS NULL OR contract_price = 0) AND estimated_cost > 0"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("UPDATE projects SET contract_price = estimated_cost WHERE (contract_price IS NULL OR contract_price = 0) AND estimated_cost > 0"); } catch (\PDOException $ex) {}
 
     // 1. Fetch booking details
     $stmt = $pdo->prepare("SELECT * FROM bookings WHERE id = ?");
@@ -63,15 +66,15 @@ try {
 
     $pdo->beginTransaction();
 
-    // 2. Update booking status to Approved + save contract price
-    $contractPrice = isset($data->contractPrice) ? (float)$data->contractPrice : null;
-    if ($contractPrice) {
-        $updateStmt = $pdo->prepare("UPDATE bookings SET status = 'Approved', contract_price = ? WHERE id = ?");
-        $updateStmt->execute([$contractPrice, $bookingId]);
-    } else {
-        $updateStmt = $pdo->prepare("UPDATE bookings SET status = 'Approved' WHERE id = ?");
-        $updateStmt->execute([$bookingId]);
-    }
+    // 2. Determine final contract price (use admin input if provided, otherwise fallback to estimated_cost)
+    $estimatedCost = !empty($booking['estimated_cost']) ? (float)$booking['estimated_cost'] : 500000.00;
+    $finalPrice = (isset($data->contractPrice) && (float)$data->contractPrice > 0) 
+        ? (float)$data->contractPrice 
+        : $estimatedCost;
+
+    // Update booking status to Approved + save contract price in bookings table
+    $updateStmt = $pdo->prepare("UPDATE bookings SET status = 'Approved', contract_price = ? WHERE id = ?");
+    $updateStmt->execute([$finalPrice, $bookingId]);
 
     // 3. Create or Update client user account in 'users' table
     $userId = 'usr-' . time();
@@ -101,11 +104,11 @@ try {
     $projectId = 'proj-' . time();
     $projectTitle = $booking['package_name'] . ' for ' . $clientName;
     $serviceType = !empty($booking['service_type']) ? $booking['service_type'] : 'Residential';
-    $estimatedCost = !empty($booking['estimated_cost']) ? (float)$booking['estimated_cost'] : 500000.00;
+    $formattedBudget = '₹ ' . number_format($finalPrice / 100000, 2) . ' Lakhs';
 
-    $projStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_name, client_email, service_type, estimated_cost, contract_price, progress_percentage, current_stage, status) 
-                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 10, 'Design Discussion', 'Ongoing') 
-                               ON DUPLICATE KEY UPDATE status = 'Ongoing', current_stage = 'Design Discussion', contract_price = VALUES(contract_price)");
+    $projStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_name, client_email, service_type, estimated_cost, contract_price, budget, progress_percentage, current_stage, status) 
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 10, 'Design Discussion', 'Ongoing') 
+                               ON DUPLICATE KEY UPDATE status = 'Ongoing', current_stage = 'Design Discussion', contract_price = VALUES(contract_price), budget = VALUES(budget)");
     $projStmt->execute([
         $projectId,
         $projectTitle,
@@ -114,7 +117,8 @@ try {
         $clientEmail,
         $serviceType,
         $estimatedCost,
-        $contractPrice ?: $estimatedCost
+        $finalPrice,
+        $formattedBudget
     ]);
 
     $pdo->commit();

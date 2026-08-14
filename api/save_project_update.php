@@ -65,6 +65,7 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN documents_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN payments_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN milestones_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN contract_price DECIMAL(12,2) DEFAULT NULL"); } catch (\PDOException $ex) {}
 
     // 1. Fetch current project from DB
     $stmt = $pdo->prepare("SELECT * FROM projects WHERE id = ? LIMIT 1");
@@ -113,6 +114,22 @@ try {
     $completionTime = !empty($data->completionTime) ? trim($data->completionTime) : ($existing['completion_time'] ?? null);
     $description = isset($data->description) ? trim($data->description) : ($existing['description'] ?? null);
 
+    // Calculate contract_price float
+    $contractPrice = null;
+    if (isset($data->contractPrice) && (float)$data->contractPrice > 0) {
+        $contractPrice = (float)$data->contractPrice;
+    } else if ($budget) {
+        // Try parsing float from budget string (e.g. "₹ 15.00 Lakhs" -> 1500000)
+        if (preg_match('/([\d.]+)\s*lakh/i', $budget, $matches)) {
+            $contractPrice = (float)$matches[1] * 100000;
+        } else if (preg_match('/[\d.]+/', str_replace(',', '', $budget), $matches)) {
+            $contractPrice = (float)$matches[0];
+        }
+    }
+    if (!$contractPrice && isset($existing['contract_price'])) {
+        $contractPrice = (float)$existing['contract_price'];
+    }
+
     $galleryImages = isset($data->galleryImages) && is_array($data->galleryImages) 
         ? $data->galleryImages 
         : (!empty($existing['gallery_images_json']) ? json_decode($existing['gallery_images_json'], true) : []);
@@ -154,6 +171,7 @@ try {
             location = ?,
             area = ?,
             budget = ?,
+            contract_price = ?,
             completion_time = ?,
             description = ?,
             progress_percentage = ?, 
@@ -178,6 +196,7 @@ try {
             $location,
             $area,
             $budget,
+            $contractPrice,
             $completionTime,
             $description,
             $progressPercentage,
@@ -195,8 +214,8 @@ try {
         $serviceType = !empty($data->serviceType) ? trim($data->serviceType) : 'Residential';
         $estimatedCost = !empty($data->estimatedCost) ? (float)$data->estimatedCost : 500000.00;
 
-        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, client_name, designer_name, category, style, cover_image, gallery_images_json, before_image, after_image, location, area, budget, completion_time, description, service_type, estimated_cost, progress_percentage, current_stage, status, show_on_landing_page, work_updates_json, documents_json, payments_json, milestones_json) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, client_name, designer_name, category, style, cover_image, gallery_images_json, before_image, after_image, location, area, budget, contract_price, completion_time, description, service_type, estimated_cost, progress_percentage, current_stage, status, show_on_landing_page, work_updates_json, documents_json, payments_json, milestones_json) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insertStmt->execute([
             $projectId,
             $title,
@@ -213,6 +232,7 @@ try {
             $location,
             $area,
             $budget,
+            $contractPrice ?: $estimatedCost,
             $completionTime,
             $description,
             $serviceType,
