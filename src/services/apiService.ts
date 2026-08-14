@@ -200,35 +200,14 @@ export const apiService = {
     }
   },
 
-  // Generic CMS Data Save (portfolio, services, articles, team, etc.)
-  async saveCmsData(key: string, value: any): Promise<{ success: boolean; message?: string }> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/save_cms_data.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, value })
-      });
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.warn(`Backend API saveCmsData(${key}) error:`, error);
-      return { success: false, message: 'Server connection error.' };
-    }
+  // Generic CMS Data Save (DEPRECATED - All entities now use dedicated MySQL tables)
+  async saveCmsData(_key: string, _value: any): Promise<{ success: boolean; message?: string }> {
+    return { success: true, message: 'Legacy CMS data save bypassed.' };
   },
 
-  // Generic CMS Data Fetch (portfolio, services, articles, team, etc.)
-  async getCmsData(key?: string): Promise<{ success: boolean; data?: any; value?: any; message?: string }> {
-    try {
-      const url = key
-        ? `${API_BASE_URL}/get_cms_data.php?key=${encodeURIComponent(key)}`
-        : `${API_BASE_URL}/get_cms_data.php`;
-      const response = await fetch(url);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.warn(`Backend API getCmsData(${key}) error:`, error);
-      return { success: false, message: 'Server connection error.' };
-    }
+  // Generic CMS Data Fetch (DEPRECATED - All entities now use dedicated MySQL tables)
+  async getCmsData(_key?: string): Promise<{ success: boolean; data?: any; value?: any; message?: string }> {
+    return { success: true, data: {}, value: [], message: 'Legacy CMS data fetch bypassed.' };
   },
 
   // Fetch Live Instagram Feed Endpoint

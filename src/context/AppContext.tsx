@@ -237,8 +237,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           // Branch offices already have dedicated endpoints
           break;
         default:
-          // Fallback to legacy cms_data for any unknown keys
-          apiService.saveCmsData(key, value).catch(err => console.warn(`Server sync failed for ${key}:`, err));
+          // CMS data disabled - all entities use dedicated tables
+          break;
       }
     });
   };
@@ -351,9 +351,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (res.success && res.projects && Array.isArray(res.projects) && res.projects.length > 0) {
             setProjects(prev => {
               const prevMap = new Map(prev.map(p => [p.id, p]));
-              const dbIds = new Set(res.projects!.map((p: any) => p.id));
-              const cmsOnly = prev.filter(p => !dbIds.has(p.id));
-              const merged = [...sanitizeUrls(res.projects!), ...cmsOnly].map(p => {
+              return sanitizeUrls(res.projects!).map(p => {
                 const existing = prevMap.get(p.id);
                 const gallery = (p.galleryImages && p.galleryImages.length > 0)
                   ? p.galleryImages
@@ -366,7 +364,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                     : (existing?.showOnLandingPage !== undefined ? existing.showOnLandingPage : (p.showOnLandingPage !== false))
                 };
               });
-              return merged;
             });
           }
         }).catch(err => console.warn('Could not fetch MySQL projects:', err));
