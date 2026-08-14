@@ -43,6 +43,8 @@ try {
             $galleryImages = !empty($row['cover_image']) ? [$row['cover_image']] : [];
         }
 
+        $milestones = !empty($row['milestones_json']) ? json_decode($row['milestones_json'], true) : [];
+
         $projects[] = [
             "id" => $row['id'],
             "title" => $row['title'],
@@ -59,6 +61,8 @@ try {
             "location" => $row['location'] ?? 'Mumbai',
             "area" => $row['area'] ?? '2,500 Sq. Ft.',
             "budget" => $row['budget'] ?? '₹ 50.00 L',
+            "contractPrice" => isset($row['contract_price']) ? (float)$row['contract_price'] : null,
+            "contract_price" => isset($row['contract_price']) ? (float)$row['contract_price'] : null,
             "completionTime" => $row['completion_time'] ?? '75 Days',
             "status" => $row['status'] ?? 'Ongoing',
             "showOnLandingPage" => isset($row['show_on_landing_page']) ? (bool)$row['show_on_landing_page'] : true,
@@ -68,7 +72,8 @@ try {
             "description" => $row['description'] ?? '',
             "workUpdates" => is_array($workUpdates) ? $workUpdates : [],
             "documents" => is_array($documents) ? $documents : [],
-            "payments" => is_array($payments) ? $payments : []
+            "payments" => is_array($payments) ? $payments : [],
+            "milestones" => is_array($milestones) ? $milestones : []
         ];
     }
 

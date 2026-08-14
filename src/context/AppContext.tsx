@@ -228,8 +228,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           apiService.saveTestimonialsBulk(value).catch(err => console.warn('Server sync failed for testimonials:', err));
           break;
         case 'projects':
-          // Projects already have a dedicated table, keep using saveCmsData as fallback for CMS-level project data
-          apiService.saveCmsData(key, value).catch(err => console.warn('Server sync failed for projects:', err));
+          // Projects use dedicated 'projects' table (updated via saveProjectUpdate)
           break;
         case 'users':
           // Users already have a dedicated table; no need to sync to cms_data
@@ -407,33 +406,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         }).catch(err => console.warn('Could not fetch branch offices:', err));
 
-        // Fallback: Also try getCmsData for any data not yet migrated to new tables
-        apiService.getCmsData().then(res => {
-          if (res.success && res.data) {
-            // Only use CMS data as fallback for projects (which store CMS-level data like milestones, payments etc.)
-            if (Array.isArray(res.data.projects)) {
-              setProjects(prev => {
-                const prevMap = new Map(prev.map(p => [p.id, p]));
-                return sanitizeUrls(res.data.projects).map((p: Project) => {
-                  const existing = prevMap.get(p.id);
-                  const gallery = (p.galleryImages && p.galleryImages.length > 0)
-                    ? p.galleryImages
-                    : (existing?.galleryImages || (p.coverImage ? [p.coverImage] : []));
-                  return {
-                    ...p,
-                    galleryImages: gallery,
-                    showOnLandingPage: landingPageOverrides.current.has(p.id)
-                      ? landingPageOverrides.current.get(p.id)!
-                      : (existing?.showOnLandingPage !== undefined ? existing.showOnLandingPage : (p.showOnLandingPage !== false))
-                  };
-                });
-              });
-            }
-          }
-        }).catch(err => console.warn('Could not fetch CMS data (fallback):', err))
-          .finally(() => {
-            isInitialFetchDone.current = true;
-          });
+        // Set initial fetch done flag after requests complete
+        isInitialFetchDone.current = true;
       });
     };
 

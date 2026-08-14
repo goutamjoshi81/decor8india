@@ -129,10 +129,16 @@ try {
         $showOnLandingPage = (int)$existing['show_on_landing_page'];
     }
 
+    $milestones = isset($data->milestones) && is_array($data->milestones) 
+        ? $data->milestones 
+        : (!empty($existing['milestones_json']) ? json_decode($existing['milestones_json'], true) : []);
+    if (!is_array($milestones)) $milestones = [];
+
     $workUpdatesJson = json_encode($workUpdates);
     $documentsJson = json_encode($documents);
     $paymentsJson = json_encode($payments);
     $galleryImagesJson = json_encode($galleryImages);
+    $milestonesJson = json_encode($milestones);
 
     if ($existing) {
         $updateStmt = $pdo->prepare("UPDATE projects SET 
@@ -156,7 +162,8 @@ try {
             show_on_landing_page = ?,
             work_updates_json = ?, 
             documents_json = ?, 
-            payments_json = ? 
+            payments_json = ?,
+            milestones_json = ? 
             WHERE id = ?");
         $updateStmt->execute([
             $title,
@@ -180,6 +187,7 @@ try {
             $workUpdatesJson,
             $documentsJson,
             $paymentsJson,
+            $milestonesJson,
             $projectId
         ]);
     } else {
@@ -187,8 +195,8 @@ try {
         $serviceType = !empty($data->serviceType) ? trim($data->serviceType) : 'Residential';
         $estimatedCost = !empty($data->estimatedCost) ? (float)$data->estimatedCost : 500000.00;
 
-        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, client_name, designer_name, category, style, cover_image, gallery_images_json, before_image, after_image, location, area, budget, completion_time, description, service_type, estimated_cost, progress_percentage, current_stage, status, show_on_landing_page, work_updates_json, documents_json, payments_json) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, client_name, designer_name, category, style, cover_image, gallery_images_json, before_image, after_image, location, area, budget, completion_time, description, service_type, estimated_cost, progress_percentage, current_stage, status, show_on_landing_page, work_updates_json, documents_json, payments_json, milestones_json) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insertStmt->execute([
             $projectId,
             $title,
@@ -215,7 +223,8 @@ try {
             $showOnLandingPage,
             $workUpdatesJson,
             $documentsJson,
-            $paymentsJson
+            $paymentsJson,
+            $milestonesJson
         ]);
     }
 
