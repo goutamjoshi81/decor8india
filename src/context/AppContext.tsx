@@ -348,7 +348,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         // Fetch active client projects from MySQL projects table
         apiService.getProjects().then(res => {
-          if (res.success && res.projects && Array.isArray(res.projects) && res.projects.length > 0) {
+          if (res.success && res.projects && Array.isArray(res.projects)) {
             setProjects(prev => {
               const prevMap = new Map(prev.map(p => [p.id, p]));
               return sanitizeUrls(res.projects!).map(p => {
@@ -370,35 +370,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         // Fetch services from dedicated table
         apiService.getServices().then(res => {
-          if (res.success && Array.isArray(res.services) && res.services.length > 0) {
+          if (res.success && Array.isArray(res.services)) {
             setServices(res.services);
           }
         }).catch(err => console.warn('Could not fetch services:', err));
 
         // Fetch articles from dedicated table
         apiService.getArticles().then(res => {
-          if (res.success && Array.isArray(res.articles) && res.articles.length > 0) {
+          if (res.success && Array.isArray(res.articles)) {
             setArticles(res.articles);
           }
         }).catch(err => console.warn('Could not fetch articles:', err));
 
         // Fetch team members from dedicated table
         apiService.getTeamMembers().then(res => {
-          if (res.success && Array.isArray(res.team_members) && res.team_members.length > 0) {
+          if (res.success && Array.isArray(res.team_members)) {
             setTeamMembers(sanitizeTeamMembers(res.team_members));
           }
         }).catch(err => console.warn('Could not fetch team members:', err));
 
         // Fetch testimonials from dedicated table
         apiService.getTestimonials().then(res => {
-          if (res.success && Array.isArray(res.testimonials) && res.testimonials.length > 0) {
+          if (res.success && Array.isArray(res.testimonials)) {
             setTestimonials(res.testimonials);
           }
         }).catch(err => console.warn('Could not fetch testimonials:', err));
 
         // Fetch branch offices from dedicated endpoint
         apiService.getBranchOffices().then(res => {
-          if (res.success && Array.isArray(res.branchOffices) && res.branchOffices.length > 0) {
+          if (res.success && Array.isArray(res.branchOffices)) {
             setBranchOffices(res.branchOffices);
           }
         }).catch(err => console.warn('Could not fetch branch offices:', err));
@@ -1031,14 +1031,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `art-${Date.now()}`
     };
     setArticles(prev => [newArt, ...prev]);
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveArticle(newArt).catch(err => console.warn('Save article error:', err));
+    });
   };
 
   const updateArticle = (id: string, updateData: Partial<Article>) => {
-    setArticles(prev => prev.map(a => a.id === id ? { ...a, ...updateData } : a));
+    setArticles(prev => {
+      const updated = prev.map(a => a.id === id ? { ...a, ...updateData } : a);
+      const target = updated.find(a => a.id === id);
+      if (target) {
+        import('../services/apiService').then(({ apiService }) => {
+          apiService.saveArticle(target).catch(err => console.warn('Save article error:', err));
+        });
+      }
+      return updated;
+    });
   };
 
   const deleteArticle = (id: string) => {
     setArticles(prev => prev.filter(a => a.id !== id));
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.deleteArticle(id).catch(err => console.warn('Delete article error:', err));
+    });
   };
 
   const addService = (serviceData: Omit<ServiceItem, 'id'>) => {
@@ -1047,22 +1062,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `srv-${Date.now()}`
     };
     setServices(prev => [...prev, newService]);
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveService(newService).catch(err => console.warn('Save service error:', err));
+    });
   };
 
   const updateService = (id: string, updateData: Partial<ServiceItem>) => {
-    setServices(prev => prev.map(s => s.id === id ? { ...s, ...updateData } : s));
+    setServices(prev => {
+      const updated = prev.map(s => s.id === id ? { ...s, ...updateData } : s);
+      const target = updated.find(s => s.id === id);
+      if (target) {
+        import('../services/apiService').then(({ apiService }) => {
+          apiService.saveService(target).catch(err => console.warn('Save service error:', err));
+        });
+      }
+      return updated;
+    });
   };
 
   const deleteService = (id: string) => {
     setServices(prev => prev.filter(s => s.id !== id));
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.deleteService(id).catch(err => console.warn('Delete service error:', err));
+    });
   };
 
   const updateServicePrice = (serviceId: string, newPrice: number) => {
-    setServices(prev => prev.map(s => s.id === serviceId ? { ...s, startingPrice: newPrice } : s));
+    updateService(serviceId, { startingPrice: newPrice });
   };
 
   const toggleServiceStatus = (serviceId: string) => {
-    setServices(prev => prev.map(s => s.id === serviceId ? { ...s, isActive: !s.isActive } : s));
+    const s = services.find(item => item.id === serviceId);
+    if (s) {
+      updateService(serviceId, { isActive: !s.isActive });
+    }
   };
 
   const addTeamMember = (memberData: Omit<TeamMember, 'id'>) => {
@@ -1071,14 +1104,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `team-${Date.now()}`
     };
     setTeamMembers(prev => [...prev, newMember]);
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.saveTeamMember(newMember).catch(err => console.warn('Save team member error:', err));
+    });
   };
 
   const updateTeamMember = (id: string, updateData: Partial<TeamMember>) => {
-    setTeamMembers(prev => prev.map(m => m.id === id ? { ...m, ...updateData } : m));
+    setTeamMembers(prev => {
+      const updated = prev.map(m => m.id === id ? { ...m, ...updateData } : m);
+      const target = updated.find(m => m.id === id);
+      if (target) {
+        import('../services/apiService').then(({ apiService }) => {
+          apiService.saveTeamMember(target).catch(err => console.warn('Save team member error:', err));
+        });
+      }
+      return updated;
+    });
   };
 
   const deleteTeamMember = (id: string) => {
     setTeamMembers(prev => prev.filter(m => m.id !== id));
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.deleteTeamMember(id).catch(err => console.warn('Delete team member error:', err));
+    });
   };
 
   const addBranchOffice = (branchData: Omit<BranchOffice, 'id'>) => {

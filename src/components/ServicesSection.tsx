@@ -127,114 +127,124 @@ export const ServicesSection: React.FC = () => {
         </div>
 
         {/* Services Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredServices.map((service) => {
-            const IconComponent = ICON_MAP[service.iconName] || Home;
+        {filteredServices.length === 0 ? (
+          <div className="text-center py-16 px-4 rounded-2xl glass-panel border border-white/10 space-y-4">
+            <Sparkles className="w-12 h-12 text-[#D4AF37]/50 mx-auto" />
+            <h3 className="text-xl font-serif text-white font-medium">No Active Services Found</h3>
+            <p className="text-neutral-400 text-sm max-w-md mx-auto">
+              There are currently no active services in the database. Services added to the database will automatically appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredServices.map((service) => {
+              const IconComponent = ICON_MAP[service.iconName] || Home;
 
-            return (
-              <div 
-                key={service.id} 
-                onClick={() => navigate(`/services/${service.id}`)}
-                className="group glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500 cursor-pointer"
-              >
-                <div>
-                  
-                  {/* Card Cover Image with Overlay */}
-                  <div className="relative h-56 overflow-hidden">
-                    <img 
-                      src={service.image} 
-                      alt={service.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-[#0B0C0E]/40 to-transparent" />
+              return (
+                <div 
+                  key={service.id} 
+                  onClick={() => navigate(`/services/${service.id}`)}
+                  className="group glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500 cursor-pointer"
+                >
+                  <div>
                     
-                    {/* Top Type Badge */}
-                    <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-semibold text-[#D4AF37] flex items-center space-x-1.5">
-                      <IconComponent className="w-3.5 h-3.5" />
-                      <span>{service.type}</span>
+                    {/* Card Cover Image with Overlay */}
+                    <div className="relative h-56 overflow-hidden">
+                      <img 
+                        src={service.image} 
+                        alt={service.title} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-[#0B0C0E]/40 to-transparent" />
+                      
+                      {/* Top Type Badge */}
+                      <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-semibold text-[#D4AF37] flex items-center space-x-1.5">
+                        <IconComponent className="w-3.5 h-3.5" />
+                        <span>{service.type}</span>
+                      </div>
+
+                      {/* Duration Badge */}
+                      <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] text-neutral-300 flex items-center space-x-1">
+                        <Clock className="w-3 h-3 text-[#D4AF37]" />
+                        <span>{service.estimatedDuration}</span>
+                      </div>
                     </div>
 
-                    {/* Duration Badge */}
-                    <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] text-neutral-300 flex items-center space-x-1">
-                      <Clock className="w-3 h-3 text-[#D4AF37]" />
-                      <span>{service.estimatedDuration}</span>
+                    {/* Body Content */}
+                    <div className="p-6 space-y-4">
+                      <h3 className="font-serif text-2xl font-bold text-white group-hover:text-[#D4AF37] transition-colors">
+                        {service.title}
+                      </h3>
+
+                      <p className="text-xs text-neutral-300 leading-relaxed line-clamp-2">
+                        {service.description}
+                      </p>
+
+                      {/* Features List */}
+                      <div className="space-y-2 pt-2 border-t border-white/10">
+                        <div className="text-[11px] uppercase tracking-wider text-neutral-400 font-semibold">Key Highlights:</div>
+                        {service.features.map((feat, idx) => (
+                          <div key={idx} className="flex items-start space-x-2 text-xs text-neutral-300">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#D4AF37] shrink-0 mt-0.5" />
+                            <span>{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+
                     </div>
+
                   </div>
 
-                  {/* Body Content */}
-                  <div className="p-6 space-y-4">
-                    <h3 className="font-serif text-2xl font-bold text-white group-hover:text-[#D4AF37] transition-colors">
-                      {service.title}
-                    </h3>
-
-                    <p className="text-xs text-neutral-300 leading-relaxed line-clamp-2">
-                      {service.description}
-                    </p>
-
-                    {/* Features List */}
-                    <div className="space-y-2 pt-2 border-t border-white/10">
-                      <div className="text-[11px] uppercase tracking-wider text-neutral-400 font-semibold">Key Highlights:</div>
-                      {service.features.map((feat, idx) => (
-                        <div key={idx} className="flex items-start space-x-2 text-xs text-neutral-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#D4AF37] shrink-0 mt-0.5" />
-                          <span>{feat}</span>
-                        </div>
-                      ))}
+                  {/* Card Footer: Starting Price & Book CTA */}
+                  <div className="p-6 pt-0 space-y-4">
+                    <div className="pt-4 border-t border-white/10 flex items-baseline justify-between">
+                      <div>
+                        <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Starting From</span>
+                        <span className="text-xl font-bold font-serif text-[#D4AF37]">
+                          ₹ {(service.startingPrice / 100000).toFixed(2)} Lakhs
+                        </span>
+                      </div>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsEstimatorOpen(true);
+                        }}
+                        className="text-[11px] text-neutral-400 hover:text-white flex items-center space-x-1 transition-colors"
+                        title="Calculate custom estimate"
+                      >
+                        <Calculator className="w-3 h-3 text-[#D4AF37]" />
+                        <span>Calculate</span>
+                      </button>
                     </div>
 
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/services/${service.id}`);
+                        }}
+                        className="w-1/2 py-3 rounded-xl bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider text-center transition-all hover:opacity-90"
+                      >
+                        View Package Details
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBookService(service);
+                        }}
+                        className="w-1/2 py-3 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-200 font-bold text-xs uppercase tracking-wider text-center transition-all border border-white/10"
+                      >
+                        Book Consultation
+                      </button>
+                    </div>
                   </div>
 
                 </div>
-
-                {/* Card Footer: Starting Price & Book CTA */}
-                <div className="p-6 pt-0 space-y-4">
-                  <div className="pt-4 border-t border-white/10 flex items-baseline justify-between">
-                    <div>
-                      <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Starting From</span>
-                      <span className="text-xl font-bold font-serif text-[#D4AF37]">
-                        ₹ {(service.startingPrice / 100000).toFixed(2)} Lakhs
-                      </span>
-                    </div>
-                    
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsEstimatorOpen(true);
-                      }}
-                      className="text-[11px] text-neutral-400 hover:text-white flex items-center space-x-1 transition-colors"
-                      title="Calculate custom estimate"
-                    >
-                      <Calculator className="w-3 h-3 text-[#D4AF37]" />
-                      <span>Calculate</span>
-                    </button>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/services/${service.id}`);
-                      }}
-                      className="w-1/2 py-3 rounded-xl bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider text-center transition-all hover:opacity-90"
-                    >
-                      View Package Details
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleBookService(service);
-                      }}
-                      className="w-1/2 py-3 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-200 font-bold text-xs uppercase tracking-wider text-center transition-all border border-white/10"
-                    >
-                      Book Consultation
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Bottom Banner */}
         <div className="p-8 rounded-2xl glass-panel border border-[#D4AF37]/30 flex flex-col md:flex-row items-center justify-between gap-6">
