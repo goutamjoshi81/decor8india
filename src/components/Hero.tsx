@@ -7,11 +7,14 @@ import {
   Award, 
   Building2, 
   CheckCircle2,
-  ChevronDown
+  ChevronDown,
+  Play,
+  X
 } from 'lucide-react';
 
 export const Hero: React.FC = () => {
   const { setIsBookingOpen, setIsEstimatorOpen } = useApp();
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   const [counter, setCounter] = useState({
     projects: 0,
@@ -103,6 +106,14 @@ export const Hero: React.FC = () => {
                 <Calculator className="w-4 h-4 text-[#D4AF37]" />
                 <span>Get Free Estimate</span>
               </button>
+
+              <button 
+                onClick={() => setIsVideoModalOpen(true)}
+                className="px-6 py-4 rounded-xl glass-panel border border-[#D4AF37]/40 hover:bg-[#D4AF37]/10 text-[#D4AF37] font-semibold text-sm tracking-wider flex items-center space-x-2.5 transition-all"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                <span>Watch Studio Tour</span>
+              </button>
             </div>
 
             {/* Trust Badges */}
@@ -189,6 +200,36 @@ export const Hero: React.FC = () => {
         <span className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-1 font-medium">Discover More</span>
         <ChevronDown className="w-5 h-5 text-[#D4AF37] animate-bounce" />
       </div>
+
+      {/* Hero YouTube Video Modal */}
+      {isVideoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in">
+          <div className="relative w-full max-w-4xl glass-card rounded-2xl border border-white/20 p-2 sm:p-4 space-y-3">
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center space-x-2 text-xs text-[#D4AF37] font-semibold">
+                <Sparkles className="w-4 h-4" />
+                <span>Decor8India Studio & Walkthrough Tour</span>
+              </div>
+              <button 
+                onClick={() => setIsVideoModalOpen(false)}
+                className="p-1.5 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+              <iframe 
+                src="https://www.youtube.com/embed/XyjkP5ENGHk?autoplay=1&rel=0"
+                title="Decor8India YouTube Showcase"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
     </section>
   );

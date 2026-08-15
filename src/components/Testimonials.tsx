@@ -200,7 +200,7 @@ export const Testimonials: React.FC = () => {
               />
               <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex flex-col items-center justify-center space-y-3">
                 <button 
-                  onClick={() => setActiveVideoUrl('https://www.youtube.com/embed/dQw4w9WgXcQ')}
+                  onClick={() => setActiveVideoUrl('https://www.youtube.com/embed/XyjkP5ENGHk?autoplay=1')}
                   className="w-16 h-16 rounded-full gold-gradient-bg flex items-center justify-center text-black shadow-2xl hover:scale-110 transition-transform"
                 >
                   <Play className="w-7 h-7 fill-current ml-1" />
