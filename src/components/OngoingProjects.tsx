@@ -14,10 +14,17 @@ export const OngoingProjects: React.FC = () => {
   const { projects, setIsSiteVisitOpen, setSelectedProjectForSiteVisit } = useApp();
   const navigate = useNavigate();
   
-  const landingSelected = projects.filter(p => p.showOnLandingPage === true);
+  // Exclude completed projects (status === 'Completed', progress >= 100, or stage === 'Handover Completed')
+  const activeOngoingProjects = projects.filter(p => 
+    p.status !== 'Completed' && 
+    (p.progressPercentage === undefined || p.progressPercentage < 100) && 
+    p.currentStage !== 'Handover Completed'
+  );
+
+  const landingSelected = activeOngoingProjects.filter(p => p.showOnLandingPage === true);
   const ongoingList = landingSelected.length > 0 
     ? landingSelected 
-    : projects.filter(p => p.status === 'Ongoing' && p.showOnLandingPage !== false);
+    : activeOngoingProjects.filter(p => p.showOnLandingPage !== false);
 
   const handleBookVisitForProject = (projectTitle: string) => {
     setSelectedProjectForSiteVisit(projectTitle);
