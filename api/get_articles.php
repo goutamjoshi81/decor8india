@@ -14,6 +14,7 @@ try {
       `excerpt` text DEFAULT NULL,
       `content` longtext DEFAULT NULL,
       `cover_image` text DEFAULT NULL,
+      `gallery_images_json` longtext DEFAULT NULL,
       `author` varchar(100) DEFAULT NULL,
       `read_time` varchar(20) DEFAULT NULL,
       `tags` JSON DEFAULT NULL,
@@ -23,11 +24,16 @@ try {
       PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+    // Auto-migrate gallery_images_json column if missing
+    try { $pdo->exec("ALTER TABLE articles ADD COLUMN gallery_images_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
+
     $id = isset($_GET['id']) ? trim($_GET['id']) : null;
 
     $formatArticle = function($row) {
         $row['tags'] = !empty($row['tags']) ? (json_decode($row['tags'], true) ?: []) : [];
         $row['coverImage'] = !empty($row['cover_image']) ? $row['cover_image'] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80';
+        $gallery = !empty($row['gallery_images_json']) ? json_decode($row['gallery_images_json'], true) : [];
+        $row['galleryImages'] = is_array($gallery) ? $gallery : [];
         $row['readTime'] = !empty($row['read_time']) ? $row['read_time'] : '4 min read';
         $row['authorName'] = !empty($row['author']) ? $row['author'] : 'Decor8 Editorial Team';
         $row['isPublished'] = (!isset($row['is_published']) || $row['is_published'] == 1);

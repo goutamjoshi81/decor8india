@@ -195,6 +195,7 @@ export interface Article {
   featured: boolean;
   status: 'Published' | 'Scheduled' | 'Draft';
   isPublished?: boolean;
+  galleryImages?: string[];
 }
 
 export interface Testimonial {

@@ -25,7 +25,16 @@ import {
   Sparkles,
   ArrowLeft,
   MapPin,
-  ShieldCheck
+  ShieldCheck,
+  Bold,
+  Italic,
+  Underline,
+  Link as LinkIcon,
+  Quote,
+  List,
+  Heading2,
+  Heading3,
+  Type
 } from 'lucide-react';
 import type { BranchOffice } from '../../types';
 
@@ -442,7 +451,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [newArtAuthor, setNewArtAuthor] = useState('');
   const [newArtCategory, setNewArtCategory] = useState<'Tips' | 'Decoration' | 'Office Trends' | 'Architecture' | 'Color Guides' | 'Furniture' | 'Lighting' | 'Smart Home'>('Tips');
   const [newArtExcerpt, setNewArtExcerpt] = useState('');
+  const [newArtContent, setNewArtContent] = useState('');
   const [newArtCoverImage, setNewArtCoverImage] = useState('');
+  const [newArtGallery, setNewArtGallery] = useState<string[]>([]);
+  const [newArtGalleryInput, setNewArtGalleryInput] = useState('');
+  const [artContentMode, setArtContentMode] = useState<'write' | 'preview'>('write');
+
+  const insertFormatting = (tag: string, placeholder: string = 'sample text') => {
+    let inserted = '';
+    if (tag === 'b') inserted = `<b>${placeholder}</b>`;
+    else if (tag === 'i') inserted = `<i>${placeholder}</i>`;
+    else if (tag === 'u') inserted = `<u>${placeholder}</u>`;
+    else if (tag === 'h2') inserted = `<h2 class="text-2xl font-serif font-bold text-white mt-6 mb-3">${placeholder}</h2>`;
+    else if (tag === 'h3') inserted = `<h3 class="text-xl font-serif font-bold text-[#D4AF37] mt-5 mb-2">${placeholder}</h3>`;
+    else if (tag === 'quote') inserted = `<blockquote class="border-l-4 border-[#D4AF37] pl-4 italic text-neutral-300 my-4 py-2 bg-white/5 rounded-r-xl">${placeholder}</blockquote>`;
+    else if (tag === 'ul') inserted = `<ul class="list-disc list-inside space-y-2 my-4 text-neutral-300">\n  <li>Key point 1</li>\n  <li>Key point 2</li>\n  <li>Key point 3</li>\n</ul>`;
+    else if (tag === 'p') inserted = `<p class="leading-relaxed text-neutral-300 my-3">${placeholder}</p>`;
+    else if (tag === 'link') {
+      const url = prompt('Enter website URL:', 'https://');
+      if (url) {
+        const text = prompt('Enter link text:', 'Learn More');
+        inserted = `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-[#D4AF37] underline font-semibold hover:text-white transition-colors">${text || url}</a>`;
+      }
+    } else if (tag === 'image') {
+      const url = prompt('Enter Image URL to embed inside article body:', 'https://');
+      if (url) {
+        inserted = `<div class="my-6 rounded-2xl overflow-hidden border border-white/10 shadow-xl">\n  <img src="${url}" alt="Article Photo" class="w-full h-auto object-cover max-h-[500px]" />\n</div>`;
+      }
+    }
+
+    if (inserted) {
+      setNewArtContent(prev => prev ? `${prev}\n\n${inserted}` : inserted);
+    }
+  };
 
   // ---------------- BRAND PARTNER FORM STATE ----------------
   const [newPartnerName, setNewPartnerName] = useState('');
@@ -657,17 +698,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     if (!newArtTitle || !newArtExcerpt) return;
 
     const author = newArtAuthor.trim() || (currentUser && currentUser.name !== 'Decor8 Admin' ? currentUser.name : 'Decor8 Editorial Team');
+    const content = newArtContent.trim() || `<p class="leading-relaxed text-neutral-300">${newArtExcerpt}</p>`;
+    const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
+    const calcReadTime = `${Math.max(2, Math.ceil(wordCount / 150))} min read`;
 
     addArticle({
       title: newArtTitle,
-      slug: newArtTitle.toLowerCase().replace(/ /g, '-'),
+      slug: newArtTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       excerpt: newArtExcerpt,
-      content: `<p>${newArtExcerpt}</p>`,
+      content: content,
       category: newArtCategory,
       coverImage: newArtCoverImage || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+      galleryImages: newArtGallery,
       authorName: author,
       publishedAt: new Date().toISOString().split('T')[0],
-      readTime: '4 min read',
+      readTime: calcReadTime,
       featured: false,
       status: 'Published'
     });
@@ -675,8 +720,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     setNewArtTitle('');
     setNewArtAuthor('');
     setNewArtExcerpt('');
+    setNewArtContent('');
     setNewArtCoverImage('');
-    alert('New article published live to homepage!');
+    setNewArtGallery([]);
+    setNewArtGalleryInput('');
+    alert('New article with rich formatting & photos published live!');
   };
 
   const totalClients = bookings.length;
@@ -1994,10 +2042,98 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   </div>
                 </div>
 
+                {/* Article Gallery Images (Multiple Photos) */}
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs text-neutral-300 font-medium flex items-center space-x-1.5">
+                      <Camera className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>Article Photo Gallery (Add More Photos)</span>
+                    </label>
+                    <span className="text-[10px] text-neutral-400 font-mono">{newArtGallery.length} photos added</span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <label className="cursor-pointer px-3 py-2 rounded-xl bg-white/5 border border-white/15 hover:bg-white/10 text-xs text-neutral-300 flex items-center justify-center space-x-1.5 transition-colors shrink-0">
+                      <Upload className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>Upload Photo</span>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileUpload(e.target.files[0], (url) => setNewArtGallery(prev => [...prev, url]));
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder="Or paste photo URL..." 
+                      value={newArtGalleryInput}
+                      onChange={(e) => setNewArtGalleryInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (newArtGalleryInput.trim()) {
+                            setNewArtGallery(prev => [...prev, newArtGalleryInput.trim()]);
+                            setNewArtGalleryInput('');
+                          }
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newArtGalleryInput.trim()) {
+                          setNewArtGallery(prev => [...prev, newArtGalleryInput.trim()]);
+                          setNewArtGalleryInput('');
+                        }
+                      }}
+                      className="px-3 py-2 rounded-xl bg-[#D4AF37]/20 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-bold text-xs transition-colors shrink-0"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  {/* Gallery Thumbnails List */}
+                  {newArtGallery.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 pt-2">
+                      {newArtGallery.map((imgUrl, idx) => (
+                        <div key={idx} className="relative group h-16 rounded-lg overflow-hidden border border-white/20 bg-black">
+                          <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const imgTag = `<div class="my-6 rounded-2xl overflow-hidden border border-white/10 shadow-xl">\n  <img src="${imgUrl}" alt="Article Photo" class="w-full h-auto object-cover max-h-[500px]" />\n</div>`;
+                                setNewArtContent(prev => prev ? `${prev}\n\n${imgTag}` : imgTag);
+                              }}
+                              className="p-1 rounded bg-[#D4AF37] text-black text-[9px] font-bold"
+                              title="Insert image into body content"
+                            >
+                              + Body
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewArtGallery(prev => prev.filter((_, i) => i !== idx))}
+                              className="p-1 rounded bg-red-500 text-white"
+                              title="Remove Photo"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-1">
                   <label className="text-xs text-neutral-300 font-medium">Excerpt Summary</label>
                   <textarea 
-                    rows={3}
+                    rows={2}
                     required
                     placeholder="Short description for homepage feed..."
                     value={newArtExcerpt}
@@ -2006,11 +2142,155 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   />
                 </div>
 
+                {/* Rich Text Editor Toolbar & Article Body Content */}
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs text-neutral-300 font-medium flex items-center space-x-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>Article Full Body & Formatting</span>
+                    </label>
+                    <div className="flex items-center space-x-1 bg-black/60 p-1 rounded-lg border border-white/15">
+                      <button
+                        type="button"
+                        onClick={() => setArtContentMode('write')}
+                        className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all ${
+                          artContentMode === 'write' ? 'bg-[#D4AF37] text-black' : 'text-neutral-400 hover:text-white'
+                        }`}
+                      >
+                        Write
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setArtContentMode('preview')}
+                        className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase transition-all ${
+                          artContentMode === 'preview' ? 'bg-[#D4AF37] text-black' : 'text-neutral-400 hover:text-white'
+                        }`}
+                      >
+                        Live Preview
+                      </button>
+                    </div>
+                  </div>
+
+                  {artContentMode === 'write' ? (
+                    <div className="space-y-2">
+                      {/* Rich Formatting Buttons Toolbar */}
+                      <div className="flex flex-wrap gap-1 p-2 rounded-xl bg-white/5 border border-white/15">
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('b', 'Bold Text')}
+                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
+                          title="Bold"
+                        >
+                          <Bold className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('i', 'Italic Text')}
+                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
+                          title="Italic"
+                        >
+                          <Italic className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('u', 'Underlined Text')}
+                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
+                          title="Underline"
+                        >
+                          <Underline className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="w-[1px] h-6 bg-white/15 self-center mx-0.5" />
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('h2', 'Main Heading')}
+                          className="px-2 py-1 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 text-xs font-bold border border-white/10 transition-colors flex items-center space-x-1"
+                          title="Header 2"
+                        >
+                          <Heading2 className="w-3.5 h-3.5" />
+                          <span>H2</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('h3', 'Sub Heading')}
+                          className="px-2 py-1 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 text-xs font-bold border border-white/10 transition-colors flex items-center space-x-1"
+                          title="Header 3"
+                        >
+                          <Heading3 className="w-3.5 h-3.5" />
+                          <span>H3</span>
+                        </button>
+                        <span className="w-[1px] h-6 bg-white/15 self-center mx-0.5" />
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('ul')}
+                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
+                          title="Bullet List"
+                        >
+                          <List className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('quote', 'Quote text...')}
+                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
+                          title="Blockquote"
+                        >
+                          <Quote className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('link')}
+                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
+                          title="Add Website Link"
+                        >
+                          <LinkIcon className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('image')}
+                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
+                          title="Embed Photo into Body"
+                        >
+                          <ImageIcon className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormatting('p', 'Paragraph text...')}
+                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
+                          title="Paragraph"
+                        >
+                          <Type className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <textarea 
+                        rows={6}
+                        placeholder="Write detailed article content using formatting buttons above or HTML tags (<b>, <h2>, <ul>, <blockquote>)..."
+                        value={newArtContent}
+                        onChange={(e) => setNewArtContent(e.target.value)}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37] font-mono leading-relaxed"
+                      />
+                    </div>
+                  ) : (
+                    /* Live Preview Box */
+                    <div className="p-4 rounded-xl bg-black/80 border border-[#D4AF37]/30 max-h-80 overflow-y-auto space-y-4">
+                      <div className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-wider border-b border-white/10 pb-1">
+                        Article Content Preview
+                      </div>
+                      <div 
+                        className="text-xs text-neutral-300 leading-relaxed space-y-3 font-sans prose prose-invert max-w-none"
+                        dangerouslySetInnerHTML={{ 
+                          __html: newArtContent || `<p class="italic text-neutral-500">${newArtExcerpt || 'No article content written yet...'}</p>` 
+                        }} 
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <button 
                   type="submit"
-                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg transition-all"
+                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg transition-all flex items-center justify-center space-x-2"
                 >
-                  Publish Article to Homepage & RSS
+                  <Sparkles className="w-4 h-4" />
+                  <span>Publish Formatted Article & Photos</span>
                 </button>
               </form>
             </div>

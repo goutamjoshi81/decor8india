@@ -7,7 +7,8 @@ import {
   Share2, 
   BookOpen, 
   Calendar,
-  ChevronRight
+  ChevronRight,
+  Camera
 } from 'lucide-react';
 import { ContactSection } from '../components/ContactSection';
 
@@ -158,6 +159,30 @@ export const ArticleDetailPage: React.FC = () => {
           className="text-neutral-300 text-sm sm:text-base leading-relaxed space-y-6 font-light prose prose-invert max-w-none pt-4"
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
+
+        {/* Article Photo Gallery Showcase (if multiple photos added) */}
+        {article.galleryImages && article.galleryImages.length > 0 && (
+          <div className="space-y-4 pt-6 border-t border-white/10">
+            <div className="flex items-center space-x-2 text-xs font-semibold text-[#D4AF37] uppercase tracking-wider">
+              <Camera className="w-4 h-4" />
+              <span>Article Photo Gallery ({article.galleryImages.length} Photos)</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {article.galleryImages.map((photoUrl, idx) => (
+                <div key={idx} className="group relative h-56 rounded-2xl overflow-hidden border border-white/15 shadow-xl bg-black/60">
+                  <img 
+                    src={photoUrl} 
+                    alt={`${article.title} - Photo ${idx + 1}`} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                    <span className="text-xs text-white font-medium">Visual Showcase #{idx + 1}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Related Articles Section */}
         {relatedArticles.length > 0 && (

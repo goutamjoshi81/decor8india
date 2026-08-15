@@ -14,6 +14,7 @@ try {
       `excerpt` text DEFAULT NULL,
       `content` longtext DEFAULT NULL,
       `cover_image` text DEFAULT NULL,
+      `gallery_images_json` longtext DEFAULT NULL,
       `author` varchar(100) DEFAULT NULL,
       `read_time` varchar(20) DEFAULT NULL,
       `tags` JSON DEFAULT NULL,
@@ -22,6 +23,9 @@ try {
       `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Auto-migrate gallery_images_json column if missing
+    try { $pdo->exec("ALTER TABLE articles ADD COLUMN gallery_images_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
 
     $data = json_decode(file_get_contents("php://input"), true);
 
@@ -49,15 +53,18 @@ try {
     }
 
     $coverImage = $data['coverImage'] ?? $data['cover_image'] ?? null;
+    $galleryImages = isset($data['galleryImages']) && is_array($data['galleryImages']) ? $data['galleryImages'] : [];
+    $galleryJson = json_encode($galleryImages);
+
     $author = !empty($data['authorName']) ? $data['authorName'] : (!empty($data['author']) ? $data['author'] : 'Decor8 Editorial Team');
     $readTime = !empty($data['readTime']) ? $data['readTime'] : (!empty($data['read_time']) ? $data['read_time'] : '4 min read');
 
     // Handle bulk save
     if (isset($data['_bulk']) && is_array($data['articles'])) {
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare("INSERT INTO articles (id, title, category, excerpt, content, cover_image, author, read_time, tags, is_published)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE title=VALUES(title), category=VALUES(category), excerpt=VALUES(excerpt), content=VALUES(content), cover_image=VALUES(cover_image), author=VALUES(author), read_time=VALUES(read_time), tags=VALUES(tags), is_published=VALUES(is_published)");
+        $stmt = $pdo->prepare("INSERT INTO articles (id, title, category, excerpt, content, cover_image, gallery_images_json, author, read_time, tags, is_published)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE title=VALUES(title), category=VALUES(category), excerpt=VALUES(excerpt), content=VALUES(content), cover_image=VALUES(cover_image), gallery_images_json=VALUES(gallery_images_json), author=VALUES(author), read_time=VALUES(read_time), tags=VALUES(tags), is_published=VALUES(is_published)");
         
         foreach ($data['articles'] as $a) {
             $itemIsPub = 1;
@@ -71,6 +78,7 @@ try {
 
             $itemAuthor = !empty($a['authorName']) ? $a['authorName'] : (!empty($a['author']) ? $a['author'] : 'Decor8 Editorial Team');
             $itemReadTime = !empty($a['readTime']) ? $a['readTime'] : (!empty($a['read_time']) ? $a['read_time'] : '4 min read');
+            $itemGallery = isset($a['galleryImages']) && is_array($a['galleryImages']) ? $a['galleryImages'] : [];
 
             $stmt->execute([
                 $a['id'],
@@ -79,6 +87,7 @@ try {
                 $a['excerpt'] ?? null,
                 $a['content'] ?? null,
                 $a['coverImage'] ?? $a['cover_image'] ?? null,
+                json_encode($itemGallery),
                 $itemAuthor,
                 $itemReadTime,
                 json_encode($a['tags'] ?? []),
@@ -91,9 +100,9 @@ try {
     }
 
     // Single article upsert
-    $stmt = $pdo->prepare("INSERT INTO articles (id, title, category, excerpt, content, cover_image, author, read_time, tags, is_published)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE title=VALUES(title), category=VALUES(category), excerpt=VALUES(excerpt), content=VALUES(content), cover_image=VALUES(cover_image), author=VALUES(author), read_time=VALUES(read_time), tags=VALUES(tags), is_published=VALUES(is_published)");
+    $stmt = $pdo->prepare("INSERT INTO articles (id, title, category, excerpt, content, cover_image, gallery_images_json, author, read_time, tags, is_published)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE title=VALUES(title), category=VALUES(category), excerpt=VALUES(excerpt), content=VALUES(content), cover_image=VALUES(cover_image), gallery_images_json=VALUES(gallery_images_json), author=VALUES(author), read_time=VALUES(read_time), tags=VALUES(tags), is_published=VALUES(is_published)");
 
     $stmt->execute([
         $data['id'],
@@ -102,6 +111,7 @@ try {
         $data['excerpt'] ?? null,
         $data['content'] ?? null,
         $coverImage,
+        $galleryJson,
         $author,
         $readTime,
         json_encode($data['tags'] ?? []),

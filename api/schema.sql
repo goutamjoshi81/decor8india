@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS `articles` (
   `excerpt` text DEFAULT NULL,
   `content` longtext DEFAULT NULL,
   `cover_image` text DEFAULT NULL,
+  `gallery_images_json` longtext DEFAULT NULL,
   `author` varchar(100) DEFAULT NULL,
   `read_time` varchar(20) DEFAULT NULL,
   `tags` JSON DEFAULT NULL,
