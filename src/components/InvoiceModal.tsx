@@ -25,7 +25,9 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
   // Single payment vs Consolidated Master Calculation
   const invoiceNumber = isConsolidated
     ? `BILL-MASTER-${project.id.slice(-6).toUpperCase()}`
-    : (payment?.invoiceUrl ? payment.invoiceUrl.split('/').pop()?.replace('.pdf', '') : `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`);
+    : (payment?.invoiceUrl 
+        ? payment.invoiceUrl.split('/').pop()?.replace('.pdf', '') 
+        : `INV-D8I-${payment?.id ? payment.id.replace(/[^0-9]/g, '').slice(-6).padStart(6, '0') : '100249'}`);
   
   const invoiceDate = isConsolidated 
     ? new Date().toISOString().split('T')[0] 

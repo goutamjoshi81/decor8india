@@ -213,7 +213,8 @@ try {
                 "amount" => $finalPrice ? round($finalPrice * 0.1) : 100000,
                 "paidAmount" => 0,
                 "dueDate" => date('Y-m-d', strtotime('+3 days')),
-                "status" => "Pending"
+                "status" => "Pending",
+                "invoiceUrl" => "INV-D8I-" . sprintf("%06d", mt_rand(100000, 999999))
             ]
         ];
 

@@ -871,14 +871,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addPayment = (projectId: string, payData: Omit<PaymentItem, 'id' | 'projectId'>) => {
-    const invNum = `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`;
-    const autoInvoiceUrl = `https://decor8india.com/invoices/${invNum}.pdf`;
+    const payId = `pay-${Date.now()}`;
+    const invNum = payData.invoiceUrl && payData.invoiceUrl.startsWith('INV-') 
+      ? payData.invoiceUrl 
+      : `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`;
 
     const newPay: PaymentItem = {
       ...payData,
-      id: `pay-${Date.now()}`,
+      id: payId,
       projectId,
-      invoiceUrl: payData.status === 'Paid' ? autoInvoiceUrl : payData.invoiceUrl,
+      invoiceUrl: invNum,
       paidDate: payData.status === 'Paid' ? (payData.paidDate || new Date().toISOString().split('T')[0]) : payData.paidDate
     };
 
@@ -895,7 +897,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           projectId,
           title: `Official Invoice - ${payData.title} (#${invNum})`,
           category: 'Invoice',
-          fileUrl: autoInvoiceUrl,
+          fileUrl: invNum,
           fileSize: '240 KB',
           uploadDate: newPay.paidDate || new Date().toISOString().split('T')[0]
         };
@@ -923,8 +925,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updatePaymentStatus = (projectId: string, paymentId: string, status: 'Paid' | 'Pending' | 'Overdue', paidAmount?: number) => {
-    const invNum = `INV-D8I-${Math.floor(100000 + Math.random() * 900000)}`;
-    const autoInvoiceUrl = `https://decor8india.com/invoices/${invNum}.pdf`;
     const today = new Date().toISOString().split('T')[0];
 
     let finalPayments: PaymentItem[] = [];
@@ -935,17 +935,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       let targetPayTitle = '';
       let targetPayAmount = 0;
+      let targetInvoiceCode = '';
 
       const updatedPayments = (p.payments || []).map(pay => {
         if (pay.id === paymentId) {
           targetPayTitle = pay.title;
           targetPayAmount = paidAmount !== undefined ? paidAmount : (status === 'Paid' ? pay.amount : pay.paidAmount);
+          targetInvoiceCode = pay.invoiceUrl && pay.invoiceUrl.startsWith('INV-') 
+            ? pay.invoiceUrl 
+            : `INV-D8I-${pay.id ? pay.id.replace(/[^0-9]/g, '').slice(-6).padStart(6, '0') : Math.floor(100000 + Math.random() * 900000)}`;
+
           return {
             ...pay,
             status,
             paidAmount: targetPayAmount,
             paidDate: status === 'Paid' ? (pay.paidDate || today) : pay.paidDate,
-            invoiceUrl: status === 'Paid' ? (pay.invoiceUrl || autoInvoiceUrl) : pay.invoiceUrl
+            invoiceUrl: targetInvoiceCode
           };
         }
         return pay;
@@ -956,9 +961,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const autoInvoiceDoc: DocumentItem = {
           id: `doc-inv-${Date.now()}`,
           projectId,
-          title: `Official Invoice - ${targetPayTitle || 'Milestone Payment'} (#${invNum})`,
+          title: `Official Invoice - ${targetPayTitle || 'Milestone Payment'} (#${targetInvoiceCode})`,
           category: 'Invoice',
-          fileUrl: autoInvoiceUrl,
+          fileUrl: targetInvoiceCode,
           fileSize: '240 KB',
           uploadDate: today
         };

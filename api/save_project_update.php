@@ -95,6 +95,34 @@ try {
         array_unshift($payments, $data->payment);
     }
 
+    // Lock permanent Invoice IDs into payments array for DB persistence
+    if (!empty($payments) && is_array($payments)) {
+        foreach ($payments as &$p) {
+            if (is_array($p)) {
+                if (empty($p['invoiceUrl'])) {
+                    $pid = !empty($p['id']) ? preg_replace('/[^0-9]/', '', $p['id']) : '';
+                    if (empty($pid) || strlen($pid) < 6) {
+                        $pid = sprintf("%06d", mt_rand(100000, 999999));
+                    } else {
+                        $pid = str_pad(substr($pid, -6), 6, '0', STR_PAD_LEFT);
+                    }
+                    $p['invoiceUrl'] = 'INV-D8I-' . $pid;
+                }
+            } else if (is_object($p)) {
+                if (empty($p->invoiceUrl)) {
+                    $pid = !empty($p->id) ? preg_replace('/[^0-9]/', '', $p->id) : '';
+                    if (empty($pid) || strlen($pid) < 6) {
+                        $pid = sprintf("%06d", mt_rand(100000, 999999));
+                    } else {
+                        $pid = str_pad(substr($pid, -6), 6, '0', STR_PAD_LEFT);
+                    }
+                    $p->invoiceUrl = 'INV-D8I-' . $pid;
+                }
+            }
+        }
+        unset($p);
+    }
+
     // Full documents array overwrite OR single document push
     if (!empty($data->documents) && is_array($data->documents)) {
         $documents = $data->documents;
