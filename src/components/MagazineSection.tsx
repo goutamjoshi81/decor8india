@@ -20,7 +20,7 @@ export const MagazineSection: React.FC = () => {
   const [showRssModal, setShowRssModal] = useState(false);
   const [copiedRss, setCopiedRss] = useState(false);
 
-  const publishedArticles = articles.filter(a => a.status === 'Published');
+  const publishedArticles = articles.filter(a => a.status === 'Published' || a.isPublished === true || (a.status as any) !== 'Draft');
 
   const filteredArticles = publishedArticles.filter(art => {
     const matchesSearch = art.title.toLowerCase().includes(searchQuery.toLowerCase()) || 

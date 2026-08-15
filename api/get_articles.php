@@ -25,6 +25,18 @@ try {
 
     $id = isset($_GET['id']) ? trim($_GET['id']) : null;
 
+    $formatArticle = function($row) {
+        $row['tags'] = !empty($row['tags']) ? (json_decode($row['tags'], true) ?: []) : [];
+        $row['coverImage'] = !empty($row['cover_image']) ? $row['cover_image'] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80';
+        $row['readTime'] = !empty($row['read_time']) ? $row['read_time'] : '4 min read';
+        $row['authorName'] = !empty($row['author']) ? $row['author'] : 'Aarav Mehta (Principal Architect)';
+        $row['isPublished'] = (!isset($row['is_published']) || $row['is_published'] == 1);
+        $row['status'] = (!isset($row['is_published']) || $row['is_published'] == 1) ? 'Published' : 'Draft';
+        $row['publishedAt'] = !empty($row['published_at']) ? explode(' ', $row['published_at'])[0] : date('Y-m-d');
+        $row['slug'] = !empty($row['title']) ? strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $row['title']))) : 'article';
+        return $row;
+    };
+
     if ($id) {
         // Fetch single article
         $stmt = $pdo->prepare("SELECT * FROM articles WHERE id = ? LIMIT 1");
@@ -32,12 +44,7 @@ try {
         $row = $stmt->fetch();
 
         if ($row) {
-            $row['tags'] = json_decode($row['tags'], true) ?: [];
-            $row['coverImage'] = $row['cover_image'];
-            $row['readTime'] = $row['read_time'];
-            $row['isPublished'] = (bool)$row['is_published'];
-            $row['publishedAt'] = $row['published_at'];
-            echo json_encode(["success" => true, "article" => $row]);
+            echo json_encode(["success" => true, "article" => $formatArticle($row)]);
         } else {
             echo json_encode(["success" => false, "message" => "Article not found."]);
         }
@@ -53,14 +60,7 @@ try {
         $stmt = $pdo->query($query);
         $rows = $stmt->fetchAll();
         
-        $articles = array_map(function($row) {
-            $row['tags'] = json_decode($row['tags'], true) ?: [];
-            $row['coverImage'] = $row['cover_image'];
-            $row['readTime'] = $row['read_time'];
-            $row['isPublished'] = (bool)$row['is_published'];
-            $row['publishedAt'] = $row['published_at'];
-            return $row;
-        }, $rows);
+        $articles = array_map($formatArticle, $rows);
 
         echo json_encode(["success" => true, "articles" => $articles]);
     }

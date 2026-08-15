@@ -38,6 +38,20 @@ try {
         exit();
     }
 
+    // Determine is_published integer
+    $isPub = 1;
+    if (isset($data['isPublished'])) {
+        $isPub = $data['isPublished'] ? 1 : 0;
+    } else if (isset($data['status'])) {
+        $isPub = strtolower($data['status']) === 'published' ? 1 : 0;
+    } else if (isset($data['is_published'])) {
+        $isPub = (int)$data['is_published'];
+    }
+
+    $coverImage = $data['coverImage'] ?? $data['cover_image'] ?? null;
+    $author = $data['authorName'] ?? $data['author'] ?? 'Aarav Mehta (Principal Architect)';
+    $readTime = $data['readTime'] ?? $data['read_time'] ?? '4 min read';
+
     // Handle bulk save
     if (isset($data['_bulk']) && is_array($data['articles'])) {
         $pdo->beginTransaction();
@@ -46,6 +60,15 @@ try {
             ON DUPLICATE KEY UPDATE title=VALUES(title), category=VALUES(category), excerpt=VALUES(excerpt), content=VALUES(content), cover_image=VALUES(cover_image), author=VALUES(author), read_time=VALUES(read_time), tags=VALUES(tags), is_published=VALUES(is_published)");
         
         foreach ($data['articles'] as $a) {
+            $itemIsPub = 1;
+            if (isset($a['isPublished'])) {
+                $itemIsPub = $a['isPublished'] ? 1 : 0;
+            } else if (isset($a['status'])) {
+                $itemIsPub = strtolower($a['status']) === 'published' ? 1 : 0;
+            } else if (isset($a['is_published'])) {
+                $itemIsPub = (int)$a['is_published'];
+            }
+
             $stmt->execute([
                 $a['id'],
                 $a['title'],
@@ -53,10 +76,10 @@ try {
                 $a['excerpt'] ?? null,
                 $a['content'] ?? null,
                 $a['coverImage'] ?? $a['cover_image'] ?? null,
-                $a['author'] ?? null,
-                $a['readTime'] ?? $a['read_time'] ?? null,
+                $a['authorName'] ?? $a['author'] ?? 'Aarav Mehta',
+                $a['readTime'] ?? $a['read_time'] ?? '4 min read',
                 json_encode($a['tags'] ?? []),
-                isset($a['isPublished']) ? (int)$a['isPublished'] : (isset($a['is_published']) ? (int)$a['is_published'] : 1)
+                $itemIsPub
             ]);
         }
         $pdo->commit();
@@ -75,11 +98,11 @@ try {
         $data['category'] ?? null,
         $data['excerpt'] ?? null,
         $data['content'] ?? null,
-        $data['coverImage'] ?? $data['cover_image'] ?? null,
-        $data['author'] ?? null,
-        $data['readTime'] ?? $data['read_time'] ?? null,
+        $coverImage,
+        $author,
+        $readTime,
         json_encode($data['tags'] ?? []),
-        isset($data['isPublished']) ? (int)$data['isPublished'] : (isset($data['is_published']) ? (int)$data['is_published'] : 1)
+        $isPub
     ]);
 
     echo json_encode([

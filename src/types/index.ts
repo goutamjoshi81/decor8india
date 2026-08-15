@@ -194,6 +194,7 @@ export interface Article {
   readTime: string;
   featured: boolean;
   status: 'Published' | 'Scheduled' | 'Draft';
+  isPublished?: boolean;
 }
 
 export interface Testimonial {
