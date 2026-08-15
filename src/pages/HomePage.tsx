@@ -12,7 +12,6 @@ import { InstagramSection } from '../components/InstagramSection';
 import { Testimonials } from '../components/Testimonials';
 import { FAQ } from '../components/FAQ';
 import { ContactSection } from '../components/ContactSection';
-import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 
 export const HomePage: React.FC = () => {
   return (
@@ -24,15 +23,6 @@ export const HomePage: React.FC = () => {
       <PartnersSection />
       <CostEstimator />
       <PortfolioGallery />
-      
-      {/* Interactive Touch Before/After Transformation Slider */}
-      <section className="py-16 bg-[#0B0C0E] border-t border-b border-white/10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <BeforeAfterSlider 
-          title="Turnkey Site Transformations"
-          subtitle="Swipe or drag the slider left & right to experience Decor8 structural & interior craftsmanship."
-        />
-      </section>
-
       <OngoingProjects />
       <MagazineSection />
       <InstagramSection />

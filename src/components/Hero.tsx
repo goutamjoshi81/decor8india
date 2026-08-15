@@ -113,7 +113,7 @@ export const Hero: React.FC = () => {
                 className="w-full sm:w-auto justify-center px-6 py-4 rounded-xl glass-panel border border-[#D4AF37]/40 hover:bg-[#D4AF37]/10 text-[#D4AF37] font-semibold text-sm tracking-wider flex items-center space-x-2.5 transition-all cursor-pointer"
               >
                 <Play className="w-4 h-4 fill-current" />
-                <span>Watch Studio Tour</span>
+                <span>Watch Tour</span>
               </button>
             </div>
 
