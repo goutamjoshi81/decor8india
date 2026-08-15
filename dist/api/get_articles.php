@@ -29,7 +29,7 @@ try {
         $row['tags'] = !empty($row['tags']) ? (json_decode($row['tags'], true) ?: []) : [];
         $row['coverImage'] = !empty($row['cover_image']) ? $row['cover_image'] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80';
         $row['readTime'] = !empty($row['read_time']) ? $row['read_time'] : '4 min read';
-        $row['authorName'] = !empty($row['author']) ? $row['author'] : 'Aarav Mehta (Principal Architect)';
+        $row['authorName'] = !empty($row['author']) ? $row['author'] : 'Decor8 Editorial Team';
         $row['isPublished'] = (!isset($row['is_published']) || $row['is_published'] == 1);
         $row['status'] = (!isset($row['is_published']) || $row['is_published'] == 1) ? 'Published' : 'Draft';
         $row['publishedAt'] = !empty($row['published_at']) ? explode(' ', $row['published_at'])[0] : date('Y-m-d');

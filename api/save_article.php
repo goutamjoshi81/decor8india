@@ -49,8 +49,8 @@ try {
     }
 
     $coverImage = $data['coverImage'] ?? $data['cover_image'] ?? null;
-    $author = $data['authorName'] ?? $data['author'] ?? 'Aarav Mehta (Principal Architect)';
-    $readTime = $data['readTime'] ?? $data['read_time'] ?? '4 min read';
+    $author = !empty($data['authorName']) ? $data['authorName'] : (!empty($data['author']) ? $data['author'] : 'Decor8 Editorial Team');
+    $readTime = !empty($data['readTime']) ? $data['readTime'] : (!empty($data['read_time']) ? $data['read_time'] : '4 min read');
 
     // Handle bulk save
     if (isset($data['_bulk']) && is_array($data['articles'])) {
@@ -69,6 +69,9 @@ try {
                 $itemIsPub = (int)$a['is_published'];
             }
 
+            $itemAuthor = !empty($a['authorName']) ? $a['authorName'] : (!empty($a['author']) ? $a['author'] : 'Decor8 Editorial Team');
+            $itemReadTime = !empty($a['readTime']) ? $a['readTime'] : (!empty($a['read_time']) ? $a['read_time'] : '4 min read');
+
             $stmt->execute([
                 $a['id'],
                 $a['title'],
@@ -76,8 +79,8 @@ try {
                 $a['excerpt'] ?? null,
                 $a['content'] ?? null,
                 $a['coverImage'] ?? $a['cover_image'] ?? null,
-                $a['authorName'] ?? $a['author'] ?? 'Aarav Mehta',
-                $a['readTime'] ?? $a['read_time'] ?? '4 min read',
+                $itemAuthor,
+                $itemReadTime,
                 json_encode($a['tags'] ?? []),
                 $itemIsPub
             ]);

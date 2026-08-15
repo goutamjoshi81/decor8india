@@ -439,6 +439,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
   // ---------------- ARTICLE FORM STATE ----------------
   const [newArtTitle, setNewArtTitle] = useState('');
+  const [newArtAuthor, setNewArtAuthor] = useState('');
   const [newArtCategory, setNewArtCategory] = useState<'Tips' | 'Decoration' | 'Office Trends' | 'Architecture' | 'Color Guides' | 'Furniture' | 'Lighting' | 'Smart Home'>('Tips');
   const [newArtExcerpt, setNewArtExcerpt] = useState('');
   const [newArtCoverImage, setNewArtCoverImage] = useState('');
@@ -655,6 +656,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     e.preventDefault();
     if (!newArtTitle || !newArtExcerpt) return;
 
+    const author = newArtAuthor.trim() || (currentUser && currentUser.name !== 'Decor8 Admin' ? currentUser.name : 'Decor8 Editorial Team');
+
     addArticle({
       title: newArtTitle,
       slug: newArtTitle.toLowerCase().replace(/ /g, '-'),
@@ -662,7 +665,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       content: `<p>${newArtExcerpt}</p>`,
       category: newArtCategory,
       coverImage: newArtCoverImage || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-      authorName: currentUser ? currentUser.name : 'Aarav Mehta',
+      authorName: author,
       publishedAt: new Date().toISOString().split('T')[0],
       readTime: '4 min read',
       featured: false,
@@ -670,6 +673,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     });
 
     setNewArtTitle('');
+    setNewArtAuthor('');
     setNewArtExcerpt('');
     setNewArtCoverImage('');
     alert('New article published live to homepage!');
@@ -1922,6 +1926,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     placeholder="e.g. Modern Color Psychology for Villa Bedrooms" 
                     value={newArtTitle}
                     onChange={(e) => setNewArtTitle(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-300 font-medium">Author / Contributor Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Goutam Joshi or Satish Bhat (Principal Architect)" 
+                    value={newArtAuthor}
+                    onChange={(e) => setNewArtAuthor(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>

@@ -130,11 +130,11 @@ export const ArticleDetailPage: React.FC = () => {
 
           <div className="flex items-center space-x-3 pt-2 text-xs text-neutral-400 border-b border-white/10 pb-6">
             <div className="w-8 h-8 rounded-full gold-gradient-bg flex items-center justify-center text-black font-bold text-xs uppercase">
-              {article.authorName.charAt(0)}
+              {(article.authorName || 'D').charAt(0)}
             </div>
             <div>
-              <span className="text-white font-semibold block">{article.authorName}</span>
-              <span className="text-[11px] text-neutral-500">Principal Architectural Contributor</span>
+              <span className="text-white font-semibold block">{article.authorName || 'Decor8 Editorial Team'}</span>
+              <span className="text-[11px] text-neutral-500">Design & Architectural Contributor</span>
             </div>
           </div>
         </div>
