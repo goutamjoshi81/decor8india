@@ -444,7 +444,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
   // ---------------- ARTICLE FORM STATE ----------------
   const [newArtTitle, setNewArtTitle] = useState('');
-  const [newArtAuthor, setNewArtAuthor] = useState('');
+  const [newArtAuthor, setNewArtAuthor] = useState('Decor8 Editorial Team');
+  const [newArtAuthorSelect, setNewArtAuthorSelect] = useState('Decor8 Editorial Team');
   const [newArtCategory, setNewArtCategory] = useState<'Tips' | 'Decoration' | 'Office Trends' | 'Architecture' | 'Color Guides' | 'Furniture' | 'Lighting' | 'Smart Home'>('Tips');
   const [newArtExcerpt, setNewArtExcerpt] = useState('');
   const [newArtContent, setNewArtContent] = useState('');
@@ -725,7 +726,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     });
 
     setNewArtTitle('');
-    setNewArtAuthor('');
+    setNewArtAuthor('Decor8 Editorial Team');
+    setNewArtAuthorSelect('Decor8 Editorial Team');
     setNewArtExcerpt('');
     setNewArtContent('');
     setNewArtCoverImage('');
@@ -1986,14 +1988,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-neutral-300 font-medium">Author / Contributor Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Goutam Joshi or Satish Bhat (Principal Architect)" 
-                    value={newArtAuthor}
-                    onChange={(e) => setNewArtAuthor(e.target.value)}
+                  <label className="text-xs text-neutral-300 font-medium flex items-center justify-between">
+                    <span>Article Author / Master Architect</span>
+                    <span className="text-[10px] text-[#D4AF37] font-mono">Master Architects</span>
+                  </label>
+                  <select 
+                    value={newArtAuthorSelect}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setNewArtAuthorSelect(val);
+                      if (val !== 'custom') {
+                        setNewArtAuthor(val);
+                      } else {
+                        setNewArtAuthor('');
+                      }
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
-                  />
+                  >
+                    <option value="Decor8 Editorial Team">Decor8 Editorial Team (Default)</option>
+                    {teamMembers.map(m => (
+                      <option key={m.id} value={`${m.name} (${m.role})`}>
+                        {m.name} — {m.role}
+                      </option>
+                    ))}
+                    <option value="custom">✍️ Enter Custom Author / Guest Name...</option>
+                  </select>
+
+                  {newArtAuthorSelect === 'custom' && (
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="Type custom author or contributor name..." 
+                      value={newArtAuthor}
+                      onChange={(e) => setNewArtAuthor(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-[#D4AF37]/50 text-xs text-white focus:outline-none focus:border-[#D4AF37] mt-1.5 animate-in fade-in"
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-1">
