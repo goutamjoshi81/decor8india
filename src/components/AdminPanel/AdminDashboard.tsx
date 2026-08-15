@@ -437,6 +437,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [newArtTitle, setNewArtTitle] = useState('');
   const [newArtCategory, setNewArtCategory] = useState<'Tips' | 'Decoration' | 'Office Trends' | 'Architecture' | 'Color Guides' | 'Furniture' | 'Lighting' | 'Smart Home'>('Tips');
   const [newArtExcerpt, setNewArtExcerpt] = useState('');
+  const [newArtCoverImage, setNewArtCoverImage] = useState('');
 
   // ---------------- BRANCH OFFICE FORM STATE ----------------
   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
@@ -632,8 +633,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       excerpt: newArtExcerpt,
       content: `<p>${newArtExcerpt}</p>`,
       category: newArtCategory,
-      coverImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-      authorName: currentUser.name,
+      coverImage: newArtCoverImage || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+      authorName: currentUser ? currentUser.name : 'Aarav Mehta',
       publishedAt: new Date().toISOString().split('T')[0],
       readTime: '4 min read',
       featured: false,
@@ -642,6 +643,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
     setNewArtTitle('');
     setNewArtExcerpt('');
+    setNewArtCoverImage('');
     alert('New article published live to homepage!');
   };
 
@@ -1913,6 +1915,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   </select>
                 </div>
 
+                {/* Article Cover Image Selection & Upload */}
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-300 font-medium">Article Cover Image</label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <label className="flex-1 cursor-pointer px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 hover:bg-white/10 text-xs text-neutral-300 flex items-center justify-center space-x-2 transition-colors">
+                        <Upload className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>Upload Image File</span>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleFileUpload(e.target.files[0], setNewArtCoverImage);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="Or paste image URL (https://...)" 
+                      value={newArtCoverImage}
+                      onChange={(e) => setNewArtCoverImage(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
+                    />
+                    {newArtCoverImage && (
+                      <div className="relative h-32 rounded-xl overflow-hidden border border-[#D4AF37]/40 mt-1">
+                        <img src={newArtCoverImage} alt="Cover Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-1">
                   <label className="text-xs text-neutral-300 font-medium">Excerpt Summary</label>
                   <textarea 
@@ -1927,7 +1964,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
                 <button 
                   type="submit"
-                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider"
+                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg transition-all"
                 >
                   Publish Article to Homepage & RSS
                 </button>
@@ -1939,14 +1976,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
               <h3 className="font-serif text-2xl font-bold text-white">Published Articles</h3>
               <div className="space-y-3">
                 {articles.map(art => (
-                  <div key={art.id} className="p-4 rounded-xl glass-card border border-white/10 flex items-center justify-between">
-                    <div>
-                      <div className="text-xs font-bold text-white">{art.title}</div>
-                      <div className="text-[10px] text-[#D4AF37] font-mono">{art.category} • Published {art.publishedAt}</div>
+                  <div key={art.id} className="p-4 rounded-xl glass-card border border-white/10 flex items-center justify-between gap-4">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      {art.coverImage && (
+                        <img 
+                          src={art.coverImage} 
+                          alt={art.title} 
+                          className="w-12 h-12 rounded-lg object-cover border border-white/10 shrink-0" 
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-white truncate">{art.title}</div>
+                        <div className="text-[10px] text-[#D4AF37] font-mono">{art.category} • Published {art.publishedAt}</div>
+                      </div>
                     </div>
                     <button 
                       onClick={() => deleteArticle(art.id)}
-                      className="p-2 rounded bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white"
+                      className="p-2 rounded bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white shrink-0 transition-colors"
+                      title="Delete Article"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
