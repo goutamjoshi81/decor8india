@@ -37,9 +37,29 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
     ? paidPayments.reduce((acc, p) => acc + (p.paidAmount || p.amount), 0)
     : (payment ? (payment.paidAmount || payment.amount) : 0);
 
-  // Estimate total contract value if available
-  const totalContractVal = project.payments.reduce((acc, p) => acc + p.amount, 0) || totalPaid;
-  const remainingBalance = Math.max(0, totalContractVal - totalPaid);
+  // Parse budget string if numeric fields missing
+  const parseBudgetValue = (bStr?: string): number => {
+    if (!bStr) return 0;
+    if (bStr.includes('Lakh')) {
+      const match = bStr.match(/[\d.]+/);
+      if (match) return Math.round(parseFloat(match[0]) * 100000);
+    }
+    const cleanStr = bStr.replace(/[^0-9.]/g, '');
+    const val = parseFloat(cleanStr);
+    return isNaN(val) ? 0 : val;
+  };
+
+  // Get true contract price from DB project record
+  const totalContractVal = (project.contractPrice && project.contractPrice > 0)
+    ? project.contractPrice
+    : ((project.estimatedCost && project.estimatedCost > 0)
+        ? project.estimatedCost
+        : (parseBudgetValue(project.budget) || (project.payments.reduce((acc, p) => acc + p.amount, 0) || totalPaid)));
+
+  const rawRemaining = totalContractVal - totalPaid;
+  const isOverpaid = rawRemaining < 0;
+  const remainingBalance = isOverpaid ? 0 : rawRemaining;
+  const extraPaidAmount = isOverpaid ? Math.abs(rawRemaining) : 0;
 
   const handlePrint = () => {
     window.print();
@@ -174,20 +194,32 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
             <div className="w-full max-w-sm space-y-2 text-xs font-mono bg-neutral-50 p-4 rounded-xl border border-neutral-200">
               {isConsolidated && (
                 <>
-                  <div className="flex justify-between text-neutral-600">
+                  <div className="flex justify-between text-neutral-600 font-medium">
                     <span>Total Project Contract:</span>
-                    <span>₹ {totalContractVal.toLocaleString('en-IN')}</span>
+                    <span className="font-semibold text-neutral-900 font-mono">₹ {totalContractVal.toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="flex justify-between text-neutral-600">
-                    <span>Remaining Balance:</span>
-                    <span>₹ {remainingBalance.toLocaleString('en-IN')}</span>
-                  </div>
+
+                  {!isOverpaid ? (
+                    <div className="flex justify-between text-neutral-600 font-medium">
+                      <span>Remaining Balance Due:</span>
+                      <span className="font-semibold text-neutral-900 font-mono">₹ {remainingBalance.toLocaleString('en-IN')}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center bg-emerald-50 border border-emerald-300 p-2 rounded-lg my-1 text-emerald-800 text-xs font-bold shadow-sm">
+                      <span className="flex items-center space-x-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Extra / Advance Paid:</span>
+                      </span>
+                      <span className="text-emerald-700 font-mono text-sm font-extrabold">+ ₹ {extraPaidAmount.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+
                   <div className="w-full h-px bg-neutral-300 my-1" />
                 </>
               )}
               <div className="flex justify-between font-bold text-sm text-neutral-900">
                 <span>{isConsolidated ? 'Total Cumulative Paid:' : 'Total Amount Paid:'}</span>
-                <span className="text-[#B8860B] font-extrabold text-base">₹ {totalPaid.toLocaleString('en-IN')}</span>
+                <span className="text-[#B8860B] font-extrabold text-base font-mono">₹ {totalPaid.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>

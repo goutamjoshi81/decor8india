@@ -148,6 +148,8 @@ export interface Project {
   location: string;
   area: string;
   budget: string;
+  contractPrice?: number;
+  estimatedCost?: number;
   completionTime: string;
   status: 'Ongoing' | 'Completed';
   showOnLandingPage?: boolean;
