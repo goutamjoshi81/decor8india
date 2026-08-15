@@ -78,19 +78,14 @@ export const PartnersSection: React.FC = () => {
           <div className="animate-marquee space-x-4 sm:space-x-6 py-2">
             {marqueeList.map((brand, idx) => (
               <div 
-                key={`${brand.name}-${idx}`}
-                className="group px-4 py-3 rounded-2xl bg-white/90 border border-white/20 transition-all duration-300 hover:scale-105 hover:bg-white hover:border-[#D4AF37] hover:shadow-xl hover:shadow-[#D4AF37]/20 flex flex-col justify-center items-center space-y-1.5 min-w-[170px] sm:min-w-[200px] cursor-pointer select-none"
+                key={`${brand.id || brand.name}-${idx}`}
+                className="group p-3 rounded-2xl bg-white/95 border border-white/20 transition-all duration-300 hover:scale-105 hover:bg-white hover:border-[#D4AF37] hover:shadow-xl hover:shadow-[#D4AF37]/20 flex items-center justify-center min-w-[200px] sm:min-w-[240px] h-28 sm:h-32 cursor-pointer select-none overflow-hidden"
               >
-                <div className="h-12 flex items-center justify-center">
-                  <img 
-                    src={brand.logoUrl} 
-                    alt={brand.name}
-                    className="max-h-full max-w-[150px] object-contain transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <div className="text-[10px] text-neutral-800 font-bold tracking-wide text-center border-t border-neutral-200 pt-1 w-full">
-                  {brand.category}
-                </div>
+                <img 
+                  src={brand.logoUrl} 
+                  alt={brand.name || "Brand Partner"}
+                  className="w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
             ))}
           </div>

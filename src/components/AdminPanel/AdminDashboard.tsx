@@ -489,21 +489,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
   const handleCreatePartner = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPartnerName || !newPartnerLogoUrl) {
-      alert('Company name and logo image are required.');
+    if (!newPartnerLogoUrl) {
+      alert('Please upload or select a brand logo photo.');
       return;
     }
 
     addPartner({
-      name: newPartnerName,
-      category: newPartnerCategory || 'Material Partner',
+      name: newPartnerName.trim() || 'Brand Partner',
+      category: newPartnerCategory.trim() || 'Material Partner',
       logoUrl: newPartnerLogoUrl
     });
 
     setNewPartnerName('');
     setNewPartnerCategory('');
     setNewPartnerLogoUrl('');
-    alert(`Brand partner "${newPartnerName}" added live to website!`);
+    alert(`New Brand Partner Logo added live to website!`);
   };
 
   // ---------------- BRANCH OFFICE FORM STATE ----------------
@@ -2450,60 +2450,46 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
               <h3 className="font-serif text-2xl font-bold text-white">Add Trusted Brand Partner</h3>
               <p className="text-xs text-neutral-400 font-light">Add brand logos and material partner specifications displayed on the homepage trusted partners marquee.</p>
 
-              <form onSubmit={handleCreatePartner} className="space-y-3">
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-300 font-medium">Company / Brand Name</label>
-                  <input 
-                    type="text" 
-                    required
-                    placeholder="e.g. HETTICH, TATA TMT, JAQUAR" 
-                    value={newPartnerName}
-                    onChange={(e) => setNewPartnerName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-300 font-medium">Category / Product Specification</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. German Kitchen Hardware, Marine Plywood" 
-                    value={newPartnerCategory}
-                    onChange={(e) => setNewPartnerCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
-                  />
-                </div>
-
+              <form onSubmit={handleCreatePartner} className="space-y-4">
                 {/* Brand Logo Upload & URL */}
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-300 font-medium">Company Logo Image</label>
+                <div className="space-y-2">
+                  <label className="text-xs text-neutral-300 font-semibold block">Upload Brand Partner Logo Photo *</label>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <label className="flex-1 cursor-pointer px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 hover:bg-white/10 text-xs text-neutral-300 flex items-center justify-center space-x-2 transition-colors">
-                        <Upload className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        <span>Upload Logo File</span>
-                        <input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              handleFileUpload(e.target.files[0], setNewPartnerLogoUrl);
-                            }
-                          }}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
+                    <label className="cursor-pointer p-4 rounded-xl bg-white/5 border border-dashed border-[#D4AF37]/50 hover:bg-white/10 text-xs text-neutral-300 flex flex-col items-center justify-center space-y-2 transition-all group">
+                      <Upload className="w-6 h-6 text-[#D4AF37] group-hover:scale-110 transition-transform" />
+                      <span className="font-semibold text-white">Click to Upload Logo Image File</span>
+                      <span className="text-[10px] text-neutral-400">Supports PNG, JPG, WEBP, SVG</span>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileUpload(e.target.files[0], setNewPartnerLogoUrl);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                    
                     <input 
                       type="text" 
                       placeholder="Or paste logo image URL (https://...)" 
                       value={newPartnerLogoUrl}
                       onChange={(e) => setNewPartnerLogoUrl(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
                     />
+
                     {newPartnerLogoUrl && (
-                      <div className="relative h-20 rounded-xl overflow-hidden border border-[#D4AF37]/40 bg-white/90 p-2 flex items-center justify-center mt-1">
+                      <div className="relative h-24 rounded-xl overflow-hidden border border-[#D4AF37]/50 bg-white/95 p-3 flex items-center justify-center mt-2 shadow-lg">
                         <img src={newPartnerLogoUrl} alt="Logo Preview" className="max-h-full max-w-full object-contain" />
+                        <button 
+                          type="button" 
+                          onClick={() => setNewPartnerLogoUrl('')} 
+                          className="absolute top-1.5 right-1.5 p-1 rounded-full bg-red-500/90 text-white hover:bg-red-400 transition-colors"
+                          title="Remove photo"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     )}
                   </div>
@@ -2511,9 +2497,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
                 <button 
                   type="submit"
-                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg transition-all"
+                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg transition-all cursor-pointer"
                 >
-                  Add Brand Partner to Live Website
+                  Add Partner Logo to Live Website
                 </button>
               </form>
             </div>
