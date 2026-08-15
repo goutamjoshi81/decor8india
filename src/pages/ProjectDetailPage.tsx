@@ -5,7 +5,6 @@ import {
   ArrowLeft, 
   MapPin, 
   Maximize2, 
-  DollarSign, 
   Clock, 
   Calendar,
   Sparkles,
@@ -129,7 +128,7 @@ export const ProjectDetailPage: React.FC = () => {
         </div>
 
         {/* Project Key Specifications Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-4 rounded-xl glass-card border border-white/10 space-y-1">
             <div className="text-[10px] text-neutral-400 uppercase tracking-wider font-mono flex items-center space-x-1">
               <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -144,14 +143,6 @@ export const ProjectDetailPage: React.FC = () => {
               <span>Carpet Area</span>
             </div>
             <div className="text-sm font-bold text-white">{project.area}</div>
-          </div>
-
-          <div className="p-4 rounded-xl glass-card border border-white/10 space-y-1">
-            <div className="text-[10px] text-neutral-400 uppercase tracking-wider font-mono flex items-center space-x-1">
-              <DollarSign className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Budget Outlay</span>
-            </div>
-            <div className="text-sm font-bold text-emerald-400">{project.budget}</div>
           </div>
 
           <div className="p-4 rounded-xl glass-card border border-white/10 space-y-1">

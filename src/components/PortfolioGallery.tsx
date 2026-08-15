@@ -167,12 +167,12 @@ export const PortfolioGallery: React.FC = () => {
               <div className="p-6 pt-0 space-y-3">
                 <div className="pt-3 border-t border-white/10 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Completed Budget</span>
-                    <span className="text-base font-serif font-bold text-[#D4AF37]">{project.budget}</span>
+                    <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Turnkey Craftsmanship</span>
+                    <span className="text-xs font-semibold text-[#D4AF37]">{project.category} • {project.style}</span>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Duration</span>
+                    <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Execution Time</span>
                     <span className="text-xs font-mono text-neutral-200">{project.completionTime}</span>
                   </div>
                 </div>
