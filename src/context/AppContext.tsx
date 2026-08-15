@@ -279,30 +279,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     syncToServer('services', services);
   }, [services]);
 
-  useEffect(() => {
-    try { localStorage.setItem('decor8_testimonials', JSON.stringify(testimonials)); } catch (e) {}
-    syncToServer('testimonials', testimonials);
-  }, [testimonials]);
+  const sanitizeUrls = (projList: Project[]): Project[] => {
+    return projList.map(p => ({
+      ...p,
+      coverImage: p.coverImage?.replace(/^http:\/\//i, 'https://'),
+      galleryImages: (p.galleryImages || []).map(url => url.replace(/^http:\/\//i, 'https://')),
+      beforeImage: p.beforeImage?.replace(/^http:\/\//i, 'https://'),
+      afterImage: p.afterImage?.replace(/^http:\/\//i, 'https://'),
+      workUpdates: (p.workUpdates || []).map(u => ({
+        ...u,
+        mediaUrls: (u.mediaUrls || []).map(url => url.replace(/^http:\/\//i, 'https://'))
+      })),
+      documents: (p.documents || []).map(d => ({
+        ...d,
+        fileUrl: d.fileUrl?.replace(/^http:\/\//i, 'https://')
+      }))
+    }));
+  };
 
   // ======== FETCH ALL DATA FROM GODADDY MYSQL ON MOUNT & AUTO-POLL ========
   useEffect(() => {
-    const sanitizeUrls = (projList: Project[]): Project[] => {
-      return projList.map(p => ({
-        ...p,
-        coverImage: p.coverImage?.replace(/^http:\/\//i, 'https://'),
-        galleryImages: (p.galleryImages || []).map(url => url.replace(/^http:\/\//i, 'https://')),
-        beforeImage: p.beforeImage?.replace(/^http:\/\//i, 'https://'),
-        afterImage: p.afterImage?.replace(/^http:\/\//i, 'https://'),
-        workUpdates: (p.workUpdates || []).map(u => ({
-          ...u,
-          mediaUrls: (u.mediaUrls || []).map(url => url.replace(/^http:\/\//i, 'https://'))
-        })),
-        documents: (p.documents || []).map(d => ({
-          ...d,
-          fileUrl: d.fileUrl?.replace(/^http:\/\//i, 'https://')
-        }))
-      }));
-    };
 
     const sanitizeTeamMembers = (members: TeamMember[]): TeamMember[] => {
       return members.map(m => {
@@ -611,33 +607,58 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Use the admin-entered final contract price if provided, otherwise fall back to estimated cost
     const contractPrice = finalContractPrice || booking.estimatedCost || 0;
 
-    // Update booking status
+    // Update booking status locally
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Approved' } : b));
+
+    // Find or create approved client user locally
+    let clientUser = users.find(u => u.email.toLowerCase() === booking.clientEmail.toLowerCase());
+    const defaultPhonePassword = booking.clientPhone.replace(/[^0-9]/g, '') || '9876543210';
 
     // Call live MySQL backend API asynchronously (with contract price)
     import('../services/apiService').then(({ apiService }) => {
-      apiService.approveBooking(bookingId, contractPrice || undefined).catch(err => {
+      apiService.approveBooking(bookingId, contractPrice || undefined).then(res => {
+        if (res && res.success) {
+          // Refresh projects list directly from MySQL database
+          apiService.getProjects().then(projRes => {
+            if (projRes && projRes.success && Array.isArray(projRes.projects)) {
+              setProjects(prev => {
+                const prevMap = new Map(prev.map(p => [p.id, p]));
+                return sanitizeUrls(projRes.projects!).map(p => {
+                  const existing = prevMap.get(p.id);
+                  return {
+                    ...p,
+                    galleryImages: (p.galleryImages && p.galleryImages.length > 0)
+                      ? p.galleryImages
+                      : (existing?.galleryImages || (p.coverImage ? [p.coverImage] : [])),
+                    showOnLandingPage: landingPageOverrides.current.has(p.id)
+                      ? landingPageOverrides.current.get(p.id)!
+                      : (existing?.showOnLandingPage !== undefined ? existing.showOnLandingPage : (p.showOnLandingPage !== false))
+                  };
+                });
+              });
+            }
+          }).catch(err => console.warn('Could not refresh projects after approval:', err));
+        }
+      }).catch(err => {
         console.warn('GoDaddy MySQL API approveBooking fallback:', err);
       });
     });
 
-    // Find or create approved client user
-    let clientUser = users.find(u => u.email.toLowerCase() === booking.clientEmail.toLowerCase());
-    const newProjId = `proj-${Date.now().toString().slice(-4)}`;
-    const defaultPhonePassword = booking.clientPhone.replace(/[^0-9]/g, '') || '9876543210';
+    const fallbackUserId = clientUser ? clientUser.id : `usr-${Date.now().toString().slice(-4)}`;
+    const fallbackProjId = `proj-${Date.now().toString().slice(-4)}`;
 
     if (clientUser) {
       setUsers(prev => prev.map(u => u.id === clientUser!.id ? { 
         ...u, 
         isApproved: true, 
-        projectId: newProjId,
+        projectId: fallbackProjId,
         password: u.password || defaultPhonePassword,
         phone: booking.clientPhone,
         mustChangePassword: true 
       } : u));
     } else {
       clientUser = {
-        id: `usr-${Date.now().toString().slice(-4)}`,
+        id: fallbackUserId,
         name: booking.clientName,
         email: booking.clientEmail,
         phone: booking.clientPhone,
@@ -645,110 +666,94 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         role: 'CLIENT',
         isApproved: true,
         mustChangePassword: true,
-        projectId: newProjId
+        projectId: fallbackProjId
       };
       setUsers(prev => [...prev, clientUser!]);
     }
 
-    // Only create a new active interior project if this is NOT a site visit request
+    // Only create a new active interior project locally if this is NOT a site visit request
     const isSiteVisitRequest = booking.serviceType === 'Site Visit' || booking.packageName.toLowerCase().includes('site visit');
     if (!isSiteVisitRequest) {
       const newProject: Project = {
-      id: newProjId,
-      title: `${booking.packageName} for ${booking.clientName}`,
-      clientId: clientUser.id,
-      clientEmail: booking.clientEmail,
-      clientName: booking.clientName,
-      designerName: 'Aarav Mehta (Principal Architect)',
-      category: booking.serviceType === 'Site Visit' ? 'Residential' : booking.serviceType,
-      style: 'Modern',
-      coverImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-      galleryImages: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'],
-      location: 'City Center',
-      area: `${booking.carpetArea || 1500} Sq. Ft.`,
-      budget: `₹ ${(contractPrice ? (contractPrice / 100000).toFixed(2) : 15)} Lakhs`,
-      completionTime: '60 Days',
-      status: 'Ongoing',
-      progressPercentage: 10,
-      currentStage: 'Design Discussion',
-      expectedCompletion: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      description: booking.requirements || 'Approved luxury interior transformation.',
-      milestones: [
-        { id: 'm1', stage: 'Design Discussion', progressPercentage: 100, status: 'Completed', targetDate: new Date().toISOString().split('T')[0], completedDate: new Date().toISOString().split('T')[0] },
-        { id: 'm2', stage: 'Site Measurement', progressPercentage: 20, status: 'In Progress', targetDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0] },
-        { id: 'm3', stage: '3D Design', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 15*24*60*60*1000).toISOString().split('T')[0] },
-        { id: 'm4', stage: 'Material Selection', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 22*24*60*60*1000).toISOString().split('T')[0] },
-        { id: 'm5', stage: 'Civil Work', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 35*24*60*60*1000).toISOString().split('T')[0] },
-        { id: 'm6', stage: 'Carpentry', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 45*24*60*60*1000).toISOString().split('T')[0] },
-        { id: 'm7', stage: 'Painting', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 52*24*60*60*1000).toISOString().split('T')[0] },
-        { id: 'm8', stage: 'Electrical', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 55*24*60*60*1000).toISOString().split('T')[0] },
-        { id: 'm9', stage: 'Furniture Installation', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 58*24*60*60*1000).toISOString().split('T')[0] },
-        { id: 'm10', stage: 'Final Inspection', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 60*24*60*60*1000).toISOString().split('T')[0] }
-      ],
-      workUpdates: [
-        {
-          id: `wu-${Date.now()}`,
-          projectId: newProjId,
-          date: new Date().toISOString().split('T')[0],
-          title: 'Booking Approved & Design Phase Initiated',
-          description: 'Client account activated. Site measurement team scheduled for preliminary survey.',
-          mediaUrls: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'],
-          mediaType: 'image',
-          stage: 'Design Discussion'
-        }
-      ],
-      documents: [
-        {
-          id: `doc-${Date.now()}`,
-          projectId: newProjId,
-          title: `Project Proposal & Service Estimate.pdf`,
-          category: 'Quotation',
-          fileUrl: '#',
-          fileSize: '1.8 MB',
-          uploadDate: new Date().toISOString().split('T')[0]
-        }
-      ],
-      payments: [
-        {
-          id: `pay-${Date.now()}`,
-          projectId: newProjId,
-          title: 'Token Deposit (10%)',
-          amount: contractPrice ? Math.round(contractPrice * 0.1) : 100000,
-          paidAmount: 0,
-          dueDate: new Date(Date.now() + 3*24*60*60*1000).toISOString().split('T')[0],
-          status: 'Pending'
-        }
-      ],
-      messages: [
-        {
-          id: `msg-${Date.now()}`,
-          projectId: newProjId,
-          senderId: 'admin-1',
-          senderName: 'Aarav Mehta (Lead Architect)',
-          senderRole: 'ADMIN',
-          text: `Welcome ${booking.clientName}! Your interior design project has been officially initialized. Feel free to upload design inspirations or send questions here.`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]
-    };
+        id: fallbackProjId,
+        title: `${booking.packageName} for ${booking.clientName}`,
+        clientId: clientUser.id,
+        clientEmail: booking.clientEmail,
+        clientName: booking.clientName,
+        designerName: 'Aarav Mehta (Principal Architect)',
+        category: booking.serviceType === 'Site Visit' ? 'Residential' : booking.serviceType,
+        style: 'Modern',
+        coverImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+        galleryImages: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'],
+        location: 'City Center',
+        area: `${booking.carpetArea || 1500} Sq. Ft.`,
+        budget: `₹ ${(contractPrice ? (contractPrice / 100000).toFixed(2) : 15)} Lakhs`,
+        completionTime: '60 Days',
+        status: 'Ongoing',
+        progressPercentage: 10,
+        currentStage: 'Design Discussion',
+        expectedCompletion: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        description: booking.requirements || 'Approved luxury interior transformation.',
+        milestones: [
+          { id: 'm1', stage: 'Design Discussion', progressPercentage: 100, status: 'Completed', targetDate: new Date().toISOString().split('T')[0], completedDate: new Date().toISOString().split('T')[0] },
+          { id: 'm2', stage: 'Site Measurement', progressPercentage: 20, status: 'In Progress', targetDate: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0] },
+          { id: 'm3', stage: '3D Design', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 15*24*60*60*1000).toISOString().split('T')[0] },
+          { id: 'm4', stage: 'Material Selection', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 22*24*60*60*1000).toISOString().split('T')[0] },
+          { id: 'm5', stage: 'Civil Work', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 35*24*60*60*1000).toISOString().split('T')[0] },
+          { id: 'm6', stage: 'Carpentry', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 45*24*60*60*1000).toISOString().split('T')[0] },
+          { id: 'm7', stage: 'Painting', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 52*24*60*60*1000).toISOString().split('T')[0] },
+          { id: 'm8', stage: 'Electrical', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 55*24*60*60*1000).toISOString().split('T')[0] },
+          { id: 'm9', stage: 'Furniture Installation', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 58*24*60*60*1000).toISOString().split('T')[0] },
+          { id: 'm10', stage: 'Final Inspection', progressPercentage: 0, status: 'Pending', targetDate: new Date(Date.now() + 60*24*60*60*1000).toISOString().split('T')[0] }
+        ],
+        workUpdates: [
+          {
+            id: `wu-${Date.now()}`,
+            projectId: fallbackProjId,
+            date: new Date().toISOString().split('T')[0],
+            title: 'Booking Approved & Design Phase Initiated',
+            description: 'Client account activated. Site measurement team scheduled for preliminary survey.',
+            mediaUrls: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'],
+            mediaType: 'image',
+            stage: 'Design Discussion'
+          }
+        ],
+        documents: [
+          {
+            id: `doc-${Date.now()}`,
+            projectId: fallbackProjId,
+            title: `Project Proposal & Service Estimate.pdf`,
+            category: 'Quotation',
+            fileUrl: '#',
+            fileSize: '1.8 MB',
+            uploadDate: new Date().toISOString().split('T')[0]
+          }
+        ],
+        payments: [
+          {
+            id: `pay-${Date.now()}`,
+            projectId: fallbackProjId,
+            title: 'Token Deposit (10%)',
+            amount: contractPrice ? Math.round(contractPrice * 0.1) : 100000,
+            paidAmount: 0,
+            dueDate: new Date(Date.now() + 3*24*60*60*1000).toISOString().split('T')[0],
+            status: 'Pending'
+          }
+        ],
+        messages: [
+          {
+            id: `msg-${Date.now()}`,
+            projectId: fallbackProjId,
+            senderId: 'admin-1',
+            senderName: 'Aarav Mehta (Lead Architect)',
+            senderRole: 'ADMIN',
+            text: `Welcome ${booking.clientName}! Your interior design project has been officially initialized. Feel free to upload design inspirations or send questions here.`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]
+      };
 
       setProjects(prev => [newProject, ...prev]);
-
-      // Sync newly created project to GoDaddy MySQL
-      import('../services/apiService').then(({ apiService }) => {
-        apiService.saveProjectUpdate({
-          projectId: newProjId,
-          title: newProject.title,
-          clientEmail: booking.clientEmail,
-          serviceType: booking.serviceType,
-          estimatedCost: contractPrice || booking.estimatedCost,
-          progressPercentage: 10,
-          currentStage: 'Design Discussion',
-          workUpdate: newProject.workUpdates[0],
-          document: newProject.documents[0],
-          payment: newProject.payments[0]
-        }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
-      });
     }
   };
 

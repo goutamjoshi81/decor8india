@@ -67,6 +67,14 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN milestones_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN contract_price DECIMAL(12,2) DEFAULT NULL"); } catch (\PDOException $ex) {}
 
+    // Auto-repair existing database records where client_id was incorrectly stored as an email address
+    try {
+        $pdo->exec("UPDATE projects p 
+                    INNER JOIN users u ON LOWER(p.client_email) = LOWER(u.email) 
+                    SET p.client_id = u.id 
+                    WHERE (p.client_id LIKE '%@%' OR p.client_id IS NULL OR p.client_id = '')");
+    } catch (\PDOException $ex) {}
+
     // 1. Fetch current project from DB
     $stmt = $pdo->prepare("SELECT * FROM projects WHERE id = ? LIMIT 1");
     $stmt->execute([$projectId]);
@@ -119,7 +127,6 @@ try {
     if (isset($data->contractPrice) && (float)$data->contractPrice > 0) {
         $contractPrice = (float)$data->contractPrice;
     } else if ($budget) {
-        // Try parsing float from budget string (e.g. "₹ 15.00 Lakhs" -> 1500000)
         if (preg_match('/([\d.]+)\s*lakh/i', $budget, $matches)) {
             $contractPrice = (float)$matches[1] * 100000;
         } else if (preg_match('/[\d.]+/', str_replace(',', '', $budget), $matches)) {
@@ -211,6 +218,19 @@ try {
         ]);
     } else {
         $clientEmail = !empty($data->clientEmail) ? trim($data->clientEmail) : 'client@decor8india.com';
+        $clientId = !empty($data->clientId) ? trim($data->clientId) : null;
+
+        if (empty($clientId) || strpos($clientId, '@') !== false) {
+            $uStmt = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = ? LIMIT 1");
+            $uStmt->execute([strtolower($clientEmail)]);
+            $uRow = $uStmt->fetch();
+            if ($uRow && !empty($uRow['id'])) {
+                $clientId = $uRow['id'];
+            } else {
+                $clientId = 'usr-' . time();
+            }
+        }
+
         $serviceType = !empty($data->serviceType) ? trim($data->serviceType) : 'Residential';
         $estimatedCost = !empty($data->estimatedCost) ? (float)$data->estimatedCost : 500000.00;
 
@@ -219,7 +239,7 @@ try {
         $insertStmt->execute([
             $projectId,
             $title,
-            $clientEmail,
+            $clientId, // Strictly user ID (usr-XXX)
             $clientEmail,
             $clientName,
             $designerName,

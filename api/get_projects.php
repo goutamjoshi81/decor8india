@@ -26,6 +26,24 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN contract_price DECIMAL(12,2) DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("UPDATE projects SET contract_price = estimated_cost WHERE (contract_price IS NULL OR contract_price = 0) AND estimated_cost > 0"); } catch (\PDOException $ex) {}
 
+    // 1. Delete duplicate project rows where client_id has '@' while another clean row exists for the same client and title
+    try {
+        $pdo->exec("DELETE p1 FROM projects p1
+                    INNER JOIN projects p2 
+                      ON LOWER(p1.client_email) = LOWER(p2.client_email) 
+                      AND p1.title = p2.title 
+                      AND p1.id != p2.id
+                    WHERE p1.client_id LIKE '%@%' AND p2.client_id NOT LIKE '%@%'");
+    } catch (\PDOException $ex) {}
+
+    // 2. Auto-repair any remaining projects where client_id is an email address to use the user's ID
+    try {
+        $pdo->exec("UPDATE projects p 
+                    INNER JOIN users u ON LOWER(p.client_email) = LOWER(u.email) 
+                    SET p.client_id = u.id 
+                    WHERE (p.client_id LIKE '%@%' OR p.client_id IS NULL OR p.client_id = '')");
+    } catch (\PDOException $ex) {}
+
     if ($clientEmail) {
         $stmt = $pdo->prepare("SELECT * FROM projects WHERE LOWER(client_email) = ? OR LOWER(client_id) = ? ORDER BY created_at DESC");
         $stmt->execute([$clientEmail, $clientEmail]);
