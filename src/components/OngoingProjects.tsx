@@ -9,6 +9,7 @@ import {
   Eye,
   ArrowRight
 } from 'lucide-react';
+import { TiltContainer } from './TiltContainer';
 
 export const OngoingProjects: React.FC = () => {
   const { projects, setIsSiteVisitOpen, setSelectedProjectForSiteVisit } = useApp();
@@ -62,11 +63,11 @@ export const OngoingProjects: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {ongoingList.map((project) => (
-              <div 
-                key={project.id} 
-                onClick={() => navigate(`/projects/${project.id}`)}
-                className="glass-card rounded-2xl overflow-hidden border border-white/10 p-6 space-y-6 hover:border-[#D4AF37]/40 transition-all flex flex-col justify-between cursor-pointer"
-              >
+              <TiltContainer key={project.id}>
+                <div 
+                  onClick={() => navigate(`/projects/${project.id}`)}
+                  className="glass-card rounded-2xl overflow-hidden border border-white/10 p-6 space-y-6 hover:border-[#D4AF37]/40 transition-all flex flex-col justify-between cursor-pointer h-full"
+                >
                 
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
@@ -154,8 +155,8 @@ export const OngoingProjects: React.FC = () => {
                     <span>Inspect Live Site</span>
                   </button>
                 </div>
-
               </div>
+            </TiltContainer>
             ))}
           </div>
         )}

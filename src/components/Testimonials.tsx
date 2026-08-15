@@ -11,6 +11,7 @@ import {
   ExternalLink,
   CheckCircle2
 } from 'lucide-react';
+import { TiltContainer } from './TiltContainer';
 
 const GoogleIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <svg className={className} viewBox="0 0 24 24">
@@ -51,7 +52,7 @@ export const Testimonials: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-[#0B0C0E] relative overflow-hidden border-t border-white/10">
+    <section className="py-24 bg-[#0B0C0E] glass-section relative overflow-hidden">
       
       {/* Background Lighting */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-tr from-amber-900/10 via-[#D4AF37]/10 to-amber-600/10 rounded-full blur-[160px] pointer-events-none" />
@@ -132,7 +133,8 @@ export const Testimonials: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           {/* Main Showcase Card */}
-          <div className="lg:col-span-8 p-8 sm:p-10 rounded-2xl glass-panel-gold border border-[#D4AF37]/40 space-y-6 relative">
+          <TiltContainer className="lg:col-span-8">
+            <div className="p-8 sm:p-10 rounded-2xl glass-panel-gold border border-[#D4AF37]/40 space-y-6 relative h-full">
             <Quote className="w-12 h-12 text-[#D4AF37]/30 absolute top-6 right-6" />
 
             <div className="flex items-center justify-between">
@@ -188,7 +190,8 @@ export const Testimonials: React.FC = () => {
               </div>
             </div>
 
-          </div>
+            </div>
+          </TiltContainer>
 
           {/* Video Testimonial Card */}
           <div className="lg:col-span-4 glass-card rounded-2xl overflow-hidden border border-white/10 relative group">

@@ -43,7 +43,7 @@ export const PortfolioGallery: React.FC = () => {
   });
 
   return (
-    <section id="portfolio" className="py-24 bg-[#0D0E12] relative overflow-hidden">
+    <section id="portfolio" className="py-24 bg-[#0D0E12] glass-section relative overflow-hidden">
       
       {/* Subtle background glow */}
       <div className="absolute top-1/2 left-0 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-[150px] pointer-events-none" />
@@ -98,7 +98,20 @@ export const PortfolioGallery: React.FC = () => {
             <div 
               key={project.id}
               onClick={() => navigate(`/portfolio/${project.id}`)}
-              className="group glass-card rounded-2xl overflow-hidden border border-white/10 cursor-pointer flex flex-col justify-between hover:border-[#D4AF37]/50 transition-all duration-500 transform hover:-translate-y-1"
+              onTouchMove={(e) => {
+                const card = e.currentTarget;
+                const rect = card.getBoundingClientRect();
+                const touch = e.touches[0];
+                if (touch) {
+                  const x = (touch.clientX - rect.left) / rect.width - 0.5;
+                  const y = (touch.clientY - rect.top) / rect.height - 0.5;
+                  card.style.transform = `perspective(1000px) rotateX(${-y * 12}deg) rotateY(${x * 12}deg) translateY(-4px)`;
+                }
+              }}
+              onTouchEnd={(e) => {
+                e.currentTarget.style.transform = 'none';
+              }}
+              className="group glass-card-interactive rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between transition-transform duration-300 ease-out"
             >
               <div>
                 {/* Cover Image */}
@@ -106,9 +119,9 @@ export const PortfolioGallery: React.FC = () => {
                   <img 
                     src={project.coverImage} 
                     alt={project.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-[#0B0C0E]/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-[#0B0C0E]/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
                   
                   {/* Category & Style Badges */}
                   <div className="absolute top-4 left-4 flex space-x-2">

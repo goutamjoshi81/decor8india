@@ -160,7 +160,7 @@ export const Footer: React.FC = () => {
             © 2026 Decor8India Architecture & Interiors Pvt. Ltd. All rights reserved.
           </div>
 
-          <div className="flex space-x-6">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-6 gap-y-2">
             <Link to="/contact" className="hover:text-neutral-300 transition-colors">Privacy Policy</Link>
             <Link to="/contact" className="hover:text-neutral-300 transition-colors">Terms of Service</Link>
             <Link to="/about" className="hover:text-neutral-300 transition-colors">Careers at Decor8India</Link>

@@ -749,7 +749,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const totalSiteVisitsCount = siteVisits.length + uniqueBookingSiteVisits.length;
 
   return (
-    <div className="min-h-screen bg-[#0B0C0E] text-[#E5E3DF] pt-24 pb-16">
+    <div className="min-h-screen bg-[#0B0C0E] text-[#E5E3DF] safe-page-container">
       
       {/* Top Banner */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">

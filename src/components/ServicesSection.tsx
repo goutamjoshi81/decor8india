@@ -20,6 +20,7 @@ import {
   HardHat,
   Hammer
 } from 'lucide-react';
+import { TiltContainer } from './TiltContainer';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Home,
@@ -52,7 +53,7 @@ export const ServicesSection: React.FC = () => {
   };
 
   return (
-    <section id="services" className="py-24 bg-[#0D0E12] relative overflow-hidden">
+    <section id="services" className="py-24 bg-[#0D0E12] glass-section relative overflow-hidden">
       
       {/* Background Decorative Glow */}
       <div className="absolute top-1/4 right-0 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-[150px] pointer-events-none" />
@@ -141,12 +142,11 @@ export const ServicesSection: React.FC = () => {
               const IconComponent = ICON_MAP[service.iconName] || Home;
 
               return (
-                <div 
-                  key={service.id} 
-                  onClick={() => navigate(`/services/${service.id}`)}
-                  className="group glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500 cursor-pointer"
-                >
-                  <div>
+                <TiltContainer key={service.id}>
+                  <div 
+                    onClick={() => navigate(`/services/${service.id}`)}
+                    className="group glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500 cursor-pointer h-full"
+                  >
                     
                     {/* Card Cover Image with Overlay */}
                     <div className="relative h-56 overflow-hidden">
@@ -193,54 +193,53 @@ export const ServicesSection: React.FC = () => {
 
                     </div>
 
-                  </div>
-
-                  {/* Card Footer: Starting Price & Book CTA */}
-                  <div className="p-6 pt-0 space-y-4">
-                    <div className="pt-4 border-t border-white/10 flex items-baseline justify-between">
-                      <div>
-                        <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Starting From</span>
-                        <span className="text-xl font-bold font-serif text-[#D4AF37]">
-                          ₹ {(service.startingPrice / 100000).toFixed(2)} Lakhs
-                        </span>
+                    {/* Card Footer: Starting Price & Book CTA */}
+                    <div className="p-6 pt-0 space-y-4">
+                      <div className="pt-4 border-t border-white/10 flex items-baseline justify-between">
+                        <div>
+                          <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Starting From</span>
+                          <span className="text-xl font-bold font-serif text-[#D4AF37]">
+                            ₹ {(service.startingPrice / 100000).toFixed(2)} Lakhs
+                          </span>
+                        </div>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsEstimatorOpen(true);
+                          }}
+                          className="text-[11px] text-neutral-400 hover:text-white flex items-center space-x-1 transition-colors"
+                          title="Calculate custom estimate"
+                        >
+                          <Calculator className="w-3 h-3 text-[#D4AF37]" />
+                          <span>Calculate</span>
+                        </button>
                       </div>
-                      
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsEstimatorOpen(true);
-                        }}
-                        className="text-[11px] text-neutral-400 hover:text-white flex items-center space-x-1 transition-colors"
-                        title="Calculate custom estimate"
-                      >
-                        <Calculator className="w-3 h-3 text-[#D4AF37]" />
-                        <span>Calculate</span>
-                      </button>
+
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/services/${service.id}`);
+                          }}
+                          className="w-1/2 py-3 rounded-xl bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider text-center transition-all hover:opacity-90 gold-btn-shine"
+                        >
+                          View Package Details
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBookService(service);
+                          }}
+                          className="w-1/2 py-3 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-200 font-bold text-xs uppercase tracking-wider text-center transition-all border border-white/10"
+                        >
+                          Book Consultation
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/services/${service.id}`);
-                        }}
-                        className="w-1/2 py-3 rounded-xl bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider text-center transition-all hover:opacity-90"
-                      >
-                        View Package Details
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleBookService(service);
-                        }}
-                        className="w-1/2 py-3 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-200 font-bold text-xs uppercase tracking-wider text-center transition-all border border-white/10"
-                      >
-                        Book Consultation
-                      </button>
-                    </div>
                   </div>
-
-                </div>
+                </TiltContainer>
               );
             })}
           </div>

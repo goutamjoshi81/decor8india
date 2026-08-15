@@ -62,8 +62,9 @@ export const Hero: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-[#0B0C0E] via-[#0B0C0E]/85 to-[#0B0C0E]/60" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-[#0B0C0E]/70" />
         
-        {/* Subtle decorative radial glow */}
-        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[140px] pointer-events-none" />
+        {/* Subtle decorative radial glow orbs with float animation */}
+        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-[#D4AF37]/15 rounded-full blur-[140px] pointer-events-none animate-orb" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#B8860B]/10 rounded-full blur-[130px] pointer-events-none animate-orb" style={{ animationDelay: '-7s' }} />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-8">
@@ -73,15 +74,15 @@ export const Hero: React.FC = () => {
           <div className="lg:col-span-8 space-y-8">
             
             {/* Top Badge */}
-            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full glass-panel border border-[#D4AF37]/30 text-xs font-semibold uppercase tracking-widest text-[#D4AF37]">
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full glass-panel border border-[#D4AF37]/40 text-xs font-semibold uppercase tracking-widest text-[#D4AF37] animate-border-pulse shadow-lg">
+              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
               <span>India's Premier Luxury Interior, Construction & Architectural Studio</span>
             </div>
 
             {/* Headline */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-serif font-normal text-white leading-[1.1] tracking-tight">
               Crafting Timeless <br />
-              <span className="gold-gradient-text italic font-normal">Sanctuaries of Luxury</span> & Precision.
+              <span className="shimmer-gold-text italic font-normal">Sanctuaries of Luxury</span> & Precision.
             </h1>
 
             {/* Subtext */}
@@ -90,18 +91,18 @@ export const Hero: React.FC = () => {
             </p>
 
             {/* Call to Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3.5 sm:gap-4 pt-2">
               <button 
                 onClick={() => setIsBookingOpen(true)}
-                className="group px-8 py-4 rounded-xl gold-gradient-bg text-black font-bold text-sm tracking-wider uppercase flex items-center space-x-3 shadow-xl shadow-[#D4AF37]/20 hover:shadow-[#D4AF37]/40 transition-all transform hover:-translate-y-0.5"
+                className="group w-full sm:w-auto justify-center px-8 py-4 rounded-xl gold-gradient-bg text-black font-bold text-sm tracking-wider uppercase flex items-center space-x-3 shadow-xl shadow-[#D4AF37]/25 hover:shadow-[#D4AF37]/50 transition-all transform hover:-translate-y-1 gold-btn-shine cursor-pointer"
               >
                 <span>Book Free Consultation</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
               </button>
 
               <button 
                 onClick={() => setIsEstimatorOpen(true)}
-                className="px-7 py-4 rounded-xl glass-panel border border-white/20 hover:border-[#D4AF37] text-white font-semibold text-sm tracking-wider flex items-center space-x-3 transition-all hover:bg-white/10"
+                className="w-full sm:w-auto justify-center px-7 py-4 rounded-xl glass-panel border border-white/20 hover:border-[#D4AF37] text-white font-semibold text-sm tracking-wider flex items-center space-x-3 transition-all hover:bg-white/10 cursor-pointer"
               >
                 <Calculator className="w-4 h-4 text-[#D4AF37]" />
                 <span>Get Free Estimate</span>
@@ -109,7 +110,7 @@ export const Hero: React.FC = () => {
 
               <button 
                 onClick={() => setIsVideoModalOpen(true)}
-                className="px-6 py-4 rounded-xl glass-panel border border-[#D4AF37]/40 hover:bg-[#D4AF37]/10 text-[#D4AF37] font-semibold text-sm tracking-wider flex items-center space-x-2.5 transition-all"
+                className="w-full sm:w-auto justify-center px-6 py-4 rounded-xl glass-panel border border-[#D4AF37]/40 hover:bg-[#D4AF37]/10 text-[#D4AF37] font-semibold text-sm tracking-wider flex items-center space-x-2.5 transition-all cursor-pointer"
               >
                 <Play className="w-4 h-4 fill-current" />
                 <span>Watch Studio Tour</span>

@@ -5,7 +5,7 @@ import { ContactSection } from '../components/ContactSection';
 
 export const AboutPage: React.FC = () => {
   return (
-    <main className="pt-20">
+    <main className="safe-page-container">
       <AboutUs />
       <Testimonials />
       <ContactSection />

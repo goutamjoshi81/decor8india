@@ -10,6 +10,7 @@ import {
   ArrowRight, 
   Check
 } from 'lucide-react';
+import { TiltContainer } from './TiltContainer';
 
 export const MagazineSection: React.FC = () => {
   const { articles } = useApp();
@@ -38,7 +39,7 @@ export const MagazineSection: React.FC = () => {
   };
 
   return (
-    <section id="magazine" className="py-24 bg-[#0D0E12] relative overflow-hidden">
+    <section id="magazine" className="py-24 bg-[#0D0E12] glass-section relative overflow-hidden">
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
         
@@ -156,54 +157,54 @@ export const MagazineSection: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredArticles.map((article) => (
-            <Link 
-              key={article.id}
-              to={`/blogs/${article.id}`}
-              className="group glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500"
-            >
-              <div>
-                <div className="relative h-52 overflow-hidden">
-                  <img 
-                    src={article.coverImage} 
-                    alt={article.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-black/80 border border-white/10 text-[10px] font-semibold text-[#D4AF37]">
-                    {article.category}
+              <TiltContainer key={article.id}>
+                <Link 
+                  to={`/blogs/${article.id}`}
+                  className="group glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between hover:border-[#D4AF37]/40 transition-all duration-500 h-full"
+                >
+                  <div>
+                    <div className="relative h-52 overflow-hidden">
+                      <img 
+                        src={article.coverImage} 
+                        alt={article.title} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                      <div className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-black/80 border border-white/10 text-[10px] font-semibold text-[#D4AF37]">
+                        {article.category}
+                      </div>
+                    </div>
+
+                    <div className="p-6 space-y-3">
+                      <div className="flex items-center space-x-2 text-[11px] text-neutral-400 font-mono">
+                        <Clock className="w-3 h-3 text-[#D4AF37]" />
+                        <span>{article.readTime}</span>
+                        <span>•</span>
+                        <span>{article.publishedAt}</span>
+                      </div>
+
+                      <h3 className="font-serif text-xl font-bold text-white group-hover:text-[#D4AF37] transition-colors line-clamp-2 leading-snug">
+                        {article.title}
+                      </h3>
+
+                      <p className="text-xs text-neutral-300 line-clamp-3 leading-relaxed">
+                        {article.excerpt}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="p-6 space-y-3">
-                  <div className="flex items-center space-x-2 text-[11px] text-neutral-400 font-mono">
-                    <Clock className="w-3 h-3 text-[#D4AF37]" />
-                    <span>{article.readTime}</span>
-                    <span>•</span>
-                    <span>{article.publishedAt}</span>
+                  <div className="p-6 pt-0">
+                    <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-neutral-400">
+                      <span>By {article.authorName}</span>
+                      <span className="text-[#D4AF37] font-semibold flex items-center space-x-1 group-hover:translate-x-1 transition-transform">
+                        <span>Read Article</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </div>
                   </div>
-
-                  <h3 className="font-serif text-xl font-bold text-white group-hover:text-[#D4AF37] transition-colors line-clamp-2 leading-snug">
-                    {article.title}
-                  </h3>
-
-                  <p className="text-xs text-neutral-300 line-clamp-3 leading-relaxed">
-                    {article.excerpt}
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-6 pt-0">
-                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-neutral-400">
-                  <span>By {article.authorName}</span>
-                  <span className="text-[#D4AF37] font-semibold flex items-center space-x-1 group-hover:translate-x-1 transition-transform">
-                    <span>Read Article</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-
-            </Link>
-          ))}
-        </div>
+                </Link>
+              </TiltContainer>
+            ))}
+          </div>
         )}
 
       </div>

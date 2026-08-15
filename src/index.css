@@ -9,7 +9,12 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #0B0C0E;
+    background-color: #08090B;
+    background-image: 
+      radial-gradient(ellipse at 15% 0%, rgba(212, 175, 55, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 30%, rgba(184, 134, 11, 0.08) 0%, transparent 45%),
+      radial-gradient(ellipse at 50% 75%, rgba(212, 175, 55, 0.06) 0%, transparent 60%);
+    background-attachment: fixed;
     color: #E2E0D8;
     overflow-x: hidden;
   }
@@ -47,32 +52,77 @@
   border-color: rgba(212, 175, 55, 0.25);
 }
 
+/* High-Performance Crystal Glassmorphism System (GPU Hardware Accelerated) */
+.glass-section {
+  position: relative;
+  background: rgba(14, 16, 20, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15), 0 20px 40px rgba(0, 0, 0, 0.5);
+  transform: translateZ(0);
+}
+
 .glass-panel {
-  background: rgba(18, 19, 22, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(22, 24, 28, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 
+    0 16px 40px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+  transform: translateZ(0);
 }
 
 .glass-panel-gold {
-  background: rgba(22, 21, 18, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  background: rgba(28, 24, 16, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  box-shadow: 
+    0 20px 50px -10px rgba(0, 0, 0, 0.6),
+    0 0 25px rgba(212, 175, 55, 0.12),
+    inset 0 1px 0 0 rgba(255, 240, 208, 0.35);
+  transform: translateZ(0);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 12px 30px -5px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+  transform: translateZ(0);
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(212, 175, 55, 0.4);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(212, 175, 55, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 
+    0 20px 45px -10px rgba(0, 0, 0, 0.8),
+    0 0 25px rgba(212, 175, 55, 0.2),
+    inset 0 1px 0 0 rgba(255, 240, 208, 0.4);
+}
+
+/* Responsive Viewport Safe Padding System */
+.safe-page-container {
+  padding-top: max(6rem, calc(4.5rem + env(safe-area-inset-top)));
+  padding-bottom: max(6rem, calc(4.5rem + env(safe-area-inset-bottom)));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+@media (min-width: 640px) {
+  .safe-page-container {
+    padding-top: max(7.5rem, calc(6rem + env(safe-area-inset-top)));
+    padding-bottom: max(7.5rem, calc(6rem + env(safe-area-inset-bottom)));
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
 }
 
 /* Infinite Marquee Animation for Brand Partner Logos */
@@ -121,21 +171,116 @@
   background: #D4AF37;
 }
 
-/* Animation utilities */
+/* Luxury Keyframes & Micro-Animations */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-18px) scale(1.03); }
 }
 
 @keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.08); }
+}
+
+@keyframes metallicSweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 300% 0; }
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+@keyframes borderGlowPulse {
+  0%, 100% { border-color: rgba(212, 175, 55, 0.2); box-shadow: 0 0 15px rgba(212, 175, 55, 0.1); }
+  50% { border-color: rgba(212, 175, 55, 0.6); box-shadow: 0 0 30px rgba(212, 175, 55, 0.3); }
 }
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
 
+.animate-float-slow {
+  animation: floatSlow 9s ease-in-out infinite;
+}
+
 .animate-pulse-glow {
   animation: pulseGlow 4s ease-in-out infinite;
 }
+
+.animate-orb {
+  animation: orbFloat 14s ease-in-out infinite;
+}
+
+.animate-border-pulse {
+  animation: borderGlowPulse 4s ease-in-out infinite;
+}
+
+/* Metallic Shimmer Gold Text Effect */
+.shimmer-gold-text {
+  background: linear-gradient(
+    90deg,
+    #AA7C11 0%,
+    #D4AF37 25%,
+    #FFF0D0 50%,
+    #D4AF37 75%,
+    #AA7C11 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: metallicSweep 6s linear infinite;
+}
+
+/* Gold Button Metallic Shine Pass on Hover */
+.gold-btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.gold-btn-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: rotate(30deg) translateY(-100%);
+  transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.gold-btn-shine:hover::after {
+  transform: rotate(30deg) translateY(100%);
+}
+
+/* Smooth Interactive Glow Cards */
+.glass-card-interactive {
+  background: rgba(20, 22, 26, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-interactive:hover {
+  background: rgba(26, 28, 34, 0.85);
+  border-color: rgba(212, 175, 55, 0.5);
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.85),
+    0 0 35px rgba(212, 175, 55, 0.2);
+}
+

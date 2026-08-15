@@ -11,6 +11,7 @@ import {
   Clock,
   Gem
 } from 'lucide-react';
+import { TiltContainer } from './TiltContainer';
 
 export const AboutUs: React.FC = () => {
   const { teamMembers } = useApp();
@@ -47,16 +48,19 @@ export const AboutUs: React.FC = () => {
 
   return (
     <section id="about" className="py-24 bg-[#0B0C0E] relative overflow-hidden">
+      {/* Background Ambient Orbs */}
+      <div className="absolute top-1/3 right-10 w-96 h-96 bg-[#D4AF37]/10 rounded-full blur-[140px] pointer-events-none animate-orb" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-24">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full glass-panel border border-[#D4AF37]/30 text-xs font-semibold uppercase tracking-widest text-[#D4AF37]">
-            <Compass className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full glass-panel border border-[#D4AF37]/40 text-xs font-semibold uppercase tracking-widest text-[#D4AF37] animate-border-pulse shadow-lg">
+            <Compass className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '15s' }} />
             <span>About Decor8India</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif text-white leading-tight">
-            Where Visionary Architecture Meets <span className="gold-gradient-text italic font-normal">Uncompromised Luxury</span>
+            Where Visionary Architecture Meets <span className="shimmer-gold-text italic font-normal">Uncompromised Luxury</span>
           </h2>
           <p className="text-neutral-400 font-light text-base sm:text-lg">
             Founded in 2012, Decor8India has redefined bespoke interior design, turnkey civil construction, and architecture by blending heritage craftsmanship with contemporary ergonomics and smart automation.
@@ -72,16 +76,16 @@ export const AboutUs: React.FC = () => {
               <img 
                 src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" 
                 alt="Decor8India Studio & Workshop" 
-                className="w-full h-[450px] object-cover group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-[450px] object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6 p-4 glass-panel rounded-xl border border-white/10">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+              <div className="absolute bottom-6 left-6 right-6 p-4 glass-panel rounded-xl border border-white/10 group-hover:border-[#D4AF37]/40 transition-colors">
                 <div className="text-[#D4AF37] font-serif text-lg font-semibold">Craftsmanship & Precision</div>
                 <div className="text-xs text-neutral-300">Over 450+ bespoke luxury residences and corporate offices brought to life.</div>
               </div>
             </div>
             {/* Background Glow Frame */}
-            <div className="absolute -bottom-6 -right-6 w-full h-full border-2 border-[#D4AF37]/30 rounded-2xl -z-0 pointer-events-none hidden sm:block" />
+            <div className="absolute -bottom-6 -right-6 w-full h-full border-2 border-[#D4AF37]/30 rounded-2xl -z-0 pointer-events-none hidden sm:block animate-pulse-glow" />
           </div>
 
           {/* Story Copy */}
@@ -93,7 +97,7 @@ export const AboutUs: React.FC = () => {
             
             {/* Vision & Mission Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div className="p-4 rounded-xl glass-card space-y-2">
+              <div className="p-5 rounded-xl glass-card-interactive space-y-2">
                 <div className="flex items-center space-x-2 text-[#D4AF37]">
                   <Eye className="w-5 h-5" />
                   <span className="font-serif font-bold text-lg text-white">Our Vision</span>
@@ -103,7 +107,7 @@ export const AboutUs: React.FC = () => {
                 </p>
               </div>
 
-              <div className="p-4 rounded-xl glass-card space-y-2">
+              <div className="p-5 rounded-xl glass-card-interactive space-y-2">
                 <div className="flex items-center space-x-2 text-[#D4AF37]">
                   <Target className="w-5 h-5" />
                   <span className="font-serif font-bold text-lg text-white">Our Mission</span>
@@ -165,29 +169,31 @@ export const AboutUs: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {teamMembers.map((member, index) => (
-              <div key={index} className="group glass-card rounded-2xl overflow-hidden border border-white/10">
-                <div className="relative h-64 overflow-hidden">
-                  <img 
-                    src={member.image || '/logo_transparent.png'} 
-                    alt={member.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      if (!target.dataset.failed) {
-                        target.dataset.failed = 'true';
-                        target.src = '/logo_transparent.png';
-                      }
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-transparent" />
+              <TiltContainer key={index}>
+                <div className="group glass-card rounded-2xl overflow-hidden border border-white/10 h-full">
+                  <div className="relative h-64 overflow-hidden">
+                    <img 
+                      src={member.image || '/logo_transparent.png'} 
+                      alt={member.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.dataset.failed) {
+                          target.dataset.failed = 'true';
+                          target.src = '/logo_transparent.png';
+                        }
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-transparent" />
+                  </div>
+                  <div className="p-5 space-y-2">
+                    <h4 className="font-serif font-bold text-xl text-white group-hover:text-[#D4AF37] transition-colors">{member.name}</h4>
+                    <div className="text-xs text-[#D4AF37] font-medium">{member.role}</div>
+                    <div className="text-[11px] text-neutral-400">{member.experience}</div>
+                    <p className="text-xs text-neutral-300 pt-2 border-t border-white/10 line-clamp-3">{member.bio}</p>
+                  </div>
                 </div>
-                <div className="p-5 space-y-2">
-                  <h4 className="font-serif font-bold text-xl text-white group-hover:text-[#D4AF37] transition-colors">{member.name}</h4>
-                  <div className="text-xs text-[#D4AF37] font-medium">{member.role}</div>
-                  <div className="text-[11px] text-neutral-400">{member.experience}</div>
-                  <p className="text-xs text-neutral-300 pt-2 border-t border-white/10 line-clamp-3">{member.bio}</p>
-                </div>
-              </div>
+              </TiltContainer>
             ))}
           </div>
         </div>
