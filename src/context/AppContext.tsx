@@ -14,9 +14,11 @@ import type {
   TeamMember,
   ProjectMilestone,
   SiteVisitRequest,
-  BranchOffice
+  BranchOffice,
+  Partner
 } from '../types';
 import { INITIAL_USERS } from '../data/initialData';
+import { INITIAL_PARTNERS } from '../types';
 
 interface AppContextType {
   currentUser: User | null;
@@ -27,6 +29,9 @@ interface AppContextType {
   articles: Article[];
   testimonials: Testimonial[];
   siteVisits: SiteVisitRequest[];
+  partners: Partner[];
+  addPartner: (partnerData: Omit<Partner, 'id'>) => void;
+  deletePartner: (id: string) => void;
   
   // Modals & UI state
   isBookingOpen: boolean;
@@ -182,6 +187,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
       return [];
+    }
+  });
+
+  const [partners, setPartners] = useState<Partner[]>(() => {
+    try {
+      const saved = localStorage.getItem('decor8_partners');
+      return saved && JSON.parse(saved).length > 0 ? JSON.parse(saved) : INITIAL_PARTNERS;
+    } catch (e) {
+      return INITIAL_PARTNERS;
     }
   });
 
@@ -388,6 +402,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             setBranchOffices(res.branchOffices);
           }
         }).catch(err => console.warn('Could not fetch branch offices:', err));
+
+        // Fetch brand partners from dedicated endpoint
+        apiService.getPartners().then(res => {
+          if (res.success && Array.isArray(res.partners) && res.partners.length > 0) {
+            setPartners(res.partners);
+          }
+        }).catch(err => console.warn('Could not fetch brand partners:', err));
 
         // Set initial fetch done flag after requests complete
         isInitialFetchDone.current = true;
@@ -1167,6 +1188,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const addPartner = (partnerData: Omit<Partner, 'id'>) => {
+    const newPartner: Partner = {
+      ...partnerData,
+      id: `partner-${Date.now()}`
+    };
+    setPartners(prev => [...prev, newPartner]);
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.savePartner(newPartner).catch(err => console.warn('Save partner error:', err));
+    });
+  };
+
+  const deletePartner = (id: string) => {
+    setPartners(prev => prev.filter(p => p.id !== id));
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.deletePartner(id).catch(err => console.warn('Delete partner error:', err));
+    });
+  };
+
   return (
     <AppContext.Provider value={{
       currentUser,
@@ -1224,7 +1263,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       branchOffices,
       addBranchOffice,
       updateBranchOffice,
-      deleteBranchOffice
+      deleteBranchOffice,
+      partners,
+      addPartner,
+      deletePartner
     }}>
       {children}
     </AppContext.Provider>

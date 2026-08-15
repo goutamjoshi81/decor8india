@@ -208,6 +208,31 @@ export interface Testimonial {
   videoUrl?: string;
 }
 
+export interface Partner {
+  id: string;
+  name: string;
+  category: string;
+  logoUrl: string;
+}
+
+export const INITIAL_PARTNERS: Partner[] = [
+  { id: 'p-1', name: 'GREENLAM', category: 'Laminates & Veneers', logoUrl: '/partners/greenlam.png' },
+  { id: 'p-2', name: 'CENTURY PLY', category: 'IS:710 Marine Plywood', logoUrl: '/partners/century.png' },
+  { id: 'p-3', name: 'JAQUAR', category: 'Luxury Bath & Sanitaryware', logoUrl: '/partners/jaquar.png' },
+  { id: 'p-4', name: 'EBCO', category: 'Architectural Hardware', logoUrl: '/partners/ebco.png' },
+  { id: 'p-5', name: 'HETTICH', category: 'German Soft-Close Fittings', logoUrl: '/partners/hettich.png' },
+  { id: 'p-6', name: 'HAFELE', category: 'German Kitchen Hardware', logoUrl: '/partners/hafele.png' },
+  { id: 'p-7', name: 'PEGLAR', category: 'High-Pressure Valves & Piping', logoUrl: '/partners/peglar.png' },
+  { id: 'p-8', name: 'SUNTOUCH', category: 'Radiant Thermal Comfort', logoUrl: '/partners/suntouch.png' },
+  { id: 'p-9', name: 'DECOLAM', category: 'Decorative Surface Finishes', logoUrl: '/partners/decolam.png' },
+  { id: 'p-10', name: 'LEGRAND', category: 'Smart Home Automation', logoUrl: '/partners/legrand.png' },
+  { id: 'p-11', name: 'PHILIPS', category: 'Architectural LED Lighting', logoUrl: '/partners/philips.png' },
+  { id: 'p-12', name: 'BOSCH', category: 'German Kitchen Appliances', logoUrl: '/partners/bosch.png' },
+  { id: 'p-13', name: 'HAVELLS', category: 'Modular Wires & Lighting', logoUrl: '/partners/havells.png' },
+  { id: 'p-14', name: 'TATA TMT', category: 'Tiscon 550SD Civil Rebars', logoUrl: '/partners/tatatmt.png' },
+  { id: 'p-15', name: 'ACC CEMENT', category: 'High-Strength Concrete', logoUrl: '/partners/acccement.png' }
+];
+
 export interface BranchOffice {
   id: string;
   city: string;

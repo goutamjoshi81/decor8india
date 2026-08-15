@@ -1,33 +1,12 @@
 import React from 'react';
+import { useApp } from '../context/AppContext';
 import { ShieldCheck, Award, Sparkles } from 'lucide-react';
 
-interface PartnerBrand {
-  name: string;
-  category: string;
-  logoUrl: string;
-}
-
 export const PartnersSection: React.FC = () => {
-  const brandPartners: PartnerBrand[] = [
-    { name: 'GREENLAM', category: 'Laminates & Veneers', logoUrl: '/partners/greenlam.png' },
-    { name: 'CENTURY PLY', category: 'IS:710 Marine Plywood', logoUrl: '/partners/century.png' },
-    { name: 'JAQUAR', category: 'Luxury Bath & Sanitaryware', logoUrl: '/partners/jaquar.png' },
-    { name: 'EBCO', category: 'Architectural Hardware', logoUrl: '/partners/ebco.png' },
-    { name: 'HETTICH', category: 'German Soft-Close Fittings', logoUrl: '/partners/hettich.png' },
-    { name: 'HAFELE', category: 'German Kitchen Hardware', logoUrl: '/partners/hafele.png' },
-    { name: 'PEGLAR', category: 'High-Pressure Valves & Piping', logoUrl: '/partners/peglar.png' },
-    { name: 'SUNTOUCH', category: 'Radiant Thermal Comfort', logoUrl: '/partners/suntouch.png' },
-    { name: 'DECOLAM', category: 'Decorative Surface Finishes', logoUrl: '/partners/decolam.png' },
-    { name: 'LEGRAND', category: 'Smart Home Automation', logoUrl: '/partners/legrand.png' },
-    { name: 'PHILIPS', category: 'Architectural LED Lighting', logoUrl: '/partners/philips.png' },
-    { name: 'BOSCH', category: 'German Kitchen Appliances', logoUrl: '/partners/bosch.png' },
-    { name: 'HAVELLS', category: 'Modular Wires & Lighting', logoUrl: '/partners/havells.png' },
-    { name: 'TATA TMT', category: 'Tiscon 550SD Civil Rebars', logoUrl: '/partners/tatatmt.png' },
-    { name: 'ACC CEMENT', category: 'High-Strength Concrete', logoUrl: '/partners/acccement.png' }
-  ];
+  const { partners } = useApp();
 
   // Duplicate for seamless infinite marquee loop
-  const marqueeList = [...brandPartners, ...brandPartners];
+  const marqueeList = partners.length > 0 ? [...partners, ...partners] : [];
 
   return (
     <section id="partners" className="py-20 bg-[#0B0C0E] border-y border-white/10 relative overflow-hidden">

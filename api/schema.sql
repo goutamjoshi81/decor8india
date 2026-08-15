@@ -143,4 +143,15 @@ CREATE TABLE IF NOT EXISTS `testimonials` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Table 9: Brand & Material Partners
+CREATE TABLE IF NOT EXISTS `partners` (
+  `id` varchar(50) NOT NULL,
+  `name` varchar(200) NOT NULL,
+  `category` varchar(200) DEFAULT NULL,
+  `logo_url` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 COMMIT;

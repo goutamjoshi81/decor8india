@@ -24,7 +24,8 @@ import {
   Download,
   Sparkles,
   ArrowLeft,
-  MapPin
+  MapPin,
+  ShieldCheck
 } from 'lucide-react';
 import type { BranchOffice } from '../../types';
 
@@ -69,10 +70,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     branchOffices,
     addBranchOffice,
     updateBranchOffice,
-    deleteBranchOffice
+    deleteBranchOffice,
+    partners,
+    addPartner,
+    deletePartner
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine' | 'branches'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine' | 'branches' | 'partners'>('analytics');
   const [clientFilter, setClientFilter] = useState<'ALL' | 'PACKAGES' | 'SITE_VISITS'>('ALL');
 
   // Approval Confirmation Modal State
@@ -439,6 +443,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [newArtExcerpt, setNewArtExcerpt] = useState('');
   const [newArtCoverImage, setNewArtCoverImage] = useState('');
 
+  // ---------------- BRAND PARTNER FORM STATE ----------------
+  const [newPartnerName, setNewPartnerName] = useState('');
+  const [newPartnerCategory, setNewPartnerCategory] = useState('');
+  const [newPartnerLogoUrl, setNewPartnerLogoUrl] = useState('');
+
+  const handleCreatePartner = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPartnerName || !newPartnerLogoUrl) {
+      alert('Company name and logo image are required.');
+      return;
+    }
+
+    addPartner({
+      name: newPartnerName,
+      category: newPartnerCategory || 'Material Partner',
+      logoUrl: newPartnerLogoUrl
+    });
+
+    setNewPartnerName('');
+    setNewPartnerCategory('');
+    setNewPartnerLogoUrl('');
+    alert(`Brand partner "${newPartnerName}" added live to website!`);
+  };
+
   // ---------------- BRANCH OFFICE FORM STATE ----------------
   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<BranchOffice | null>(null);
@@ -710,7 +738,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             { id: 'services', label: 'Service & Pricing CMS', icon: DollarSign },
             { id: 'team', label: 'Master Architects CMS', icon: Award },
             { id: 'magazine', label: 'Magazine CMS', icon: BookOpen },
-            { id: 'branches', label: 'Branch Offices CMS', icon: MapPin }
+            { id: 'branches', label: 'Branch Offices CMS', icon: MapPin },
+            { id: 'partners', label: 'Trusted Partners CMS', icon: ShieldCheck }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -2091,6 +2120,121 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* TAB 9: TRUSTED BRAND PARTNERS CMS */}
+        {activeTab === 'partners' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in fade-in">
+            
+            {/* Add Brand Partner Form */}
+            <div className="lg:col-span-5 p-6 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-4">
+              <h3 className="font-serif text-2xl font-bold text-white">Add Trusted Brand Partner</h3>
+              <p className="text-xs text-neutral-400 font-light">Add brand logos and material partner specifications displayed on the homepage trusted partners marquee.</p>
+
+              <form onSubmit={handleCreatePartner} className="space-y-3">
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-300 font-medium">Company / Brand Name</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. HETTICH, TATA TMT, JAQUAR" 
+                    value={newPartnerName}
+                    onChange={(e) => setNewPartnerName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-300 font-medium">Category / Product Specification</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. German Kitchen Hardware, Marine Plywood" 
+                    value={newPartnerCategory}
+                    onChange={(e) => setNewPartnerCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                {/* Brand Logo Upload & URL */}
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-300 font-medium">Company Logo Image</label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <label className="flex-1 cursor-pointer px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/15 hover:bg-white/10 text-xs text-neutral-300 flex items-center justify-center space-x-2 transition-colors">
+                        <Upload className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>Upload Logo File</span>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleFileUpload(e.target.files[0], setNewPartnerLogoUrl);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="Or paste logo image URL (https://...)" 
+                      value={newPartnerLogoUrl}
+                      onChange={(e) => setNewPartnerLogoUrl(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
+                    />
+                    {newPartnerLogoUrl && (
+                      <div className="relative h-20 rounded-xl overflow-hidden border border-[#D4AF37]/40 bg-white/90 p-2 flex items-center justify-center mt-1">
+                        <img src={newPartnerLogoUrl} alt="Logo Preview" className="max-h-full max-w-full object-contain" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg transition-all"
+                >
+                  Add Brand Partner to Live Website
+                </button>
+              </form>
+            </div>
+
+            {/* Current Partners List */}
+            <div className="lg:col-span-7 p-6 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-4">
+              <h3 className="font-serif text-2xl font-bold text-white">Current Trusted Brand Partners ({partners.length})</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[600px] overflow-y-auto pr-1">
+                {partners.map(p => (
+                  <div key={p.id} className="p-3.5 rounded-xl glass-card border border-white/10 flex items-center justify-between gap-3 bg-white/5">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="w-14 h-12 bg-white/90 rounded-lg p-1 flex items-center justify-center shrink-0 border border-white/20">
+                        <img 
+                          src={p.logoUrl} 
+                          alt={p.name} 
+                          className="max-h-full max-w-full object-contain" 
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-white truncate">{p.name}</div>
+                        <div className="text-[10px] text-[#D4AF37] font-mono truncate">{p.category}</div>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        if (confirm(`Remove brand partner "${p.name}"?`)) {
+                          deletePartner(p.id);
+                        }
+                      }}
+                      className="p-2 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white shrink-0 transition-colors"
+                      title="Delete Partner"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         )}
 

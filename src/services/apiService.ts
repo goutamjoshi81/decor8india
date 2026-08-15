@@ -501,5 +501,47 @@ export const apiService = {
       console.warn('Backend API deleteTestimonial error:', error);
       return { success: false, message: 'Server connection error.' };
     }
+  },
+
+  // Brand & Material Partners (dedicated table)
+  async getPartners(): Promise<{ success: boolean; partners?: any[]; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_partners.php`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getPartners error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async savePartner(partnerData: any): Promise<{ success: boolean; partner?: any; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_partner.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(partnerData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API savePartner error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  async deletePartner(id: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_partner.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, _action: 'delete' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API deletePartner error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
   }
 };
