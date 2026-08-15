@@ -27,14 +27,10 @@ import {
   MapPin,
   ShieldCheck,
   Bold,
-  Italic,
-  Underline,
   Link as LinkIcon,
   Quote,
   List,
-  Heading2,
-  Heading3,
-  Type
+  Heading2
 } from 'lucide-react';
 import type { BranchOffice } from '../../types';
 
@@ -698,7 +694,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     if (!newArtTitle || !newArtExcerpt) return;
 
     const author = newArtAuthor.trim() || (currentUser && currentUser.name !== 'Decor8 Admin' ? currentUser.name : 'Decor8 Editorial Team');
-    const content = newArtContent.trim() || `<p class="leading-relaxed text-neutral-300">${newArtExcerpt}</p>`;
+    
+    let content = newArtContent.trim();
+    if (!content) {
+      content = `<p class="leading-relaxed text-neutral-300 text-base mb-4">${newArtExcerpt}</p>`;
+    } else if (!content.includes('<p>') && !content.includes('<div>') && !content.includes('<h2>')) {
+      // Auto-wrap plain text paragraphs for non-technical users
+      content = content
+        .split(/\n\s*\n/)
+        .map(paragraph => `<p class="leading-relaxed text-neutral-300 text-base mb-4">${paragraph.replace(/\n/g, '<br/>')}</p>`)
+        .join('\n');
+    }
+
     const wordCount = content.replace(/<[^>]*>/g, '').split(/\s+/).length;
     const calcReadTime = `${Math.max(2, Math.ceil(wordCount / 150))} min read`;
 
@@ -2173,100 +2180,86 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
                   {artContentMode === 'write' ? (
                     <div className="space-y-2">
-                      {/* Rich Formatting Buttons Toolbar */}
-                      <div className="flex flex-wrap gap-1 p-2 rounded-xl bg-white/5 border border-white/15">
+                      {/* Simple Non-Tech Formatting Toolbar */}
+                      <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-xl bg-white/5 border border-white/15">
+                        {/* Direct Local File Image Uploader */}
+                        <label className="px-2.5 py-1.5 rounded-lg bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shrink-0">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload Image from Computer</span>
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                handleFileUpload(e.target.files[0], (fileUrl) => {
+                                  const imgTag = `<div class="my-6 rounded-2xl overflow-hidden border border-white/10 shadow-xl">\n  <img src="${fileUrl}" alt="Article Photo" class="w-full h-auto object-cover max-h-[500px]" />\n</div>`;
+                                  setNewArtContent(prev => prev ? `${prev}\n\n${imgTag}` : imgTag);
+                                });
+                              }
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+
+                        <span className="w-[1px] h-6 bg-white/15 self-center mx-0.5" />
+
                         <button
                           type="button"
                           onClick={() => insertFormatting('b', 'Bold Text')}
-                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
-                          title="Bold"
+                          className="px-2 py-1.5 rounded-lg bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-200 text-xs font-medium border border-white/10 transition-colors flex items-center space-x-1"
+                          title="Bold Text"
                         >
                           <Bold className="w-3.5 h-3.5" />
+                          <span>Bold</span>
                         </button>
+
                         <button
                           type="button"
-                          onClick={() => insertFormatting('i', 'Italic Text')}
-                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
-                          title="Italic"
+                          onClick={() => insertFormatting('h2', 'Section Title')}
+                          className="px-2 py-1.5 rounded-lg bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-200 text-xs font-medium border border-white/10 transition-colors flex items-center space-x-1"
+                          title="Large Section Heading"
                         >
-                          <Italic className="w-3.5 h-3.5" />
+                          <Heading2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Heading</span>
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => insertFormatting('u', 'Underlined Text')}
-                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
-                          title="Underline"
-                        >
-                          <Underline className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="w-[1px] h-6 bg-white/15 self-center mx-0.5" />
-                        <button
-                          type="button"
-                          onClick={() => insertFormatting('h2', 'Main Heading')}
-                          className="px-2 py-1 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 text-xs font-bold border border-white/10 transition-colors flex items-center space-x-1"
-                          title="Header 2"
-                        >
-                          <Heading2 className="w-3.5 h-3.5" />
-                          <span>H2</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => insertFormatting('h3', 'Sub Heading')}
-                          className="px-2 py-1 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 text-xs font-bold border border-white/10 transition-colors flex items-center space-x-1"
-                          title="Header 3"
-                        >
-                          <Heading3 className="w-3.5 h-3.5" />
-                          <span>H3</span>
-                        </button>
-                        <span className="w-[1px] h-6 bg-white/15 self-center mx-0.5" />
+
                         <button
                           type="button"
                           onClick={() => insertFormatting('ul')}
-                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
+                          className="px-2 py-1.5 rounded-lg bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-200 text-xs font-medium border border-white/10 transition-colors flex items-center space-x-1"
                           title="Bullet List"
                         >
-                          <List className="w-3.5 h-3.5" />
+                          <List className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Bullet Points</span>
                         </button>
+
                         <button
                           type="button"
-                          onClick={() => insertFormatting('quote', 'Quote text...')}
-                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
-                          title="Blockquote"
+                          onClick={() => insertFormatting('quote', 'Highlighted quote or takeaway...')}
+                          className="px-2 py-1.5 rounded-lg bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-200 text-xs font-medium border border-white/10 transition-colors flex items-center space-x-1"
+                          title="Featured Quote Box"
                         >
-                          <Quote className="w-3.5 h-3.5" />
+                          <Quote className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Quote Box</span>
                         </button>
+
                         <button
                           type="button"
                           onClick={() => insertFormatting('link')}
-                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
-                          title="Add Website Link"
+                          className="px-2 py-1.5 rounded-lg bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-200 text-xs font-medium border border-white/10 transition-colors flex items-center space-x-1"
+                          title="Insert Website Link"
                         >
-                          <LinkIcon className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => insertFormatting('image')}
-                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
-                          title="Embed Photo into Body"
-                        >
-                          <ImageIcon className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => insertFormatting('p', 'Paragraph text...')}
-                          className="p-1.5 rounded bg-black/60 hover:bg-[#D4AF37] hover:text-black text-neutral-300 border border-white/10 transition-colors"
-                          title="Paragraph"
-                        >
-                          <Type className="w-3.5 h-3.5" />
+                          <LinkIcon className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Add Link</span>
                         </button>
                       </div>
 
                       <textarea 
                         rows={6}
-                        placeholder="Write detailed article content using formatting buttons above or HTML tags (<b>, <h2>, <ul>, <blockquote>)..."
+                        placeholder="Type your article story here... You can type normal paragraphs, and use buttons above to add headings, quote boxes, or upload photos directly from your computer!"
                         value={newArtContent}
                         onChange={(e) => setNewArtContent(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37] font-mono leading-relaxed"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37] font-sans leading-relaxed"
                       />
                     </div>
                   ) : (
