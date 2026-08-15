@@ -71,7 +71,7 @@ try {
             "clientId" => $row['client_id'] ?? $row['client_email'] ?? 'client-1',
             "clientName" => $row['client_name'] ?? 'Client',
             "clientEmail" => $row['client_email'] ?? '',
-            "designerName" => $row['designer_name'] ?? 'Aarav Mehta',
+            "designerName" => !empty($row['designer_name']) && $row['designer_name'] !== 'Aarav Mehta' ? $row['designer_name'] : 'Mr. Satish Bhat (CEO & Principal Architect)',
             "category" => $row['category'] ?? 'Residential',
             "style" => $row['style'] ?? 'Luxury',
             "coverImage" => $row['cover_image'] ?? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',

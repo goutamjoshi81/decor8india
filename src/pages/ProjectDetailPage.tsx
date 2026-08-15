@@ -104,7 +104,7 @@ export const ProjectDetailPage: React.FC = () => {
             </h1>
 
             <p className="text-xs sm:text-sm text-neutral-400 font-mono">
-              Designed by <span className="text-[#D4AF37] font-semibold">{project.designerName}</span>
+              Designed by <span className="text-[#D4AF37] font-semibold">{project.designerName && project.designerName !== 'Aarav Mehta' ? project.designerName : 'Mr. Satish Bhat (CEO & Principal Architect)'}</span>
             </p>
           </div>
 

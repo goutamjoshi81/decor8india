@@ -138,7 +138,7 @@ try {
     // Prepare fields to update
     $title = !empty($data->title) ? trim($data->title) : ($existing['title'] ?? 'Bespoke Luxury Interior Project');
     $clientName = !empty($data->clientName) ? trim($data->clientName) : ($existing['client_name'] ?? 'Client');
-    $designerName = !empty($data->designerName) ? trim($data->designerName) : ($existing['designer_name'] ?? 'Aarav Mehta');
+    $designerName = !empty($data->designerName) ? trim($data->designerName) : ($existing['designer_name'] ?? 'Mr. Satish Bhat (CEO & Principal Architect)');
     $category = !empty($data->category) ? trim($data->category) : ($existing['category'] ?? 'Residential');
     $style = !empty($data->style) ? trim($data->style) : ($existing['style'] ?? 'Luxury');
     $coverImage = !empty($data->coverImage) ? trim($data->coverImage) : ($existing['cover_image'] ?? null);

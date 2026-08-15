@@ -223,7 +223,7 @@ try {
         $defaultReqs = !empty($booking['requirements']) ? $booking['requirements'] : 'Approved luxury interior transformation.';
 
         $projStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_name, client_email, designer_name, category, style, cover_image, gallery_images_json, location, area, budget, contract_price, completion_time, status, show_on_landing_page, progress_percentage, current_stage, expected_completion, description, work_updates_json, documents_json, payments_json, milestones_json) 
-            VALUES (?, ?, ?, ?, ?, 'Aarav Mehta (Principal Architect)', ?, 'Modern', ?, ?, 'City Center', ?, ?, ?, '60 Days', 'Ongoing', 1, 10, 'Design Discussion', ?, ?, ?, ?, ?, ?)");
+            VALUES (?, ?, ?, ?, ?, 'Mr. Satish Bhat (CEO & Principal Architect)', ?, 'Modern', ?, ?, 'City Center', ?, ?, ?, '60 Days', 'Ongoing', 1, 10, 'Design Discussion', ?, ?, ?, ?, ?, ?)");
         
         $expectedCompletion = date('Y-m-d', strtotime('+60 days'));
         $area = !empty($booking['carpet_area']) ? ($booking['carpet_area'] . ' Sq. Ft.') : '1,500 Sq. Ft.';

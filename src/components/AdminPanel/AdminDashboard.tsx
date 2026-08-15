@@ -185,7 +185,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   // Portfolio Form State
   const [portTitle, setPortTitle] = useState('');
   const [portClientName, setPortClientName] = useState('');
-  const [portDesignerName, setPortDesignerName] = useState('Aarav Mehta (Principal Architect)');
+  const [portDesignerName, setPortDesignerName] = useState('Mr. Satish Bhat (CEO & Principal Architect)');
+  const [portDesignerSelect, setPortDesignerSelect] = useState('Mr. Satish Bhat (CEO & Principal Architect)');
   const [portCategory, setPortCategory] = useState<'Residential' | 'Commercial' | 'Construction'>('Residential');
   const [portStyle, setPortStyle] = useState<'Luxury' | 'Modern' | 'Minimal' | 'Traditional'>('Luxury');
   const [portCoverImage, setPortCoverImage] = useState('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');
@@ -204,7 +205,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     setEditingProject(null);
     setPortTitle('');
     setPortClientName('Private Residence');
-    setPortDesignerName('Aarav Mehta (Principal Architect)');
+    setPortDesignerName('Mr. Satish Bhat (CEO & Principal Architect)');
+    setPortDesignerSelect('Mr. Satish Bhat (CEO & Principal Architect)');
     setPortCategory('Residential');
     setPortStyle('Luxury');
     setPortCoverImage('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');
@@ -225,7 +227,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     setEditingProject(project);
     setPortTitle(project.title);
     setPortClientName(project.clientName || 'Private Residence');
-    setPortDesignerName(project.designerName || 'Aarav Mehta (Principal Architect)');
+    const dName = project.designerName && project.designerName !== 'Aarav Mehta' ? project.designerName : 'Mr. Satish Bhat (CEO & Principal Architect)';
+    setPortDesignerName(dName);
+    setPortDesignerSelect(dName);
     setPortCategory(project.category);
     setPortStyle(project.style);
     setPortCoverImage(project.coverImage);
@@ -2575,6 +2579,44 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   onChange={(e) => setPortTitle(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                 />
+              </div>
+
+              {/* Assigned Principal Architect / Designer Dropdown */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-neutral-300">Assigned Principal Architect / Lead Designer *</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <select 
+                    value={teamMembers.some(m => `${m.name} (${m.role})` === portDesignerSelect || m.name === portDesignerSelect) ? portDesignerSelect : 'Custom'}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'Custom') {
+                        setPortDesignerSelect('Custom');
+                        setPortDesignerName('');
+                      } else {
+                        setPortDesignerSelect(val);
+                        setPortDesignerName(val);
+                      }
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  >
+                    <option value="Mr. Satish Bhat (CEO & Principal Architect)">Mr. Satish Bhat (CEO & Principal Architect)</option>
+                    {teamMembers.map(tm => (
+                      <option key={tm.id} value={`${tm.name} (${tm.role})`}>{tm.name} ({tm.role})</option>
+                    ))}
+                    <option value="Custom">+ Custom / Other Architect Name</option>
+                  </select>
+
+                  {(!teamMembers.some(m => `${m.name} (${m.role})` === portDesignerSelect || m.name === portDesignerSelect) || portDesignerSelect === 'Custom') && (
+                    <input 
+                      type="text" 
+                      required
+                      placeholder="Enter architect/designer name..." 
+                      value={portDesignerName}
+                      onChange={(e) => setPortDesignerName(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                    />
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
