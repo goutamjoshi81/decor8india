@@ -145,8 +145,17 @@ export const MagazineSection: React.FC = () => {
         )}
 
         {/* Grid of Articles */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredArticles.map((article) => (
+        {filteredArticles.length === 0 ? (
+          <div className="text-center py-16 px-4 rounded-2xl glass-panel border border-white/10 space-y-4">
+            <BookOpen className="w-12 h-12 text-[#D4AF37]/50 mx-auto" />
+            <h3 className="text-xl font-serif text-white font-medium">No Journal Articles Found</h3>
+            <p className="text-neutral-400 text-sm max-w-md mx-auto">
+              There are currently no published articles in the database. Published articles will automatically appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredArticles.map((article) => (
             <Link 
               key={article.id}
               to={`/blogs/${article.id}`}
@@ -195,6 +204,7 @@ export const MagazineSection: React.FC = () => {
             </Link>
           ))}
         </div>
+        )}
 
       </div>
 

@@ -16,16 +16,7 @@ import type {
   SiteVisitRequest,
   BranchOffice
 } from '../types';
-import { INITIAL_BRANCH_OFFICES } from '../types';
-import { 
-  INITIAL_SERVICES, 
-  INITIAL_PROJECTS, 
-  INITIAL_ARTICLES, 
-  INITIAL_TESTIMONIALS, 
-  INITIAL_BOOKINGS, 
-  INITIAL_USERS,
-  INITIAL_TEAM_MEMBERS
-} from '../data/initialData';
+import { INITIAL_USERS } from '../data/initialData';
 
 interface AppContextType {
   currentUser: User | null;
@@ -125,9 +116,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [bookings, setBookings] = useState<BookingRequest[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_bookings');
-      return saved ? JSON.parse(saved) : INITIAL_BOOKINGS;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      return INITIAL_BOOKINGS;
+      return [];
     }
   });
 
@@ -143,55 +134,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [projects, setProjects] = useState<Project[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_projects');
-      return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      return INITIAL_PROJECTS;
+      return [];
     }
   });
 
   const [services, setServices] = useState<ServiceItem[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_services');
-      return saved ? JSON.parse(saved) : INITIAL_SERVICES;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      return INITIAL_SERVICES;
+      return [];
     }
   });
 
   const [articles, setArticles] = useState<Article[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_articles');
-      return saved ? JSON.parse(saved) : INITIAL_ARTICLES;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      return INITIAL_ARTICLES;
+      return [];
     }
   });
 
   const [testimonials, setTestimonials] = useState<Testimonial[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_testimonials');
-      return saved ? JSON.parse(saved) : INITIAL_TESTIMONIALS;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      return INITIAL_TESTIMONIALS;
+      return [];
     }
   });
 
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
     try {
-      // Use versioned key so we don't restore stale cached images
       const saved = localStorage.getItem('decor8_team_members_v2');
-      return saved ? JSON.parse(saved) : INITIAL_TEAM_MEMBERS;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      return INITIAL_TEAM_MEMBERS;
+      return [];
     }
   });
 
   const [branchOffices, setBranchOffices] = useState<BranchOffice[]>(() => {
     try {
       const saved = localStorage.getItem('decor8_branch_offices');
-      return saved ? JSON.parse(saved) : INITIAL_BRANCH_OFFICES;
+      return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      return INITIAL_BRANCH_OFFICES;
+      return [];
     }
   });
 

@@ -81,8 +81,17 @@ export const PortfolioGallery: React.FC = () => {
         </div>
 
         {/* Projects Gallery Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map((project) => (
+        {filteredProjects.length === 0 ? (
+          <div className="text-center py-16 px-4 rounded-2xl glass-panel border border-white/10 space-y-4">
+            <Sparkles className="w-12 h-12 text-[#D4AF37]/50 mx-auto" />
+            <h3 className="text-xl font-serif text-white font-medium">No Portfolio Projects Found</h3>
+            <p className="text-neutral-400 text-sm max-w-md mx-auto">
+              There are currently no completed projects in the database. Projects added to the database will automatically appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProjects.map((project) => (
             <div 
               key={project.id}
               onClick={() => navigate(`/portfolio/${project.id}`)}
@@ -175,10 +184,10 @@ export const PortfolioGallery: React.FC = () => {
                   </button>
                 </div>
               </div>
-
             </div>
           ))}
         </div>
+        )}
 
       </div>
 
