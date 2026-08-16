@@ -23,6 +23,7 @@ import { ContactPage } from './pages/ContactPage';
 import { ClientPage } from './pages/ClientPage';
 import { AdminPage } from './pages/AdminPage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsAndConditionsPage } from './pages/TermsAndConditionsPage';
 
 // Individual Thread Detail Pages
 import { ArticleDetailPage } from './pages/ArticleDetailPage';
@@ -83,6 +84,8 @@ const MainAppContent: React.FC = () => {
         {/* Contact & Legal */}
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
+        <Route path="/terms" element={<TermsAndConditionsPage />} />
         
         {/* Dashboards */}
         <Route path="/client" element={<ClientPage />} />
