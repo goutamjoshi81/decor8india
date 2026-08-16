@@ -11,6 +11,7 @@ interface SparkleParticle {
 }
 
 export const CustomCursor: React.FC = () => {
+  const [isEnabled, setIsEnabled] = React.useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
@@ -22,9 +23,20 @@ export const CustomCursor: React.FC = () => {
   const hoverText = useRef<string>('');
 
   useEffect(() => {
-    // Only enable on non-touch desktop pointer devices
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    if (isTouchDevice) return;
+    // Strictly require a fine pointer (mouse/trackpad) and hover capability
+    const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    if (!hasFinePointer || isTouch) {
+      setIsEnabled(false);
+      return;
+    }
+
+    setIsEnabled(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isEnabled) return;
 
     const canvas = canvasRef.current;
     const ring = ringRef.current;
@@ -181,20 +193,22 @@ export const CustomCursor: React.FC = () => {
       document.removeEventListener('mouseleave', onMouseLeave);
       cancelAnimationFrame(animId);
     };
-  }, []);
+  }, [isEnabled]);
+
+  if (!isEnabled) return null;
 
   return (
     <>
       {/* Golden Stardust Physics Canvas */}
       <canvas
         ref={canvasRef}
-        className="fixed inset-0 pointer-events-none z-[9996]"
+        className="fixed inset-0 pointer-events-none z-[9996] hidden md:block"
       />
 
       {/* Interactive Luxury Trailing Ring */}
       <div
         ref={ringRef}
-        className="fixed top-0 left-0 w-10 h-10 border border-[#D4AF37]/50 rounded-full pointer-events-none z-[9998] transition-all duration-200 ease-out opacity-0 flex items-center justify-center shadow-[0_0_12px_rgba(212,175,55,0.2)]"
+        className="fixed top-0 left-0 w-10 h-10 border border-[#D4AF37]/50 rounded-full pointer-events-none z-[9998] transition-all duration-200 ease-out opacity-0 hidden md:flex items-center justify-center shadow-[0_0_12px_rgba(212,175,55,0.2)]"
         style={{ willChange: 'transform' }}
       >
         <span
@@ -206,7 +220,7 @@ export const CustomCursor: React.FC = () => {
       {/* Inner Precision Core Dot */}
       <div
         ref={dotRef}
-        className="fixed top-0 left-0 w-2 h-2 rounded-full gold-gradient-bg pointer-events-none z-[9999] opacity-0 shadow-[0_0_12px_#D4AF37] transition-transform duration-150"
+        className="fixed top-0 left-0 w-2 h-2 rounded-full gold-gradient-bg pointer-events-none z-[9999] opacity-0 shadow-[0_0_12px_#D4AF37] transition-transform duration-150 hidden md:block"
         style={{ willChange: 'transform' }}
       />
     </>
