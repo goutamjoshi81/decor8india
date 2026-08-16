@@ -11,6 +11,7 @@ import {
   ChevronRight, 
   Search, 
   X, 
+  Upload,
   Building2, 
   Award, 
   Users, 
@@ -50,6 +51,36 @@ export const CareersPage: React.FC = () => {
   const [coverLetter, setCoverLetter] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+
+  const handleFileUpload = (file: File, setter: (url: string) => void) => {
+    if (!file) return;
+    setIsUploadingFile(true);
+
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.uploadFile(file).then(res => {
+        setIsUploadingFile(false);
+        if (res.success && res.fileUrl) {
+          setter(res.fileUrl);
+          return;
+        }
+        fallbackFileReader(file, setter);
+      }).catch(() => {
+        setIsUploadingFile(false);
+        fallbackFileReader(file, setter);
+      });
+    });
+  };
+
+  const fallbackFileReader = (file: File, setter: (url: string) => void) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setter(e.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     fetch('/api/get_careers.php')
@@ -325,11 +356,11 @@ export const CareersPage: React.FC = () => {
               </div>
 
               {submitSuccess ? (
-                <div className="p-6 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-center space-y-3">
+                <div className="p-6 sm:p-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-center space-y-3">
                   <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-                  <h4 className="font-serif text-xl font-bold text-white">Application Received!</h4>
-                  <p className="text-xs text-neutral-300">
-                    Thank you for applying. Our talent recruitment team will review your portfolio and contact you shortly.
+                  <h4 className="font-serif text-2xl font-bold text-white">Application Received!</h4>
+                  <p className="text-sm text-neutral-200 font-medium leading-relaxed">
+                    Thank you for applying! After receiving and reviewing your profile, our talent recruitment team will get back to you shortly.
                   </p>
                 </div>
               ) : (
@@ -372,26 +403,66 @@ export const CareersPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-neutral-300">Portfolio / Behance / Drive Link</label>
+                  {/* Portfolio Link / Local File Upload */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-semibold text-neutral-300">Portfolio / Behance / Drive Link</label>
+                      <span className="text-[10px] text-neutral-400 font-mono">Optional</span>
+                    </div>
                     <input 
-                      type="url" 
+                      type="text" 
                       placeholder="https://behance.net/yourportfolio or Google Drive link" 
                       value={portfolioUrl}
                       onChange={(e) => setPortfolioUrl(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                     />
+                    <div className="flex items-center space-x-2 pt-1">
+                      <span className="text-[10px] text-neutral-400 font-mono">OR</span>
+                      <label className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-dashed border-white/20 hover:border-[#D4AF37] text-xs font-semibold text-neutral-300 hover:text-white cursor-pointer transition-colors">
+                        <Upload className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>Upload Portfolio from Computer / Phone</span>
+                        <input 
+                          type="file" 
+                          accept=".pdf,.doc,.docx,image/*" 
+                          className="hidden" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFileUpload(file, setPortfolioUrl);
+                          }} 
+                        />
+                      </label>
+                    </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-neutral-300">Resume / CV Link</label>
+                  {/* Resume Link / Local File Upload */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-semibold text-neutral-300">Resume / CV Link</label>
+                      <span className="text-[10px] text-neutral-400 font-mono">Optional</span>
+                    </div>
                     <input 
-                      type="url" 
+                      type="text" 
                       placeholder="https://drive.google.com/your-resume.pdf" 
                       value={resumeUrl}
                       onChange={(e) => setResumeUrl(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                     />
+                    <div className="flex items-center space-x-2 pt-1">
+                      <span className="text-[10px] text-neutral-400 font-mono">OR</span>
+                      <label className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-dashed border-white/20 hover:border-[#D4AF37] text-xs font-semibold text-neutral-300 hover:text-white cursor-pointer transition-colors">
+                        <Upload className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>Upload Resume / CV File (PDF / DOCX)</span>
+                        <input 
+                          type="file" 
+                          accept=".pdf,.doc,.docx" 
+                          className="hidden" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleFileUpload(file, setResumeUrl);
+                          }} 
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   <div className="space-y-1">
@@ -407,12 +478,16 @@ export const CareersPage: React.FC = () => {
 
                   <button 
                     type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider disabled:opacity-50 flex items-center justify-center space-x-2"
+                    disabled={isSubmitting || isUploadingFile}
+                    className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg shadow-[#D4AF37]/20 cursor-pointer"
                   >
                     <Send className="w-4 h-4" />
-                    <span>{isSubmitting ? 'Submitting Application...' : 'Submit Official Application'}</span>
+                    <span>{isSubmitting ? 'Submitting Application...' : (isUploadingFile ? 'Uploading File...' : 'Submit Official Application')}</span>
                   </button>
+
+                  <p className="text-[11px] text-neutral-400 text-center italic font-mono pt-1">
+                    ℹ️ Note: After receiving your profile and reviewing your qualifications, our recruitment team will get back to you.
+                  </p>
                 </form>
               )}
             </div>
