@@ -43,10 +43,10 @@ export const PortfolioGallery: React.FC = () => {
   });
 
   return (
-    <section id="portfolio" className="py-24 bg-[#0D0E12] glass-section relative overflow-hidden">
+    <section id="portfolio" className="py-24 bg-[#0D0E12] glass-section relative overflow-hidden section-gpu-optimize">
       
-      {/* Subtle background glow */}
-      <div className="absolute top-1/2 left-0 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-[150px] pointer-events-none" />
+      {/* GPU-Native Background Glow */}
+      <div className="absolute top-1/2 left-0 w-96 h-96 rounded-full pointer-events-none glow-orb-gold" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
         
@@ -64,26 +64,24 @@ export const PortfolioGallery: React.FC = () => {
           </p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex justify-center">
-          <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl glass-panel border border-white/10 max-w-full overflow-x-auto">
-            {['All', 'Residential', 'Commercial', 'Construction', 'Luxury', 'Modern', 'Minimal', 'Traditional'].map(cat => (
-              <button
-                key={cat}
-                onClick={() => setFilterCategory(cat)}
-                className={`px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                  filterCategory === cat 
-                    ? 'gold-gradient-bg text-black shadow-md' 
-                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center justify-center gap-2 max-w-4xl mx-auto">
+          {['All', 'Residential', 'Commercial', 'Construction', 'Luxury', 'Modern', 'Minimal', 'Traditional'].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setFilterCategory(cat)}
+              className={`px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                filterCategory === cat
+                  ? 'gold-gradient-bg text-black shadow-lg shadow-[#D4AF37]/20 font-bold'
+                  : 'glass-panel text-neutral-400 hover:text-white hover:border-[#D4AF37]/40'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
 
-        {/* Projects Gallery Grid */}
+        {/* Gallery Grid */}
         {filteredProjects.length === 0 ? (
           <div className="text-center py-16 px-4 rounded-2xl glass-panel border border-white/10 space-y-4">
             <Sparkles className="w-12 h-12 text-[#D4AF37]/50 mx-auto" />
@@ -98,19 +96,6 @@ export const PortfolioGallery: React.FC = () => {
             <div 
               key={project.id}
               onClick={() => navigate(`/portfolio/${project.id}`)}
-              onTouchMove={(e) => {
-                const card = e.currentTarget;
-                const rect = card.getBoundingClientRect();
-                const touch = e.touches[0];
-                if (touch) {
-                  const x = (touch.clientX - rect.left) / rect.width - 0.5;
-                  const y = (touch.clientY - rect.top) / rect.height - 0.5;
-                  card.style.transform = `perspective(1000px) rotateX(${-y * 12}deg) rotateY(${x * 12}deg) translateY(-4px)`;
-                }
-              }}
-              onTouchEnd={(e) => {
-                e.currentTarget.style.transform = 'none';
-              }}
               className="group glass-card-interactive rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between transition-transform duration-300 ease-out"
             >
               <div>
@@ -119,7 +104,9 @@ export const PortfolioGallery: React.FC = () => {
                   <img 
                     src={project.coverImage} 
                     alt={project.title} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-[#0B0C0E]/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
                   

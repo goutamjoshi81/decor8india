@@ -24,24 +24,31 @@ export const Hero: React.FC = () => {
   });
 
   useEffect(() => {
-    const duration = 2000;
-    const steps = 50;
-    const intervalTime = duration / steps;
-    let step = 0;
+    let startTimestamp: number | null = null;
+    const duration = 1800;
+    let animId: number;
 
-    const timer = setInterval(() => {
-      step++;
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      
+      // Smooth easeOutQuad
+      const ease = 1 - (1 - progress) * (1 - progress);
+
       setCounter({
-        projects: Math.min(450, Math.floor((450 / steps) * step)),
-        clients: Math.min(98, Math.floor((98 / steps) * step)),
-        years: Math.min(14, Math.floor((14 / steps) * step)),
-        designers: Math.min(25, Math.floor((25 / steps) * step))
+        projects: Math.floor(450 * ease),
+        clients: Math.floor(98 * ease),
+        years: Math.floor(14 * ease),
+        designers: Math.floor(25 * ease)
       });
 
-      if (step >= steps) clearInterval(timer);
-    }, intervalTime);
+      if (progress < 1) {
+        animId = requestAnimationFrame(step);
+      }
+    };
 
-    return () => clearInterval(timer);
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
   }, []);
 
   const handleScrollDown = () => {
@@ -57,14 +64,16 @@ export const Hero: React.FC = () => {
         <img 
           src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=90" 
           alt="Luxury Interior Living Room" 
-          className="w-full h-full object-cover object-center scale-105 animate-pulse-glow transition-transform duration-1000"
+          loading="eager"
+          decoding="async"
+          className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0B0C0E] via-[#0B0C0E]/85 to-[#0B0C0E]/60" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-[#0B0C0E]/70" />
         
-        {/* Subtle decorative radial glow orbs with float animation */}
-        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-[#D4AF37]/15 rounded-full blur-[140px] pointer-events-none animate-orb" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#B8860B]/10 rounded-full blur-[130px] pointer-events-none animate-orb" style={{ animationDelay: '-7s' }} />
+        {/* GPU-Native Ambient Gold Glow Orbs */}
+        <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] rounded-full pointer-events-none glow-orb-gold animate-orb" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full pointer-events-none glow-orb-amber animate-orb" style={{ animationDelay: '-7s' }} />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-8">

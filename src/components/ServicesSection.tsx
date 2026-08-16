@@ -53,10 +53,10 @@ export const ServicesSection: React.FC = () => {
   };
 
   return (
-    <section id="services" className="py-24 bg-[#0D0E12] glass-section relative overflow-hidden">
+    <section id="services" className="py-24 bg-[#0D0E12] glass-section relative overflow-hidden section-gpu-optimize">
       
-      {/* Background Decorative Glow */}
-      <div className="absolute top-1/4 right-0 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-[150px] pointer-events-none" />
+      {/* GPU-Native Background Glow */}
+      <div className="absolute top-1/4 right-0 w-96 h-96 rounded-full pointer-events-none glow-orb-gold" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
         
@@ -153,6 +153,8 @@ export const ServicesSection: React.FC = () => {
                       <img 
                         src={service.image} 
                         alt={service.title} 
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-[#0B0C0E]/40 to-transparent" />

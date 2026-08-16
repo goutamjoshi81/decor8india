@@ -47,9 +47,9 @@ export const AboutUs: React.FC = () => {
   ];
 
   return (
-    <section id="about" className="py-24 bg-[#0B0C0E] relative overflow-hidden">
-      {/* Background Ambient Orbs */}
-      <div className="absolute top-1/3 right-10 w-96 h-96 bg-[#D4AF37]/10 rounded-full blur-[140px] pointer-events-none animate-orb" />
+    <section id="about" className="py-24 bg-[#0B0C0E] relative overflow-hidden section-gpu-optimize">
+      {/* Background Ambient Glow Orb (GPU Composited) */}
+      <div className="absolute top-1/3 right-10 w-96 h-96 rounded-full pointer-events-none glow-orb-gold animate-orb" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-24">
         
@@ -76,7 +76,9 @@ export const AboutUs: React.FC = () => {
               <img 
                 src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" 
                 alt="Decor8India Studio & Workshop" 
-                className="w-full h-[450px] object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                loading="lazy"
+                decoding="async"
+                className="w-full h-[450px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
               <div className="absolute bottom-6 left-6 right-6 p-4 glass-panel rounded-xl border border-white/10 group-hover:border-[#D4AF37]/40 transition-colors">

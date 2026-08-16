@@ -28,10 +28,10 @@ export const InstagramSection: React.FC = () => {
   }, []);
 
   return (
-    <section id="instagram-feed" className="py-12 bg-[#0B0C0E] relative overflow-hidden border-t border-b border-white/10">
+    <section id="instagram-feed" className="py-12 bg-[#0B0C0E] relative overflow-hidden border-t border-b border-white/10 section-gpu-optimize">
       
-      {/* Background Lighting */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-tr from-purple-900/15 via-pink-900/20 to-amber-600/10 rounded-full blur-[140px] pointer-events-none" />
+      {/* GPU-Native Background Lighting */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full pointer-events-none glow-orb-amber" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         

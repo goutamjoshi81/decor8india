@@ -52,10 +52,10 @@ export const Testimonials: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-[#0B0C0E] glass-section relative overflow-hidden">
+    <section className="py-24 bg-[#0B0C0E] glass-section relative overflow-hidden section-gpu-optimize">
       
-      {/* Background Lighting */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-to-tr from-amber-900/10 via-[#D4AF37]/10 to-amber-600/10 rounded-full blur-[160px] pointer-events-none" />
+      {/* GPU-Native Background Lighting */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none glow-orb-amber" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
         

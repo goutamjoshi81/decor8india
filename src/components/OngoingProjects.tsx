@@ -33,7 +33,7 @@ export const OngoingProjects: React.FC = () => {
   };
 
   return (
-    <section id="ongoing" className="py-24 bg-[#0B0C0E] relative overflow-hidden">
+    <section id="ongoing" className="py-24 bg-[#0B0C0E] relative overflow-hidden section-gpu-optimize">
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
         
@@ -77,6 +77,8 @@ export const OngoingProjects: React.FC = () => {
                       <img 
                         src={project.coverImage} 
                         alt={project.title} 
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />

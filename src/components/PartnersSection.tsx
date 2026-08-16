@@ -9,10 +9,10 @@ export const PartnersSection: React.FC = () => {
   const marqueeList = partners.length > 0 ? [...partners, ...partners] : [];
 
   return (
-    <section id="partners" className="py-20 bg-[#0D0E12] glass-section relative overflow-hidden">
+    <section id="partners" className="py-20 bg-[#0D0E12] glass-section relative overflow-hidden section-gpu-optimize">
       
-      {/* Decorative radial lighting */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#D4AF37]/10 rounded-full blur-[140px] pointer-events-none" />
+      {/* GPU-Native Ambient Gold Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full pointer-events-none glow-orb-gold" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 relative z-10">
         
@@ -85,6 +85,8 @@ export const PartnersSection: React.FC = () => {
                   <img 
                     src={brand.logoUrl} 
                     alt={brand.name || "Brand Partner"}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
