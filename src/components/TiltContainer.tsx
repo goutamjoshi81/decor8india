@@ -11,7 +11,7 @@ interface TiltContainerProps {
 export const TiltContainer: React.FC<TiltContainerProps> = ({
   children,
   className = '',
-  maxTilt = 10,
+  maxTilt = 8,
   scale = 1.02,
   onClick
 }) => {
@@ -21,74 +21,122 @@ export const TiltContainer: React.FC<TiltContainerProps> = ({
   const targetY = useRef<number>(0);
   const currentX = useRef<number>(0);
   const currentY = useRef<number>(0);
-  const isHovered = useRef<boolean>(false);
+  const isInteracting = useRef<boolean>(false);
+  const isRunning = useRef<boolean>(false);
+  const rectRef = useRef<DOMRect | null>(null);
 
-  useEffect(() => {
-    let active = true;
+  const startLoop = () => {
+    if (isRunning.current) return;
+    isRunning.current = true;
 
     const animate = () => {
-      if (!active) return;
-
-      if (containerRef.current) {
-        // Smooth linear interpolation (lerp) for 60-120fps buttery motion
-        const lerpFactor = isHovered.current ? 0.15 : 0.1;
-        currentX.current += (targetX.current - currentX.current) * lerpFactor;
-        currentY.current += (targetY.current - currentY.current) * lerpFactor;
-
-        const currentScale = isHovered.current ? 1 + (scale - 1) * (Math.abs(currentX.current) / maxTilt + 0.5) : 1;
-
-        if (Math.abs(currentX.current) > 0.01 || Math.abs(currentY.current) > 0.01 || isHovered.current) {
-          containerRef.current.style.transform = `perspective(1000px) rotateX(${currentX.current.toFixed(2)}deg) rotateY(${currentY.current.toFixed(2)}deg) scale3d(${currentScale.toFixed(3)}, ${currentScale.toFixed(3)}, 1) translateZ(0)`;
-        } else {
-          containerRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1) translateZ(0)';
-        }
+      if (!containerRef.current) {
+        isRunning.current = false;
+        return;
       }
 
-      rafId.current = requestAnimationFrame(animate);
+      // Smooth linear interpolation (lerp) for 60-120fps buttery physics
+      const lerpFactor = isInteracting.current ? 0.16 : 0.1;
+      currentX.current += (targetX.current - currentX.current) * lerpFactor;
+      currentY.current += (targetY.current - currentY.current) * lerpFactor;
+
+      const diffX = Math.abs(targetX.current - currentX.current);
+      const diffY = Math.abs(targetY.current - currentY.current);
+
+      if (isInteracting.current || diffX > 0.015 || diffY > 0.015) {
+        const currentScale = isInteracting.current ? scale : 1;
+        containerRef.current.style.transform = `perspective(900px) rotateX(${currentX.current.toFixed(2)}deg) rotateY(${currentY.current.toFixed(2)}deg) scale3d(${currentScale}, ${currentScale}, 1) translateZ(0)`;
+        rafId.current = requestAnimationFrame(animate);
+      } else {
+        containerRef.current.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1) translateZ(0)';
+        currentX.current = 0;
+        currentY.current = 0;
+        isRunning.current = false;
+      }
     };
 
     rafId.current = requestAnimationFrame(animate);
+  };
 
+  useEffect(() => {
     return () => {
-      active = false;
       if (rafId.current) cancelAnimationFrame(rafId.current);
     };
-  }, [maxTilt, scale]);
+  }, []);
 
-  const handleMove = (clientX: number, clientY: number) => {
+  // Desktop mouse handlers
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
-    isHovered.current = true;
+    isInteracting.current = true;
     const rect = containerRef.current.getBoundingClientRect();
-    const x = (clientX - rect.left) / rect.width - 0.5;
-    const y = (clientY - rect.top) / rect.height - 0.5;
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
 
     targetX.current = -y * maxTilt;
     targetY.current = x * maxTilt;
+    startLoop();
   };
 
-  const handleReset = () => {
-    isHovered.current = false;
+  const handleMouseLeave = () => {
+    isInteracting.current = false;
     targetX.current = 0;
     targetY.current = 0;
+    startLoop();
+  };
+
+  // Mobile Touch handlers (Lightweight, passive cached bounds, zero jank)
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef.current || !e.touches[0]) return;
+    isInteracting.current = true;
+    rectRef.current = containerRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    const rect = rectRef.current;
+    const x = (touch.clientX - rect.left) / rect.width - 0.5;
+    const y = (touch.clientY - rect.top) / rect.height - 0.5;
+
+    const mobileTilt = Math.min(maxTilt, 6);
+    targetX.current = -y * mobileTilt;
+    targetY.current = x * mobileTilt;
+    startLoop();
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!rectRef.current || !e.touches[0]) return;
+    const touch = e.touches[0];
+    const rect = rectRef.current;
+    const x = (touch.clientX - rect.left) / rect.width - 0.5;
+    const y = (touch.clientY - rect.top) / rect.height - 0.5;
+
+    const mobileTilt = Math.min(maxTilt, 6);
+    targetX.current = -y * mobileTilt;
+    targetY.current = x * mobileTilt;
+    startLoop();
+  };
+
+  const handleTouchEnd = () => {
+    isInteracting.current = false;
+    rectRef.current = null;
+    targetX.current = 0;
+    targetY.current = 0;
+    startLoop();
   };
 
   return (
     <div
       ref={containerRef}
       onClick={onClick}
-      onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
-      onMouseLeave={handleReset}
-      onTouchMove={(e) => {
-        if (e.touches[0]) {
-          handleMove(e.touches[0].clientX, e.touches[0].clientY);
-        }
-      }}
-      onTouchEnd={handleReset}
-      className={`will-change-transform ${className}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      className={`transition-shadow duration-300 ${className}`}
       style={{
         transformStyle: 'preserve-3d',
         willChange: 'transform',
-        backfaceVisibility: 'hidden'
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden'
       }}
     >
       {children}

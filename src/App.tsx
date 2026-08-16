@@ -9,7 +9,6 @@ import { SiteVisitModal } from './components/SiteVisitModal';
 import { CostEstimator } from './components/CostEstimator';
 import { CustomCursor } from './components/CustomCursor';
 import { LuxuryLoader } from './components/LuxuryLoader';
-import { TouchRipple } from './components/TouchRipple';
 
 // Main Pages
 import { HomePage } from './pages/HomePage';
@@ -53,7 +52,6 @@ const MainAppContent: React.FC = () => {
     <div className="min-h-screen bg-[#0B0C0E] text-[#E5E3DF] font-sans antialiased selection:bg-[#D4AF37] selection:text-black">
       <LuxuryLoader />
       <CustomCursor />
-      <TouchRipple />
       
       {/* Navigation Header */}
       {!isDashboardRoute && <Navbar />}
