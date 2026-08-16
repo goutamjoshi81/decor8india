@@ -155,4 +155,37 @@ CREATE TABLE IF NOT EXISTS `partners` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Table 10: Careers / Job Openings
+CREATE TABLE IF NOT EXISTS `careers` (
+  `id` varchar(50) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `department` varchar(100) NOT NULL DEFAULT 'Interior Design',
+  `location` varchar(100) NOT NULL DEFAULT 'Bengaluru',
+  `type` varchar(50) NOT NULL DEFAULT 'Full-Time',
+  `experience` varchar(50) NOT NULL DEFAULT '2-5 Years',
+  `salary` varchar(100) DEFAULT 'Competitive',
+  `description` text DEFAULT NULL,
+  `requirements` text DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table 11: Job Applications
+CREATE TABLE IF NOT EXISTS `job_applications` (
+  `id` varchar(50) NOT NULL,
+  `job_id` varchar(50) NOT NULL,
+  `job_title` varchar(200) NOT NULL,
+  `applicant_name` varchar(100) NOT NULL,
+  `applicant_email` varchar(120) NOT NULL,
+  `applicant_phone` varchar(50) NOT NULL,
+  `portfolio_url` text DEFAULT NULL,
+  `resume_url` text DEFAULT NULL,
+  `cover_letter` text DEFAULT NULL,
+  `status` enum('Pending','Shortlisted','Interview Scheduled','Rejected','Hired') NOT NULL DEFAULT 'Pending',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 COMMIT;

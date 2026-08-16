@@ -163,7 +163,7 @@ export const Footer: React.FC = () => {
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-6 gap-y-2">
             <Link to="/privacy-policy" className="hover:text-[#D4AF37] transition-colors">Privacy Policy</Link>
             <Link to="/terms-and-conditions" className="hover:text-[#D4AF37] transition-colors">Terms of Service</Link>
-            <Link to="/about" className="hover:text-neutral-300 transition-colors">Careers at Decor8India</Link>
+            <Link to="/careers" className="hover:text-[#D4AF37] transition-colors">Careers at Decor8India</Link>
             <Link to="/contact" className="hover:text-neutral-300 transition-colors">Contact Us</Link>
           </div>
         </div>
