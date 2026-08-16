@@ -38,53 +38,8 @@ try {
       PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-    // Check if careers table is empty, seed defaults
-    $countStmt = $pdo->query("SELECT COUNT(*) FROM careers");
-    if ($countStmt->fetchColumn() == 0) {
-        $defaultJobs = [
-            [
-                'id' => 'job-1',
-                'title' => 'Senior Luxury Interior Architect',
-                'department' => 'Interior Design',
-                'location' => 'Bengaluru (Head Office)',
-                'type' => 'Full-Time',
-                'experience' => '4 - 7 Years',
-                'salary' => '₹ 8.5L - ₹ 14.0L p.a.',
-                'description' => 'Lead turnkey residential penthouse and luxury villa interior projects from spatial concept to final handover. Coordinate material selection, client presentations, and site execution.',
-                'requirements' => 'B.Arch or Degree in Interior Design. Mastery of AutoCAD, 3ds Max/V-Ray, SketchUp, and site execution management. Strong portfolio in high-end residential interiors.',
-                'is_active' => 1
-            ],
-            [
-                'id' => 'job-2',
-                'title' => '3D Architectural Visualizer & Renderer',
-                'department' => '3D Rendering',
-                'location' => 'Bengaluru / Hybrid',
-                'type' => 'Full-Time',
-                'experience' => '2 - 5 Years',
-                'salary' => '₹ 5.5L - ₹ 9.0L p.a.',
-                'description' => 'Create ultra-realistic 3D walkthroughs, photorealistic lighting setups, and interior mood renders for high-profile client projects.',
-                'requirements' => 'Proficiency in 3ds Max, Corona Render, Lumion, Photoshop, and Unreal Engine. Ability to interpret architectural CAD drawings into photorealistic lighting renders.',
-                'is_active' => 1
-            ],
-            [
-                'id' => 'job-3',
-                'title' => 'Turnkey Civil Construction Project Manager',
-                'department' => 'Civil Engineering',
-                'location' => 'Bengaluru / Site Based',
-                'type' => 'Full-Time',
-                'experience' => '5 - 8 Years',
-                'salary' => '₹ 9.0L - ₹ 15.0L p.a.',
-                'description' => 'Oversee on-site civil works, structural fitouts, carpentry, MEP coordination, quality audits, and contractor timelines for luxury villa and commercial builds.',
-                'requirements' => 'B.Tech/BE Civil Engineering or Diploma. In-depth knowledge of civil execution, concrete structures, tile laying, electrical layout, and contractor management.',
-                'is_active' => 1
-            ]
-        ];
-
-        $insStmt = $pdo->prepare("INSERT INTO careers (id, title, department, location, type, experience, salary, description, requirements, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        foreach ($defaultJobs as $j) {
-            $insStmt->execute([$j['id'], $j['title'], $j['department'], $j['location'], $j['type'], $j['experience'], $j['salary'], $j['description'], $j['requirements'], $j['is_active']]);
-        }
-    }
+    // Remove hardcoded sample jobs if present
+    $pdo->exec("DELETE FROM careers WHERE id IN ('job-1', 'job-2', 'job-3')");
 
     // Fetch all careers
     $stmt = $pdo->query("SELECT * FROM careers ORDER BY created_at DESC");
