@@ -62,6 +62,9 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
     $smtpLog = [];
 
     $candidateHosts = [
+        ['host' => '127.0.0.1', 'port' => 25, 'secure' => 'none'],
+        ['host' => 'localhost', 'port' => 25, 'secure' => 'none'],
+        ['host' => '127.0.0.1', 'port' => 465, 'secure' => 'ssl'],
         ['host' => $host, 'port' => $port, 'secure' => $secure]
     ];
 
@@ -82,7 +85,7 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
             ]);
 
             $transport = ($tSecure === 'ssl' || $tPort == 465) ? "ssl://{$tHost}:{$tPort}" : "tcp://{$tHost}:{$tPort}";
-            $timeout = 1.5; // Fast 1.5 second socket probe
+            $timeout = 0.8; // Instant 0.8s socket probe
 
             $socket = @stream_socket_client($transport, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
             
@@ -138,8 +141,10 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
                     $authResp = $read();
                 }
 
-                if (substr($authResp, 0, 3) !== "235") {
-                    throw new Exception("Authentication failed on {$tHost}: " . $authResp);
+                if (substr($authResp, 0, 3) !== "235" && substr($authResp, 0, 3) !== "250") {
+                    if ($tHost !== '127.0.0.1' && $tHost !== 'localhost') {
+                        throw new Exception("Authentication failed on {$tHost}: " . $authResp);
+                    }
                 }
             }
 
