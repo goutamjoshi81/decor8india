@@ -24,18 +24,23 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
     $fromEmail = SMTP_FROM_EMAIL;
     $fromName = SMTP_FROM_NAME;
 
-    $boundary = "==_Decor8_Multipart_Boundary_" . md5(uniqid(time()));
-    
-    // Construct MIME message
+    $fromDomain = substr(strrchr($fromEmail, "@"), 1);
+    if (empty($fromDomain)) $fromDomain = "decor8india.com";
+    $messageId = "<" . md5(uniqid(rand(), true)) . "@" . $fromDomain . ">";
+
+    // Construct MIME message with Full RFC-5322 Anti-Spam Compliance
     $headers = [
         "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromEmail}>",
         "Reply-To: <{$fromEmail}>",
         "To: =?UTF-8?B?" . base64_encode($toName) . "?= <{$toEmail}>",
         "Subject: =?UTF-8?B?" . base64_encode($subject) . "?=",
         "Date: " . date("r"),
+        "Message-ID: {$messageId}",
+        "Organization: Decor8 India Interiors Pvt. Ltd.",
+        "X-Priority: 3 (Normal)",
+        "X-Mailer: Decor8India-Luxury-Notifier/2.0",
         "MIME-Version: 1.0",
-        "Content-Type: multipart/alternative; boundary=\"{$boundary}\"",
-        "X-Mailer: Decor8India-Luxury-Notifier/2.0"
+        "Content-Type: multipart/alternative; boundary=\"{$boundary}\""
     ];
 
     if (empty($textBody)) {
