@@ -4,6 +4,11 @@
 
 require_once __DIR__ . '/email_config.php';
 
+function getClientPortalLoginUrl() {
+    $baseUrl = defined('APP_BASE_URL') ? APP_BASE_URL : 'https://decor8india.com';
+    return $baseUrl . '/client';
+}
+
 /**
  * Sends an email using direct Socket SMTP with AUTH LOGIN. Falls back to mail() if socket fails.
  */
