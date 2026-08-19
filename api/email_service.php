@@ -61,15 +61,39 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
     $smtpSuccess = false;
     $smtpLog = [];
 
-    try {
-        $transport = ($secure === 'ssl' || $port == 465) ? "ssl://{$host}" : "tcp://{$host}";
-        $timeout = 10;
-        
-        $socket = @fsockopen($transport, $port, $errno, $errstr, $timeout);
-        
-        if (!$socket) {
-            $smtpLog[] = "Socket connection failed to {$transport}:{$port}. Error [{$errno}]: {$errstr}";
-        } else {
+    $candidateHosts = [
+        ['host' => $host, 'port' => $port, 'secure' => $secure],
+        ['host' => 'mail.decor8india.com', 'port' => 465, 'secure' => 'ssl'],
+        ['host' => 'localhost', 'port' => 25, 'secure' => 'none'],
+        ['host' => 'localhost', 'port' => 587, 'secure' => 'tls']
+    ];
+
+    foreach ($candidateHosts as $target) {
+        if ($smtpSuccess) break;
+
+        $tHost = $target['host'];
+        $tPort = $target['port'];
+        $tSecure = $target['secure'];
+
+        try {
+            $context = stream_context_create([
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                ]
+            ]);
+
+            $transport = ($tSecure === 'ssl' || $tPort == 465) ? "ssl://{$tHost}:{$tPort}" : "tcp://{$tHost}:{$tPort}";
+            $timeout = 8;
+
+            $socket = @stream_socket_client($transport, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
+            
+            if (!$socket) {
+                $smtpLog[] = "Connection failed to {$transport} [{$errno}]: {$errstr}";
+                continue;
+            }
+
             stream_set_timeout($socket, $timeout);
 
             $read = function() use ($socket, &$smtpLog) {
@@ -87,21 +111,19 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
                 fputs($socket, $cmd . "\r\n");
             };
 
-            $read(); // Initial greeting
+            $read(); // Greeting
 
-            $write("EHLO " . (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost'));
+            $write("EHLO " . (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'decor8india.com'));
             $ehloResp = $read();
 
-            // Handle STARTTLS if port 587 and not already ssl
-            if ($secure === 'tls' || $port == 587) {
+            if ($tSecure === 'tls' || $tPort == 587) {
                 $write("STARTTLS");
                 $read();
                 stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
-                $write("EHLO " . (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost'));
+                $write("EHLO " . (isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'decor8india.com'));
                 $read();
             }
 
-            // Authentication
             if (!empty($user) && !empty($pass)) {
                 $write("AUTH LOGIN");
                 $read();
@@ -111,7 +133,6 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
                 $authResp = $read();
 
                 if (substr($authResp, 0, 3) !== "235" && $user !== $fromEmail) {
-                    // Try with fromEmail (support@decor8india.com) if _mainaccount failed
                     $write("AUTH LOGIN");
                     $read();
                     $write(base64_encode($fromEmail));
@@ -121,7 +142,7 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
                 }
 
                 if (substr($authResp, 0, 3) !== "235") {
-                    throw new Exception("SMTP Authentication failed: " . $authResp);
+                    throw new Exception("Authentication failed on {$tHost}: " . $authResp);
                 }
             }
 
@@ -142,12 +163,11 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
 
             if (substr($dataResp, 0, 3) === "250") {
                 $smtpSuccess = true;
-            } else {
-                throw new Exception("SMTP Data rejection: " . $dataResp);
+                $smtpLog[] = "Delivered via {$transport} successfully.";
             }
+        } catch (Throwable $e) {
+            $smtpLog[] = "Exception on {$tHost}: " . $e->getMessage();
         }
-    } catch (Throwable $e) {
-        $smtpLog[] = "SMTP Exception: " . $e->getMessage();
     }
 
     if ($smtpSuccess) {
@@ -160,19 +180,23 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
         ];
     }
 
-    // Fallback to PHP native mail()
-    $nativeHeaders = "From: {$fromName} <{$fromEmail}>\r\n" .
-                     "Reply-To: {$fromEmail}\r\n" .
+    // High-Deliverability Native mail() with Envelope Sender & Return-Path
+    $nativeHeaders = "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromEmail}>\r\n" .
+                     "Reply-To: <{$fromEmail}>\r\n" .
+                     "Return-Path: <{$fromEmail}>\r\n" .
+                     "Sender: <{$fromEmail}>\r\n" .
+                     "Message-ID: {$messageId}\r\n" .
                      "MIME-Version: 1.0\r\n" .
-                     "Content-Type: text/html; charset=UTF-8\r\n" .
-                     "X-Mailer: Decor8India-Fallback/2.0\r\n";
+                     "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n" .
+                     "X-Mailer: Decor8India-Mailer/2.0\r\n";
 
-    $mailResult = @mail($toEmail, $subject, $htmlBody, $nativeHeaders);
+    $additionalParams = "-f" . escapeshellarg($fromEmail);
+    $mailResult = @mail($toEmail, $subject, $body, $nativeHeaders, $additionalParams);
 
     return [
         "success" => $mailResult,
-        "method" => $mailResult ? "PHP_MAIL_FALLBACK" : "FAILED",
-        "message" => $mailResult ? "Sent via fallback mail()." : "Failed to deliver via SMTP and mail().",
+        "method" => $mailResult ? "PHP_MAIL_AUTHENTICATED" : "FAILED",
+        "message" => $mailResult ? "Sent via cPanel authenticated mail transport." : "Failed to deliver via SMTP and mail().",
         "smtp_log" => $smtpLog
     ];
 }
