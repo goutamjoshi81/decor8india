@@ -962,7 +962,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             </p>
           </div>
 
-          <div className="flex items-center space-x-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button 
+              onClick={() => setActiveTab('emails')}
+              className={`px-4 py-2.5 rounded-xl border transition-all flex items-center space-x-2 text-xs font-bold cursor-pointer ${
+                activeTab === 'emails' 
+                  ? 'bg-[#D4AF37] text-black border-[#D4AF37] shadow-lg shadow-[#D4AF37]/30 font-extrabold' 
+                  : 'bg-amber-500/10 text-amber-300 border-amber-500/40 hover:bg-amber-500/20 hover:border-[#D4AF37]'
+              }`}
+              title="Open Mail Console & Client Email Manager"
+            >
+              <Mail className="w-4 h-4 text-[#D4AF37]" />
+              <span>Mail Console</span>
+            </button>
             <button 
               onClick={onReturnToPublic}
               className="px-4 py-2.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-all flex items-center space-x-2 shadow-lg shadow-[#D4AF37]/20 cursor-pointer"
@@ -972,7 +984,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             </button>
             <button 
               onClick={logout}
-              className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/40 text-xs text-red-300 font-medium hover:bg-red-500 hover:text-white flex items-center space-x-1.5"
+              className="px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/40 text-xs text-red-300 font-medium hover:bg-red-500 hover:text-white flex items-center space-x-1.5 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
@@ -986,7 +998,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             { id: 'analytics', label: 'Overview & KPIs', icon: LayoutDashboard },
             { id: 'clients', label: 'Client Approvals', icon: Users, badge: pendingApprovalsCount },
             { id: 'projects', label: 'Project Process & Live Feeds', icon: Building2 },
-            { id: 'emails', label: 'Mail Console & Automated Alerts', icon: Mail },
             { id: 'portfolio', label: 'Portfolio CMS', icon: ImageIcon },
             { id: 'services', label: 'Service & Pricing CMS', icon: DollarSign },
             { id: 'team', label: 'Master Architects CMS', icon: Award },
