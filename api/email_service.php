@@ -184,66 +184,28 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
         return $res;
     }
 
-    // Instant High-Deliverability Foreground Sendmail Transport (-odf forces immediate delivery without spooling)
-    $sendmailBin = '/usr/sbin/sendmail';
-    if (!file_exists($sendmailBin) && file_exists('/usr/lib/sendmail')) {
-        $sendmailBin = '/usr/lib/sendmail';
-    }
+    // Reliable PHP mail() with proper RFC headers (works on all cPanel/GoDaddy hosting)
+    $mailHeaders = "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromEmail}>\r\n" .
+                   "Reply-To: <{$fromEmail}>\r\n" .
+                   "Return-Path: <{$fromEmail}>\r\n" .
+                   "Message-ID: {$messageId}\r\n" .
+                   "Organization: Decor8 India Interiors Pvt. Ltd.\r\n" .
+                   "X-Priority: 3 (Normal)\r\n" .
+                   "MIME-Version: 1.0\r\n" .
+                   "Content-Type: text/html; charset=UTF-8\r\n" .
+                   "Content-Transfer-Encoding: 8bit\r\n" .
+                   "X-Mailer: Decor8India-Mailer/2.0\r\n";
 
-    $nativeHeaders = "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromEmail}>\r\n" .
-                     "Reply-To: <{$fromEmail}>\r\n" .
-                     "To: =?UTF-8?B?" . base64_encode($toName) . "?= <{$toEmail}>\r\n" .
-                     "Subject: =?UTF-8?B?" . base64_encode($subject) . "?=\r\n" .
-                     "Date: " . date("r") . "\r\n" .
-                     "Message-ID: {$messageId}\r\n" .
-                     "Organization: Decor8 India Interiors Pvt. Ltd.\r\n" .
-                     "X-Priority: 3 (Normal)\r\n" .
-                     "MIME-Version: 1.0\r\n" .
-                     "Content-Type: text/html; charset=UTF-8\r\n" .
-                     "Content-Transfer-Encoding: 8bit\r\n" .
-                     "X-Mailer: Decor8India-Mailer/2.0\r\n";
-
-    $fullMailPayload = $nativeHeaders . "\r\n" . $htmlBody;
-    $sentOk = false;
-    $methodUsed = "PHP_MAIL";
-
-    if (file_exists($sendmailBin) && function_exists('proc_open')) {
-        $sendmailCmd = $sendmailBin . " -oi -t -odf -f" . escapeshellarg($fromEmail);
-        $descriptors = [
-            0 => ["pipe", "r"],
-            1 => ["pipe", "w"],
-            2 => ["pipe", "w"]
-        ];
-
-        $proc = @proc_open($sendmailCmd, $descriptors, $pipes);
-        if (is_resource($proc)) {
-            fwrite($pipes[0], $fullMailPayload);
-            fclose($pipes[0]);
-            @stream_get_contents($pipes[1]);
-            fclose($pipes[1]);
-            @stream_get_contents($pipes[2]);
-            fclose($pipes[2]);
-            $exitCode = proc_close($proc);
-            if ($exitCode === 0) {
-                $sentOk = true;
-                $methodUsed = "INSTANT_SENDMAIL";
-            }
-        }
-    }
-
-    if (!$sentOk) {
-        $additionalParams = "-f" . escapeshellarg($fromEmail);
-        $sentOk = @mail($toEmail, $subject, $htmlBody, $nativeHeaders, $additionalParams);
-        $methodUsed = $sentOk ? "PHP_MAIL_AUTHENTICATED" : "FAILED";
-    }
+    $additionalParams = "-f" . escapeshellarg($fromEmail);
+    $mailResult = @mail($toEmail, $subject, $htmlBody, $mailHeaders, $additionalParams);
 
     $res = [
-        "success" => (bool)$sentOk,
-        "method" => $methodUsed,
-        "message" => $sentOk ? "Dispatched via instant foreground sendmail transport." : "Failed to deliver via SMTP and sendmail.",
+        "success" => (bool)$mailResult,
+        "method" => $mailResult ? "PHP_MAIL" : "FAILED",
+        "message" => $mailResult ? "Sent via cPanel authenticated mail transport." : "Failed to deliver.",
         "smtp_log" => $smtpLog
     ];
-    logEmailDelivery($toEmail, $toName, $subject, $methodUsed, (bool)$sentOk, $res['message']);
+    logEmailDelivery($toEmail, $toName, $subject, $res['method'], (bool)$mailResult, $res['message']);
     return $res;
 }
 
