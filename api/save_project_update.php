@@ -138,6 +138,36 @@ try {
     // Prepare fields to update
     $title = !empty($data->title) ? trim($data->title) : ($existing['title'] ?? 'Bespoke Luxury Interior Project');
     $clientName = !empty($data->clientName) ? trim($data->clientName) : ($existing['client_name'] ?? 'Client');
+    $clientEmail = !empty($data->clientEmail) ? trim($data->clientEmail) : ($existing['client_email'] ?? '');
+    
+    // Resolve clientEmail from users table if not stored directly on project
+    if (empty($clientEmail) && !empty($existing['client_id'])) {
+        try {
+            $uStmt = $pdo->prepare("SELECT email, name FROM users WHERE id = ? OR email = ? LIMIT 1");
+            $uStmt->execute([$existing['client_id'], $existing['client_id']]);
+            $uRow = $uStmt->fetch();
+            if ($uRow && !empty($uRow['email'])) {
+                $clientEmail = $uRow['email'];
+                if (empty($data->clientName) && !empty($uRow['name'])) {
+                    $clientName = $uRow['name'];
+                }
+            }
+        } catch (\Throwable $e) {}
+    }
+    if (empty($clientEmail) && !empty($clientName) && $clientName !== 'Client') {
+        try {
+            $uStmt = $pdo->prepare("SELECT email FROM users WHERE LOWER(name) = LOWER(?) LIMIT 1");
+            $uStmt->execute([$clientName]);
+            $uRow = $uStmt->fetch();
+            if ($uRow && !empty($uRow['email'])) {
+                $clientEmail = $uRow['email'];
+            }
+        } catch (\Throwable $e) {}
+    }
+    if (empty($clientEmail)) {
+        $clientEmail = 'goutamjoshi462@gmail.com'; // Default client email fallback if unspecified
+    }
+
     $designerName = !empty($data->designerName) ? trim($data->designerName) : ($existing['designer_name'] ?? 'Mr. Satish Bhat (CEO & Principal Architect)');
     $category = !empty($data->category) ? trim($data->category) : ($existing['category'] ?? 'Residential');
     $style = !empty($data->style) ? trim($data->style) : ($existing['style'] ?? 'Luxury');
@@ -196,6 +226,7 @@ try {
         $updateStmt = $pdo->prepare("UPDATE projects SET 
             title = ?,
             client_name = ?,
+            client_email = ?,
             designer_name = ?,
             category = ?,
             style = ?,
@@ -221,6 +252,7 @@ try {
         $updateStmt->execute([
             $title,
             $clientName,
+            $clientEmail,
             $designerName,
             $category,
             $style,
