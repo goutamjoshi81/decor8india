@@ -839,7 +839,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     const newStatus = isOver ? 'Completed' : (selectedProject?.status || 'Ongoing');
     const targetStage = isOver ? 'Handover Completed' : (selectedProject?.currentStage || 'Design Discussion');
 
-    updateProjectProgress(targetProjId, targetStage, stageProgressInput);
+    updateProjectProgress(targetProjId, targetStage, stageProgressInput, notifyClientByEmail);
     updateProject(targetProjId, {
       progressPercentage: stageProgressInput,
       status: newStatus,

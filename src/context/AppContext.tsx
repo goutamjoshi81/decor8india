@@ -783,14 +783,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateProjectProgress = (projectId: string, stage: ProjectStage, percentage: number, sendEmail: boolean = true) => {
-    let targetProjEmail = '';
-    let targetProjName = '';
-
     setProjects(prev => prev.map(proj => {
       if (proj.id !== projectId) return proj;
-
-      targetProjEmail = proj.clientEmail || '';
-      targetProjName = proj.clientName || '';
 
       const isCompleted = percentage >= 100 || stage === 'Handover Completed' || proj.status === 'Completed';
       const newStatus = isCompleted ? 'Completed' : proj.status;
@@ -831,6 +825,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }));
 
+    const targetProj = projects.find(p => p.id === projectId);
+    const targetProjEmail = targetProj?.clientEmail || '';
+    const targetProjName = targetProj?.clientName || '';
+
     // Sync progress & stage to GoDaddy MySQL
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveProjectUpdate({
@@ -851,17 +849,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `wu-${Date.now()}`,
       projectId
     };
-    let targetProjEmail = '';
-    let targetProjName = '';
 
     setProjects(prev => prev.map(p => {
       if (p.id === projectId) {
-        targetProjEmail = p.clientEmail || '';
-        targetProjName = p.clientName || '';
         return { ...p, workUpdates: [newUpdate, ...(p.workUpdates || [])] };
       }
       return p;
     }));
+
+    const targetProj = projects.find(p => p.id === projectId);
+    const targetProjEmail = targetProj?.clientEmail || '';
+    const targetProjName = targetProj?.clientName || '';
 
     // Sync daily site photo feed to GoDaddy MySQL
     import('../services/apiService').then(({ apiService }) => {
@@ -881,17 +879,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `doc-${Date.now()}`,
       projectId
     };
-    let targetProjEmail = '';
-    let targetProjName = '';
 
     setProjects(prev => prev.map(p => {
       if (p.id === projectId) {
-        targetProjEmail = p.clientEmail || '';
-        targetProjName = p.clientName || '';
         return { ...p, documents: [newDoc, ...(p.documents || [])] };
       }
       return p;
     }));
+
+    const targetProj = projects.find(p => p.id === projectId);
+    const targetProjEmail = targetProj?.clientEmail || '';
+    const targetProjName = targetProj?.clientName || '';
 
     // Sync document/invoice to GoDaddy MySQL
     import('../services/apiService').then(({ apiService }) => {
@@ -949,13 +947,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }));
 
-    let targetProjEmail = '';
-    let targetProjName = '';
     const targetProj = projects.find(p => p.id === projectId);
-    if (targetProj) {
-      targetProjEmail = targetProj.clientEmail || '';
-      targetProjName = targetProj.clientName || '';
-    }
+    const targetProjEmail = targetProj?.clientEmail || '';
+    const targetProjName = targetProj?.clientName || '';
 
     // Sync new payment & generated invoice to GoDaddy MySQL
     import('../services/apiService').then(({ apiService }) => {

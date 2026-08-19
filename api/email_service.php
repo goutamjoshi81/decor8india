@@ -338,10 +338,12 @@ function getEmailLayout($title, $previewText, $contentHtml) {
  */
 function sendInvoiceNotification($clientEmail, $clientName, $projectTitle, $invoice) {
     $baseUrl = defined('APP_BASE_URL') ? APP_BASE_URL : 'https://decor8india.com';
-    $invId = !empty($invoice['invoiceUrl']) ? $invoice['invoiceUrl'] : ('INV-D8I-' . rand(100000, 999999));
-    $title = $invoice['title'] ?? 'Project Milestone Billing';
-    $amount = isset($invoice['amount']) ? number_format((float)$invoice['amount'], 2) : '0.00';
-    $dueDate = $invoice['dueDate'] ?? date('d M Y', strtotime('+7 days'));
+    $invUrl = is_array($invoice) ? ($invoice['invoiceUrl'] ?? '') : ($invoice->invoiceUrl ?? '');
+    $invId = !empty($invUrl) ? $invUrl : ('INV-D8I-' . rand(100000, 999999));
+    $title = is_array($invoice) ? ($invoice['title'] ?? 'Project Milestone Billing') : ($invoice->title ?? 'Project Milestone Billing');
+    $rawAmount = is_array($invoice) ? ($invoice['amount'] ?? 0) : ($invoice->amount ?? 0);
+    $amount = number_format((float)$rawAmount, 2);
+    $dueDate = is_array($invoice) ? ($invoice['dueDate'] ?? date('d M Y', strtotime('+7 days'))) : ($invoice->dueDate ?? date('d M Y', strtotime('+7 days')));
     $portalUrl = $baseUrl . '/client';
 
     $subject = "Official Invoice Generated: {$invId} for {$projectTitle}";
@@ -464,8 +466,8 @@ function sendProgressNotification($clientEmail, $clientName, $projectTitle, $pro
  */
 function sendDocumentNotification($clientEmail, $clientName, $projectTitle, $docData) {
     $baseUrl = defined('APP_BASE_URL') ? APP_BASE_URL : 'https://decor8india.com';
-    $docName = $docData['name'] ?? 'Architectural Document';
-    $category = $docData['category'] ?? 'Design & CAD';
+    $docName = is_array($docData) ? ($docData['title'] ?? $docData['name'] ?? 'Architectural Document') : ($docData->title ?? $docData->name ?? 'Architectural Document');
+    $category = is_array($docData) ? ($docData['category'] ?? 'Design & CAD') : ($docData->category ?? 'Design & CAD');
     $portalUrl = $baseUrl . '/client';
 
     $subject = "New Document Uploaded: {$docName} for {$projectTitle}";
