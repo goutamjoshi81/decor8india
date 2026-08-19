@@ -2,6 +2,7 @@
 // Decor8 India - SMTP Email Delivery Diagnostic & Test Tool
 require_once __DIR__ . '/email_config.php';
 require_once __DIR__ . '/email_service.php';
+require_once __DIR__ . '/db_config.php';
 
 // If this is an AJAX / API test request:
 if (isset($_GET['send']) || $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -9,24 +10,70 @@ if (isset($_GET['send']) || $_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $recipient = isset($_REQUEST['to']) ? trim($_REQUEST['to']) : 'support@decor8india.com';
     $type = isset($_REQUEST['type']) ? trim($_REQUEST['type']) : 'invoice';
+    $customSubject = isset($_REQUEST['subject']) ? trim($_REQUEST['subject']) : '';
+    $customBody = isset($_REQUEST['body']) ? trim($_REQUEST['body']) : '';
+    $projectId = isset($_REQUEST['projectId']) ? trim($_REQUEST['projectId']) : '';
 
-    if ($type === 'invoice') {
-        $sampleInvoice = [
-            'id' => 'pay-test-' . time(),
-            'title' => 'Milestone 2: Civil Works & BWP Marine Core Procurement (40%)',
-            'amount' => 840000.00,
-            'dueDate' => date('d M Y', strtotime('+7 days')),
-            'invoiceUrl' => 'INV-D8I-' . rand(100000, 999999)
+    // Fetch REAL project record from MySQL Database if available
+    $pdo = getDbConnection();
+    $proj = null;
+    if ($pdo) {
+        if (!empty($projectId)) {
+            $stmt = $pdo->prepare("SELECT * FROM projects WHERE id = ?");
+            $stmt->execute([$projectId]);
+            $proj = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+        if (!$proj && !empty($recipient)) {
+            $stmt = $pdo->prepare("SELECT * FROM projects WHERE LOWER(client_email) = LOWER(?) ORDER BY id DESC LIMIT 1");
+            $stmt->execute([$recipient]);
+            $proj = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+    }
+
+    // Default real values or database record values
+    $clientName = $proj ? ($proj['client_name'] ?? 'Valued Client') : 'Valued Client';
+    $projectTitle = $proj ? ($proj['title'] ?? 'Luxury Interior Design Project') : 'Vasanthpura Luxury Villa 3BHK';
+    $progressPct = $proj ? (int)($proj['progress_percentage'] ?? 0) : 65;
+    $currentStage = $proj ? ($proj['current_stage'] ?? 'Design Discussion') : 'Custom Modular Woodwork & False Ceiling';
+
+    // Parse payments from database JSON if available
+    $payments = [];
+    if ($proj && !empty($proj['payments_json'])) {
+        $payments = json_decode($proj['payments_json'], true) ?: [];
+    }
+    // Parse work updates from database JSON if available
+    $workUpdates = [];
+    if ($proj && !empty($proj['work_updates_json'])) {
+        $workUpdates = json_decode($proj['work_updates_json'], true) ?: [];
+    }
+
+    if ($type === 'generic' || $type === 'custom' || !empty($customBody)) {
+        $subject = $customSubject ?: "Official Notice — " . $projectTitle;
+        $messageBody = $customBody ?: "This is an official project notice regarding your interior execution with Decor8 India Studio.";
+        $result = sendCustomAnnouncementNotification($recipient, $clientName, $projectTitle, $subject, $messageBody);
+
+    } else if ($type === 'invoice') {
+        // Use real invoice from DB if present, else build clean structure
+        $invoiceData = !empty($payments) ? end($payments) : [
+            'id' => 'pay-' . time(),
+            'title' => 'Milestone Installment Payment',
+            'amount' => 450000.00,
+            'dueDate' => date('Y-m-d', strtotime('+7 days'))
         ];
-        $result = sendInvoiceNotification($recipient, "Valued Client (Test)", "Vasanthpura Luxury Villa 3BHK", $sampleInvoice);
+        $result = sendInvoiceNotification($recipient, $clientName, $projectTitle, $invoiceData);
+
     } else if ($type === 'progress') {
-        $result = sendProgressNotification($recipient, "Valued Client (Test)", "Vasanthpura Luxury Villa 3BHK", 65, "Custom Modular Woodwork & False Ceiling", "Factory carcass delivered to site. Master bedroom wardrobe framing completed.");
+        $latestWork = !empty($workUpdates) ? end($workUpdates) : null;
+        $workNotes = $latestWork ? ($latestWork['title'] . ': ' . ($latestWork['description'] ?? 'Work in progress.')) : 'Active site installation in progress.';
+        $result = sendProgressNotification($recipient, $clientName, $projectTitle, $progressPct, $currentStage, $workNotes);
+
     } else if ($type === 'welcome') {
-        $result = sendWelcomeClientNotification($recipient, "Valued Client (Test)", "Vasanthpura Luxury Villa 3BHK", "9876543210");
+        $result = sendWelcomeClientNotification($recipient, $clientName, $projectTitle, "Your Registered Mobile Number");
+
     } else {
         $result = sendSmtpEmail(
             $recipient, 
-            "Valued Client", 
+            $clientName, 
             "Decor8 India SMTP Connection Verified", 
             getEmailLayout("SMTP Test Successful", "Your email settings are working properly.", "<p>Congratulations! Your authenticated SMTP email service is working properly on Decor8 India.</p>")
         );

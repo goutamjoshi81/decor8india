@@ -517,4 +517,49 @@ function sendWelcomeClientNotification($clientEmail, $clientName, $projectTitle,
 
     return sendSmtpEmail($clientEmail, $clientName, $subject, getEmailLayout($subject, $previewText, $html));
 }
+
+/**
+ * Send custom announcement or broadcast notification formatted in luxury dark/gold Decor8 theme.
+ */
+function sendCustomAnnouncementNotification($clientEmail, $clientName, $projectTitle, $subject, $messageBody) {
+    $previewText = "Official Notice from Decor8 India Studio — " . $subject;
+    $loginUrl = getClientPortalLoginUrl();
+
+    // Convert newlines to clean HTML paragraphs if plain text
+    $formattedBody = nl2br(htmlspecialchars($messageBody));
+
+    $html = '
+        <div style="font-size: 15px; line-height: 1.7; color: #E5E3DF; margin-bottom: 24px;">
+            Dear <strong style="color: #FFFFFF;">' . htmlspecialchars($clientName) . '</strong>,
+        </div>
+        <p style="font-size: 14px; line-height: 1.7; color: #C0C0C8; margin-bottom: 20px;">
+            We are writing to share an official notice regarding your project <strong style="color: #D4AF37;">' . htmlspecialchars($projectTitle) . '</strong>.
+        </p>
+
+        <!-- Custom Announcement Card -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #1D1E26; border: 1px solid #D4AF37; border-radius: 12px; margin-bottom: 24px; overflow: hidden;">
+            <tr>
+                <td style="padding: 14px 20px; background-color: #242530; border-bottom: 1px solid rgba(212,175,55,0.3);">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #D4AF37; letter-spacing: 1.5px; font-family: monospace;">
+                        📢 ANNOUNCEMENT DETAILS
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 20px; font-size: 14px; color: #F0F0F5; line-height: 1.7;">
+                    ' . $formattedBody . '
+                </td>
+            </tr>
+        </table>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 28px 0 20px 0;">
+            <a href="' . $loginUrl . '" style="display: inline-block; padding: 13px 32px; background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); color: #000000; font-weight: 700; font-size: 12.5px; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(212,175,55,0.3);">
+                View Live Portal Updates
+            </a>
+        </div>
+    ';
+
+    return sendSmtpEmail($clientEmail, $clientName, $subject, getEmailLayout($subject, $previewText, $html));
+}
 ?>

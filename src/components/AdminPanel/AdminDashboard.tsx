@@ -93,7 +93,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [notifyClientByEmail, setNotifyClientByEmail] = useState<boolean>(true);
   const [customEmailRecipient, setCustomEmailRecipient] = useState('');
   const [customEmailSubject, setCustomEmailSubject] = useState('Project Milestone Update — Decor8 India Studio');
-  const [customEmailType, setCustomEmailType] = useState<'invoice' | 'progress' | 'welcome' | 'generic'>('progress');
+  const [customEmailType, setCustomEmailType] = useState<'invoice' | 'progress' | 'welcome' | 'generic'>('generic');
+  const [customEmailBody, setCustomEmailBody] = useState('');
   const [customEmailSending, setCustomEmailSending] = useState(false);
   const [customEmailFeedback, setCustomEmailFeedback] = useState<{ status: 'success' | 'error'; msg: string } | null>(null);
 
@@ -836,12 +837,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     alert(`Payment milestone "${payTitle}" added to payout ledger!${emailNotice}`);
   };
 
-  const triggerQuickClientMail = async (clientEmail: string, clientName: string, projectTitle: string, type: 'welcome' | 'progress' | 'invoice') => {
+  const triggerQuickClientMail = async (clientEmail: string, clientName: string, projectTitle: string, projectId: string, type: 'welcome' | 'progress' | 'invoice') => {
     if (!confirm(`Send automated ${type.toUpperCase()} email notification for project "${projectTitle}" to ${clientName} (${clientEmail})?`)) return;
     
     setCustomEmailSending(true);
     try {
-      const response = await fetch(`/api/test_email.php?send=1&to=${encodeURIComponent(clientEmail)}&type=${encodeURIComponent(type)}`);
+      const response = await fetch(`/api/test_email.php?send=1&to=${encodeURIComponent(clientEmail)}&type=${encodeURIComponent(type)}&projectId=${encodeURIComponent(projectId)}`);
       const data = await response.json();
       if (data.status === 'SUCCESS' || data.details?.success) {
         alert(`✅ ${type.toUpperCase()} email sent successfully to ${clientName} (${clientEmail})!`);
@@ -866,11 +867,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     setCustomEmailFeedback(null);
 
     try {
-      const response = await fetch(`/api/test_email.php?send=1&to=${encodeURIComponent(customEmailRecipient)}&type=${encodeURIComponent(customEmailType)}`);
+      const response = await fetch('/api/test_email.php?send=1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          to: customEmailRecipient,
+          type: customEmailType,
+          subject: customEmailSubject,
+          body: customEmailBody
+        })
+      });
       const data = await response.json();
 
       if (data.status === 'SUCCESS' || data.details?.success) {
-        setCustomEmailFeedback({ status: 'success', msg: `✅ Email dispatched successfully via ${data.details?.method || 'SMTP'} to ${customEmailRecipient}!` });
+        setCustomEmailFeedback({ status: 'success', msg: `✅ Theme-styled announcement dispatched via ${data.details?.method || 'SMTP'} to ${customEmailRecipient}!` });
+        setCustomEmailBody('');
       } else {
         setCustomEmailFeedback({ status: 'error', msg: `❌ Delivery Failed: ${data.details?.message || 'Check SMTP configuration'}` });
       }
@@ -2021,7 +2032,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                           <button
                             type="button"
                             disabled={customEmailSending}
-                            onClick={() => triggerQuickClientMail(clientEmail, proj.clientName, proj.title, 'welcome')}
+                            onClick={() => triggerQuickClientMail(clientEmail, proj.clientName, proj.title, proj.id, 'welcome')}
                             className="px-3 py-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500 text-blue-300 hover:text-white font-bold text-[11px] transition-colors border border-blue-500/40 flex items-center space-x-1 cursor-pointer disabled:opacity-50"
                           >
                             <Mail className="w-3.5 h-3.5" />
@@ -2030,7 +2041,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                           <button
                             type="button"
                             disabled={customEmailSending}
-                            onClick={() => triggerQuickClientMail(clientEmail, proj.clientName, proj.title, 'progress')}
+                            onClick={() => triggerQuickClientMail(clientEmail, proj.clientName, proj.title, proj.id, 'progress')}
                             className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black font-bold text-[11px] transition-colors border border-amber-500/40 flex items-center space-x-1 cursor-pointer disabled:opacity-50"
                           >
                             <Send className="w-3.5 h-3.5" />
@@ -2039,7 +2050,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                           <button
                             type="button"
                             disabled={customEmailSending}
-                            onClick={() => triggerQuickClientMail(clientEmail, proj.clientName, proj.title, 'invoice')}
+                            onClick={() => triggerQuickClientMail(clientEmail, proj.clientName, proj.title, proj.id, 'invoice')}
                             className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-black font-bold text-[11px] transition-colors border border-emerald-500/40 flex items-center space-x-1 cursor-pointer disabled:opacity-50"
                           >
                             <CreditCard className="w-3.5 h-3.5" />
@@ -2057,7 +2068,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             <div className="p-6 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-6">
               <div className="space-y-1">
                 <h3 className="font-serif text-xl font-bold text-white">Dispatch Custom Email Announcement</h3>
-                <p className="text-xs text-neutral-400">Send an instant custom email notification to any recipient email address.</p>
+                <p className="text-xs text-neutral-400">Send an instant theme-formatted email announcement or custom notice to any client.</p>
               </div>
 
               <form onSubmit={handleSendCustomMail} className="space-y-4 pt-2">
@@ -2081,10 +2092,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                       onChange={(e) => setCustomEmailType(e.target.value as any)}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                     >
-                      <option value="progress">1. Project Progress & Milestone Update</option>
-                      <option value="invoice">2. Milestone Billing Invoice</option>
-                      <option value="welcome">3. Welcome Client Credentials</option>
-                      <option value="generic">4. Custom Notice</option>
+                      <option value="generic">1. Custom Broadcast / Official Notice (Luxury Theme)</option>
+                      <option value="progress">2. Project Progress & Milestone Update</option>
+                      <option value="invoice">3. Milestone Billing Invoice</option>
+                      <option value="welcome">4. Welcome Client Credentials</option>
                     </select>
                   </div>
                 </div>
@@ -2094,9 +2105,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   <input 
                     type="text"
                     required
-                    placeholder="Subject..."
+                    placeholder="e.g. Important Update Regarding Site Inspection Schedule..."
                     value={customEmailSubject}
                     onChange={(e) => setCustomEmailSubject(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-300 font-medium">Announcement Body / Message Text *</label>
+                  <textarea 
+                    rows={4}
+                    required
+                    placeholder="Type your custom announcement, project update notes, or message for the client here. It will be sent formatted in Decor8 India's luxury dark/gold HTML email template..."
+                    value={customEmailBody}
+                    onChange={(e) => setCustomEmailBody(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>
