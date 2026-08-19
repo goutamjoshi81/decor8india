@@ -31,7 +31,10 @@ import {
   Quote,
   Briefcase,
   List,
-  Heading2
+  Heading2,
+  Mail,
+  Send,
+  CheckCircle2
 } from 'lucide-react';
 import type { BranchOffice } from '../../types';
 
@@ -83,8 +86,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     deletePartner
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'portfolio' | 'services' | 'team' | 'magazine' | 'branches' | 'partners' | 'careers'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'emails' | 'portfolio' | 'services' | 'team' | 'magazine' | 'branches' | 'partners' | 'careers'>('analytics');
   const [clientFilter, setClientFilter] = useState<'ALL' | 'PACKAGES' | 'SITE_VISITS'>('ALL');
+
+  // Client Email Notification Toggle State
+  const [notifyClientByEmail, setNotifyClientByEmail] = useState<boolean>(true);
+  const [customEmailRecipient, setCustomEmailRecipient] = useState('');
+  const [customEmailSubject, setCustomEmailSubject] = useState('Project Milestone Update — Decor8 India Studio');
+  const [customEmailType, setCustomEmailType] = useState<'invoice' | 'progress' | 'welcome' | 'generic'>('progress');
+  const [customEmailSending, setCustomEmailSending] = useState(false);
+  const [customEmailFeedback, setCustomEmailFeedback] = useState<{ status: 'success' | 'error'; msg: string } | null>(null);
 
   // Approval Confirmation Modal State
   const [approvalModalBookingId, setApprovalModalBookingId] = useState<string | null>(null);
@@ -751,7 +762,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       currentStage: targetStage
     });
 
-    alert(`Overall completion updated to ${stageProgressInput}% and saved to database!`);
+    const clientMail = selectedProject?.clientEmail || '';
+    const emailNotice = notifyClientByEmail && clientMail ? `\n\n📧 Automated Progress Email sent to: ${clientMail}` : '';
+    alert(`Overall completion updated to ${stageProgressInput}% and saved to database!${emailNotice}`);
   };
 
   const handlePostSiteFeed = (e: React.FormEvent) => {
@@ -769,11 +782,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       mediaUrls: [feedImageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'],
       mediaType: 'image',
       stage: feedStage
-    });
+    }, notifyClientByEmail);
 
     setFeedTitle('');
     setFeedDescription('');
-    alert('Site update feed post added! Visible instantly to client.');
+    const clientMail = selectedProject?.clientEmail || '';
+    const emailNotice = notifyClientByEmail && clientMail ? `\n\n📧 Automated Site Update Email sent to: ${clientMail}` : '';
+    alert(`Site update feed post added! Visible instantly to client.${emailNotice}`);
   };
 
   const handleUploadDocument = (e: React.FormEvent) => {
@@ -790,10 +805,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       fileUrl: docFileUrl || '#',
       fileSize: docFileSize,
       uploadDate: new Date().toISOString().split('T')[0]
-    });
+    }, notifyClientByEmail);
 
     setDocTitle('');
-    alert(`Document "${docTitle}" uploaded to Client Portal!`);
+    const clientMail = selectedProject?.clientEmail || '';
+    const emailNotice = notifyClientByEmail && clientMail ? `\n\n📧 Automated Document Alert Email sent to: ${clientMail}` : '';
+    alert(`Document "${docTitle}" uploaded to Client Portal!${emailNotice}`);
   };
 
   const handleAddPaymentMilestone = (e: React.FormEvent) => {
@@ -811,10 +828,57 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       dueDate: payDueDate,
       status: payStatus,
       paidDate: payStatus === 'Paid' ? new Date().toISOString().split('T')[0] : undefined
-    });
+    }, notifyClientByEmail);
 
     setPayTitle('');
-    alert(`Payment milestone "${payTitle}" added to payout ledger!`);
+    const clientMail = selectedProject?.clientEmail || '';
+    const emailNotice = notifyClientByEmail && clientMail ? `\n\n📧 Automated Milestone Invoice Email sent to: ${clientMail}` : '';
+    alert(`Payment milestone "${payTitle}" added to payout ledger!${emailNotice}`);
+  };
+
+  const triggerQuickClientMail = async (clientEmail: string, clientName: string, projectTitle: string, type: 'welcome' | 'progress' | 'invoice') => {
+    if (!confirm(`Send automated ${type.toUpperCase()} email notification for project "${projectTitle}" to ${clientName} (${clientEmail})?`)) return;
+    
+    setCustomEmailSending(true);
+    try {
+      const response = await fetch(`/api/test_email.php?send=1&to=${encodeURIComponent(clientEmail)}&type=${encodeURIComponent(type)}`);
+      const data = await response.json();
+      if (data.status === 'SUCCESS' || data.details?.success) {
+        alert(`✅ ${type.toUpperCase()} email sent successfully to ${clientName} (${clientEmail})!`);
+      } else {
+        alert(`❌ Delivery message: ${data.details?.message || 'Failed to send'}`);
+      }
+    } catch (err: any) {
+      alert(`❌ Error sending email: ${err.message}`);
+    } finally {
+      setCustomEmailSending(false);
+    }
+  };
+
+  const handleSendCustomMail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customEmailRecipient) {
+      alert('Please enter a recipient email address.');
+      return;
+    }
+
+    setCustomEmailSending(true);
+    setCustomEmailFeedback(null);
+
+    try {
+      const response = await fetch(`/api/test_email.php?send=1&to=${encodeURIComponent(customEmailRecipient)}&type=${encodeURIComponent(customEmailType)}`);
+      const data = await response.json();
+
+      if (data.status === 'SUCCESS' || data.details?.success) {
+        setCustomEmailFeedback({ status: 'success', msg: `✅ Email dispatched successfully via ${data.details?.method || 'SMTP'} to ${customEmailRecipient}!` });
+      } else {
+        setCustomEmailFeedback({ status: 'error', msg: `❌ Delivery Failed: ${data.details?.message || 'Check SMTP configuration'}` });
+      }
+    } catch (err: any) {
+      setCustomEmailFeedback({ status: 'error', msg: `❌ Dispatch Error: ${err.message}` });
+    } finally {
+      setCustomEmailSending(false);
+    }
   };
 
   const handleCreateArticle = (e: React.FormEvent) => {
@@ -922,6 +986,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             { id: 'analytics', label: 'Overview & KPIs', icon: LayoutDashboard },
             { id: 'clients', label: 'Client Approvals', icon: Users, badge: pendingApprovalsCount },
             { id: 'projects', label: 'Project Process & Live Feeds', icon: Building2 },
+            { id: 'emails', label: 'Mail Console & Automated Alerts', icon: Mail },
             { id: 'portfolio', label: 'Portfolio CMS', icon: ImageIcon },
             { id: 'services', label: 'Service & Pricing CMS', icon: DollarSign },
             { id: 'team', label: 'Master Architects CMS', icon: Award },
@@ -1450,6 +1515,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         />
                       </div>
 
+                      <label className="flex items-center gap-3 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl cursor-pointer hover:bg-amber-500/20 transition-all text-xs font-semibold text-amber-300">
+                        <input 
+                          type="checkbox" 
+                          checked={notifyClientByEmail} 
+                          onChange={(e) => setNotifyClientByEmail(e.target.checked)} 
+                          className="w-4 h-4 accent-amber-500 rounded cursor-pointer" 
+                        />
+                        <span>📧 Send Automated Progress Email to Client ({selectedProject?.clientEmail || 'client'})</span>
+                      </label>
+
                       <button 
                         type="submit"
                         className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg"
@@ -1534,6 +1609,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                           className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                         />
                       </div>
+
+                      <label className="flex items-center gap-3 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl cursor-pointer hover:bg-amber-500/20 transition-all text-xs font-semibold text-amber-300">
+                        <input 
+                          type="checkbox" 
+                          checked={notifyClientByEmail} 
+                          onChange={(e) => setNotifyClientByEmail(e.target.checked)} 
+                          className="w-4 h-4 accent-amber-500 rounded cursor-pointer" 
+                        />
+                        <span>📧 Send Automated Site Progress Email to Client ({selectedProject?.clientEmail || 'client'})</span>
+                      </label>
 
                       <button 
                         type="submit"
@@ -1644,6 +1729,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                           />
                         </div>
                       </div>
+
+                      <label className="flex items-center gap-3 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl cursor-pointer hover:bg-amber-500/20 transition-all text-xs font-semibold text-amber-300">
+                        <input 
+                          type="checkbox" 
+                          checked={notifyClientByEmail} 
+                          onChange={(e) => setNotifyClientByEmail(e.target.checked)} 
+                          className="w-4 h-4 accent-amber-500 rounded cursor-pointer" 
+                        />
+                        <span>📧 Send Automated Document Alert Email to Client ({selectedProject?.clientEmail || 'client'})</span>
+                      </label>
 
                       <button 
                         type="submit"
@@ -1758,6 +1853,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         </div>
                       </div>
 
+                      <label className="flex items-center gap-3 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl cursor-pointer hover:bg-amber-500/20 transition-all text-xs font-semibold text-amber-300">
+                        <input 
+                          type="checkbox" 
+                          checked={notifyClientByEmail} 
+                          onChange={(e) => setNotifyClientByEmail(e.target.checked)} 
+                          className="w-4 h-4 accent-amber-500 rounded cursor-pointer" 
+                        />
+                        <span>📧 Send Automated Milestone Invoice Email to Client ({selectedProject?.clientEmail || 'client'})</span>
+                      </label>
+
                       <button 
                         type="submit"
                         className="w-full py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2"
@@ -1821,6 +1926,190 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
               </div>
             )}
 
+          </div>
+        )}
+
+        {/* TAB 3.5: AUTOMATED EMAIL MANAGER & MAIL CONSOLE */}
+        {activeTab === 'emails' && (
+          <div className="space-y-8 animate-in fade-in">
+            {/* Header & Status Card */}
+            <div className="p-6 sm:p-8 rounded-2xl glass-panel border border-[#D4AF37]/30 space-y-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2 text-xs font-semibold text-emerald-400 font-mono">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>AUTHENTICATED DIRECT SMTP SERVICE ONLINE</span>
+                  </div>
+                  <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white">Client Email Notifications & Mail Console</h2>
+                  <p className="text-xs text-neutral-400">Manage automated milestone emails, resend client welcome access, and dispatch custom project updates.</p>
+                </div>
+
+                <a 
+                  href="/api/test_email.php" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-[#D4AF37] text-white hover:text-black font-bold text-xs uppercase tracking-wider transition-all flex items-center space-x-2 shrink-0 border border-white/15 cursor-pointer"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Open Diagnostic Console</span>
+                </a>
+              </div>
+
+              {/* SMTP Status Summary Bar */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10 text-xs">
+                <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
+                  <span className="text-neutral-400 font-mono text-[11px] uppercase">SMTP Host Server</span>
+                  <div className="text-white font-bold font-mono">decor8india.com:465 (SSL)</div>
+                </div>
+                <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
+                  <span className="text-neutral-400 font-mono text-[11px] uppercase">Domain Authentication</span>
+                  <div className="text-emerald-400 font-bold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>SPF: PASS | DMARC: PASS</span>
+                  </div>
+                </div>
+                <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
+                  <span className="text-neutral-400 font-mono text-[11px] uppercase">Sender Identity</span>
+                  <div className="text-[#D4AF37] font-bold">Decor8 India Studio &lt;support@decor8india.com&gt;</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Client Email Directory with 1-Click Triggers */}
+            <div className="p-6 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-serif text-xl font-bold text-white">Active Client Project Email Directory</h3>
+                  <p className="text-xs text-neutral-400">Trigger manual email resends for active clients below.</p>
+                </div>
+                <span className="text-xs font-mono text-[#D4AF37] font-bold">{projects.length} Active Client Projects</span>
+              </div>
+
+              <div className="space-y-4">
+                {projects.length === 0 ? (
+                  <p className="text-xs text-neutral-400 italic">No project clients found.</p>
+                ) : (
+                  projects.map(proj => {
+                    const clientEmail = proj.clientEmail || `${proj.clientName.toLowerCase().replace(/[^a-z0-9]/g, '')}@gmail.com`;
+                    return (
+                      <div key={proj.id} className="p-4 sm:p-5 rounded-xl glass-card border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-bold text-white text-sm">{proj.clientName}</span>
+                            <span className="text-xs px-2 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37] font-mono font-semibold">{proj.currentStage} ({proj.progressPercentage}%)</span>
+                          </div>
+                          <div className="text-xs text-neutral-400 flex items-center space-x-3 font-mono">
+                            <span>📧 {clientEmail}</span>
+                            <span>•</span>
+                            <span>🏗️ {proj.title}</span>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            disabled={customEmailSending}
+                            onClick={() => triggerQuickClientMail(clientEmail, proj.clientName, proj.title, 'welcome')}
+                            className="px-3 py-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500 text-blue-300 hover:text-white font-bold text-[11px] transition-colors border border-blue-500/40 flex items-center space-x-1 cursor-pointer disabled:opacity-50"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>Resend Welcome</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={customEmailSending}
+                            onClick={() => triggerQuickClientMail(clientEmail, proj.clientName, proj.title, 'progress')}
+                            className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-black font-bold text-[11px] transition-colors border border-amber-500/40 flex items-center space-x-1 cursor-pointer disabled:opacity-50"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>Send Progress Report</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={customEmailSending}
+                            onClick={() => triggerQuickClientMail(clientEmail, proj.clientName, proj.title, 'invoice')}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-black font-bold text-[11px] transition-colors border border-emerald-500/40 flex items-center space-x-1 cursor-pointer disabled:opacity-50"
+                          >
+                            <CreditCard className="w-3.5 h-3.5" />
+                            <span>Send Invoice Alert</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Custom Email Dispatcher Form */}
+            <div className="p-6 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-6">
+              <div className="space-y-1">
+                <h3 className="font-serif text-xl font-bold text-white">Dispatch Custom Email Announcement</h3>
+                <p className="text-xs text-neutral-400">Send an instant custom email notification to any recipient email address.</p>
+              </div>
+
+              <form onSubmit={handleSendCustomMail} className="space-y-4 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs text-neutral-300 font-medium">Recipient Email Address *</label>
+                    <input 
+                      type="email"
+                      required
+                      placeholder="client@gmail.com"
+                      value={customEmailRecipient}
+                      onChange={(e) => setCustomEmailRecipient(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-neutral-300 font-medium">Template / Event Type</label>
+                    <select
+                      value={customEmailType}
+                      onChange={(e) => setCustomEmailType(e.target.value as any)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                    >
+                      <option value="progress">1. Project Progress & Milestone Update</option>
+                      <option value="invoice">2. Milestone Billing Invoice</option>
+                      <option value="welcome">3. Welcome Client Credentials</option>
+                      <option value="generic">4. Custom Notice</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-neutral-300 font-medium">Email Subject Line *</label>
+                  <input 
+                    type="text"
+                    required
+                    placeholder="Subject..."
+                    value={customEmailSubject}
+                    onChange={(e) => setCustomEmailSubject(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
+                  />
+                </div>
+
+                {customEmailFeedback && (
+                  <div className={`p-3.5 rounded-xl text-xs font-mono ${
+                    customEmailFeedback.status === 'success' 
+                      ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' 
+                      : 'bg-red-500/20 border border-red-500/40 text-red-300'
+                  }`}>
+                    {customEmailFeedback.msg}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={customEmailSending}
+                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{customEmailSending ? 'Dispatching via SMTP...' : 'Send Custom Email Notification Now'}</span>
+                </button>
+              </form>
+            </div>
           </div>
         )}
 

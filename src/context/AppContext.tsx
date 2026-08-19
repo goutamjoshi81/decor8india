@@ -63,10 +63,10 @@ interface AppContextType {
   rejectBooking: (bookingId: string) => void;
   
   // Project Actions
-  updateProjectProgress: (projectId: string, stage: ProjectStage, percentage: number) => void;
-  addWorkUpdate: (projectId: string, update: Omit<WorkUpdate, 'id' | 'projectId'>) => void;
-  addDocument: (projectId: string, doc: Omit<DocumentItem, 'id' | 'projectId'>) => void;
-  addPayment: (projectId: string, pay: Omit<PaymentItem, 'id' | 'projectId'>) => void;
+  updateProjectProgress: (projectId: string, stage: ProjectStage, percentage: number, sendEmail?: boolean) => void;
+  addWorkUpdate: (projectId: string, update: Omit<WorkUpdate, 'id' | 'projectId'>, sendEmail?: boolean) => void;
+  addDocument: (projectId: string, doc: Omit<DocumentItem, 'id' | 'projectId'>, sendEmail?: boolean) => void;
+  addPayment: (projectId: string, pay: Omit<PaymentItem, 'id' | 'projectId'>, sendEmail?: boolean) => void;
   updatePaymentStatus: (projectId: string, paymentId: string, status: 'Paid' | 'Pending' | 'Overdue', paidAmount?: number) => void;
   sendMessage: (projectId: string, text: string) => void;
   
@@ -831,12 +831,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         projectId,
         progressPercentage: percentage,
         currentStage: stage,
-        status: percentage >= 100 || stage === 'Handover Completed' ? 'Completed' : 'Ongoing'
+        status: percentage >= 100 || stage === 'Handover Completed' ? 'Completed' : 'Ongoing',
+        sendProgressEmail: true
       }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
     });
   };
 
-  const addWorkUpdate = (projectId: string, updateData: Omit<WorkUpdate, 'id' | 'projectId'>) => {
+  const addWorkUpdate = (projectId: string, updateData: Omit<WorkUpdate, 'id' | 'projectId'>, sendEmail: boolean = true) => {
     const newUpdate: WorkUpdate = {
       ...updateData,
       id: `wu-${Date.now()}`,
@@ -848,12 +849,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveProjectUpdate({
         projectId,
-        workUpdate: newUpdate
+        workUpdate: newUpdate,
+        sendProgressEmail: sendEmail
       }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
     });
   };
 
-  const addDocument = (projectId: string, docData: Omit<DocumentItem, 'id' | 'projectId'>) => {
+  const addDocument = (projectId: string, docData: Omit<DocumentItem, 'id' | 'projectId'>, sendEmail: boolean = true) => {
     const newDoc: DocumentItem = {
       ...docData,
       id: `doc-${Date.now()}`,
@@ -865,12 +867,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveProjectUpdate({
         projectId,
-        document: newDoc
+        document: newDoc,
+        sendDocumentEmail: sendEmail
       }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
     });
   };
 
-  const addPayment = (projectId: string, payData: Omit<PaymentItem, 'id' | 'projectId'>) => {
+  const addPayment = (projectId: string, payData: Omit<PaymentItem, 'id' | 'projectId'>, sendEmail: boolean = true) => {
     const payId = `pay-${Date.now()}`;
     const invNum = payData.invoiceUrl && payData.invoiceUrl.startsWith('INV-') 
       ? payData.invoiceUrl 
@@ -919,7 +922,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       apiService.saveProjectUpdate({
         projectId,
         payments: finalPayments,
-        documents: finalDocuments
+        documents: finalDocuments,
+        payment: newPay,
+        sendInvoiceEmail: sendEmail
       }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
     });
   };
