@@ -110,8 +110,18 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
                 $write(base64_encode($pass));
                 $authResp = $read();
 
+                if (substr($authResp, 0, 3) !== "235" && $user !== $fromEmail) {
+                    // Try with fromEmail (support@decor8india.com) if _mainaccount failed
+                    $write("AUTH LOGIN");
+                    $read();
+                    $write(base64_encode($fromEmail));
+                    $read();
+                    $write(base64_encode($pass));
+                    $authResp = $read();
+                }
+
                 if (substr($authResp, 0, 3) !== "235") {
-                    throw new Exception("SMTP Authentication failed (Check SMTP_USER / SMTP_PASS in api/email_config.php): " . $authResp);
+                    throw new Exception("SMTP Authentication failed: " . $authResp);
                 }
             }
 
