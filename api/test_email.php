@@ -22,7 +22,7 @@ if (isset($_GET['send']) || $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else if ($type === 'progress') {
         $result = sendProgressNotification($recipient, "Valued Client (Test)", "Vasanthpura Luxury Villa 3BHK", 65, "Custom Modular Woodwork & False Ceiling", "Factory carcass delivered to site. Master bedroom wardrobe framing completed.");
     } else if ($type === 'welcome') {
-        $result = sendWelcomeClientNotification($recipient, "Valued Client (Test)", "Vasanthpura Luxury Villa 3BHK", "Decor8#Welcome2026");
+        $result = sendWelcomeClientNotification($recipient, "Valued Client (Test)", "Vasanthpura Luxury Villa 3BHK", "9876543210");
     } else {
         $result = sendSmtpEmail(
             $recipient, 

@@ -57,15 +57,12 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
             chunk_split(base64_encode($htmlBody)) . "\r\n" .
             "--{$boundary}--\r\n";
 
-    // Attempt Direct SMTP Socket Connection
+    // Attempt Direct SMTP Socket Connection (Fast 1.5s timeout)
     $smtpSuccess = false;
     $smtpLog = [];
 
     $candidateHosts = [
-        ['host' => $host, 'port' => $port, 'secure' => $secure],
-        ['host' => 'mail.decor8india.com', 'port' => 465, 'secure' => 'ssl'],
-        ['host' => 'localhost', 'port' => 25, 'secure' => 'none'],
-        ['host' => 'localhost', 'port' => 587, 'secure' => 'tls']
+        ['host' => $host, 'port' => $port, 'secure' => $secure]
     ];
 
     foreach ($candidateHosts as $target) {
@@ -85,16 +82,16 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
             ]);
 
             $transport = ($tSecure === 'ssl' || $tPort == 465) ? "ssl://{$tHost}:{$tPort}" : "tcp://{$tHost}:{$tPort}";
-            $timeout = 8;
+            $timeout = 1.5; // Fast 1.5 second socket probe
 
             $socket = @stream_socket_client($transport, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
             
             if (!$socket) {
-                $smtpLog[] = "Connection failed to {$transport} [{$errno}]: {$errstr}";
+                $smtpLog[] = "Socket probe failed to {$transport} [{$errno}]: {$errstr}";
                 continue;
             }
 
-            stream_set_timeout($socket, $timeout);
+            stream_set_timeout($socket, 3);
 
             $read = function() use ($socket, &$smtpLog) {
                 $response = "";
@@ -493,13 +490,19 @@ function sendWelcomeClientNotification($clientEmail, $clientName, $projectTitle,
                         </tr>
                         <tr>
                             <td style="color: #9E9EA8;">Access Password:</td>
-                            <td style="color: #D4AF37; font-weight: 700; font-family: monospace; font-size: 14px;">' . htmlspecialchars($tempPassword) . '</td>
+                            <td>
+                                <strong style="color: #D4AF37; font-family: monospace; font-size: 15px; letter-spacing: 1px;">' . htmlspecialchars($tempPassword) . '</strong>
+                                <span style="font-size: 11px; color: #9E9EA8; margin-left: 6px; font-weight: normal;">(Your Registered Mobile Number)</span>
+                            </td>
                         </tr>
                         <tr>
                             <td style="color: #9E9EA8;">Lead Architect:</td>
                             <td style="color: #FFFFFF;">Mr. Satish Bhat (CEO & Principal Architect)</td>
                         </tr>
                     </table>
+                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: #8A8D9A; line-height: 1.4;">
+                        💡 <em>Your default login password is your contact number. You can change your password anytime inside your Client Profile.</em>
+                    </div>
                 </td>
             </tr>
         </table>
