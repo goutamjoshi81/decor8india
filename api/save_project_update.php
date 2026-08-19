@@ -302,34 +302,46 @@ try {
         require_once __DIR__ . '/email_service.php';
 
         if (!empty($clientEmail)) {
-            // A. New Invoice / Payment Added
-            if (!empty($data->payment) && is_array($data->payment)) {
+            // A. New Daily Site Feed Update Post (Photo + Notes)
+            if (!empty($data->workUpdate)) {
+                $feedRes = sendSiteUpdateFeedNotification($clientEmail, $clientName, $title, $data->workUpdate, $progressPercentage, $currentStage);
+                $emailNotificationsSent[] = ["type" => "site_feed", "result" => $feedRes];
+            } else if (!empty($data->sendProgressEmail) && !empty($data->workUpdates) && is_array($data->workUpdates)) {
+                $latestWork = reset($data->workUpdates);
+                if ($latestWork) {
+                    $feedRes = sendSiteUpdateFeedNotification($clientEmail, $clientName, $title, $latestWork, $progressPercentage, $currentStage);
+                    $emailNotificationsSent[] = ["type" => "site_feed", "result" => $feedRes];
+                }
+            }
+
+            // B. New Invoice / Payment Added
+            if (!empty($data->payment)) {
                 $invRes = sendInvoiceNotification($clientEmail, $clientName, $title, $data->payment);
                 $emailNotificationsSent[] = ["type" => "invoice", "result" => $invRes];
             } else if (!empty($data->sendInvoiceEmail) && !empty($data->payments) && is_array($data->payments)) {
-                $latestPayment = end($data->payments);
+                $latestPayment = reset($data->payments);
                 if ($latestPayment) {
                     $invRes = sendInvoiceNotification($clientEmail, $clientName, $title, $latestPayment);
                     $emailNotificationsSent[] = ["type" => "invoice", "result" => $invRes];
                 }
             }
 
-            // B. Project Progress / Milestone Updated
-            $oldProgress = isset($existing['progress_percentage']) ? (int)$existing['progress_percentage'] : -1;
-            if ($oldProgress !== -1 && $progressPercentage > $oldProgress && ($progressPercentage - $oldProgress >= 5 || $progressPercentage == 100)) {
-                $workNote = !empty($data->workUpdate['description']) ? $data->workUpdate['description'] : '';
-                $progRes = sendProgressNotification($clientEmail, $clientName, $title, $progressPercentage, $currentStage, $workNote);
-                $emailNotificationsSent[] = ["type" => "progress", "result" => $progRes];
-            } else if (!empty($data->sendProgressEmail)) {
-                $workNote = !empty($data->workUpdate['description']) ? $data->workUpdate['description'] : '';
-                $progRes = sendProgressNotification($clientEmail, $clientName, $title, $progressPercentage, $currentStage, $workNote);
+            // C. Stage & Overall Completion Percentage Bar Update
+            if (!empty($data->sendProgressEmail) && empty($data->workUpdate)) {
+                $progRes = sendProgressNotification($clientEmail, $clientName, $title, $progressPercentage, $currentStage, '');
                 $emailNotificationsSent[] = ["type" => "progress", "result" => $progRes];
             }
 
-            // C. New Document Uploaded
-            if (!empty($data->document) && is_array($data->document)) {
+            // D. New Document / Blueprint Uploaded
+            if (!empty($data->document)) {
                 $docRes = sendDocumentNotification($clientEmail, $clientName, $title, $data->document);
                 $emailNotificationsSent[] = ["type" => "document", "result" => $docRes];
+            } else if (!empty($data->sendDocumentEmail) && !empty($data->documents) && is_array($data->documents)) {
+                $latestDoc = reset($data->documents);
+                if ($latestDoc) {
+                    $docRes = sendDocumentNotification($clientEmail, $clientName, $title, $latestDoc);
+                    $emailNotificationsSent[] = ["type" => "document", "result" => $docRes];
+                }
             }
         }
     } catch (Throwable $mailEx) {

@@ -562,4 +562,73 @@ function sendCustomAnnouncementNotification($clientEmail, $clientName, $projectT
 
     return sendSmtpEmail($clientEmail, $clientName, $subject, getEmailLayout($subject, $previewText, $html));
 }
+
+/**
+ * Send Automated Daily Site Feed Update Email to Client with Photo & Manager Notes
+ */
+function sendSiteUpdateFeedNotification($clientEmail, $clientName, $projectTitle, $workUpdateItem, $progressPct = 0, $currentStage = '') {
+    $title = is_array($workUpdateItem) ? ($workUpdateItem['title'] ?? 'New Daily Site Update') : ($workUpdateItem->title ?? 'New Daily Site Update');
+    $description = is_array($workUpdateItem) ? ($workUpdateItem['description'] ?? '') : ($workUpdateItem->description ?? '');
+    $stage = is_array($workUpdateItem) ? ($workUpdateItem['stage'] ?? $currentStage) : ($workUpdateItem->stage ?? $currentStage);
+    $mediaUrls = is_array($workUpdateItem) ? ($workUpdateItem['mediaUrls'] ?? []) : ($workUpdateItem->mediaUrls ?? []);
+    $photoUrl = !empty($mediaUrls) ? $mediaUrls[0] : '';
+    $date = is_array($workUpdateItem) ? ($workUpdateItem['date'] ?? date('d M Y')) : ($workUpdateItem->date ?? date('d M Y'));
+
+    $subject = "📸 Live Site Progress Update: " . $title . " — " . $projectTitle;
+    $previewText = "New site progress photo & manager notes added for " . $projectTitle;
+    $loginUrl = getClientPortalLoginUrl();
+
+    $photoHtml = '';
+    if (!empty($photoUrl) && $photoUrl !== '#') {
+        $photoHtml = '
+        <div style="margin-top: 16px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(212,175,55,0.3);">
+            <img src="' . htmlspecialchars($photoUrl) . '" alt="Site Update Photo" style="width: 100%; max-height: 380px; object-fit: cover; display: block;" />
+        </div>';
+    }
+
+    $html = '
+        <div style="font-size: 15px; line-height: 1.7; color: #E5E3DF; margin-bottom: 20px;">
+            Dear <strong style="color: #FFFFFF;">' . htmlspecialchars($clientName) . '</strong>,
+        </div>
+        <p style="font-size: 14px; line-height: 1.7; color: #C0C0C8; margin-bottom: 24px;">
+            A new daily site progress update and photo have been posted to your live client portal timeline for <strong style="color: #D4AF37;">' . htmlspecialchars($projectTitle) . '</strong>.
+        </p>
+
+        <!-- Site Update Details Card -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #1D1E26; border: 1px solid #D4AF37; border-radius: 12px; margin-bottom: 24px; overflow: hidden;">
+            <tr>
+                <td style="padding: 14px 20px; background-color: #242530; border-bottom: 1px solid rgba(212,175,55,0.3);">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td>
+                                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #D4AF37; letter-spacing: 1.5px; font-family: monospace;">
+                                    🏗️ SITE FEED UPDATE • ' . htmlspecialchars($stage) . '
+                                </span>
+                            </td>
+                            <td style="text-align: right; font-size: 12px; color: #9E9EA8; font-family: monospace;">
+                                ' . htmlspecialchars($date) . '
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 20px;">
+                    <h3 style="font-size: 17px; font-weight: 700; color: #FFFFFF; margin: 0 0 10px 0;">' . htmlspecialchars($title) . '</h3>
+                    <p style="font-size: 13.5px; color: #C0C0C8; line-height: 1.6; margin: 0;">' . nl2br(htmlspecialchars($description)) . '</p>
+                    ' . $photoHtml . '
+                </td>
+            </tr>
+        </table>
+
+        <!-- CTA Button -->
+        <div style="text-align: center; margin: 28px 0 20px 0;">
+            <a href="' . $loginUrl . '" style="display: inline-block; padding: 13px 32px; background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); color: #000000; font-weight: 700; font-size: 12.5px; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(212,175,55,0.3);">
+                View Full Timeline in Client Portal
+            </a>
+        </div>
+    ';
+
+    return sendSmtpEmail($clientEmail, $clientName, $subject, getEmailLayout($subject, $previewText, $html));
+}
 ?>
