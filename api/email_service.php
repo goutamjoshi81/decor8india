@@ -62,7 +62,9 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
         
         $socket = @fsockopen($transport, $port, $errno, $errstr, $timeout);
         
-        if ($socket) {
+        if (!$socket) {
+            $smtpLog[] = "Socket connection failed to {$transport}:{$port}. Error [{$errno}]: {$errstr}";
+        } else {
             stream_set_timeout($socket, $timeout);
 
             $read = function() use ($socket, &$smtpLog) {
@@ -104,7 +106,7 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
                 $authResp = $read();
 
                 if (substr($authResp, 0, 3) !== "235") {
-                    throw new Exception("SMTP Authentication failed: " . $authResp);
+                    throw new Exception("SMTP Authentication failed (Check SMTP_USER / SMTP_PASS in api/email_config.php): " . $authResp);
                 }
             }
 
@@ -125,10 +127,12 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
 
             if (substr($dataResp, 0, 3) === "250") {
                 $smtpSuccess = true;
+            } else {
+                throw new Exception("SMTP Data rejection: " . $dataResp);
             }
         }
     } catch (Throwable $e) {
-        $smtpLog[] = "SMTP Socket Exception: " . $e->getMessage();
+        $smtpLog[] = "SMTP Exception: " . $e->getMessage();
     }
 
     if ($smtpSuccess) {
@@ -136,7 +140,8 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
             "success" => true,
             "method" => "SMTP",
             "message" => "Email sent successfully via authenticated SMTP.",
-            "recipient" => $toEmail
+            "recipient" => $toEmail,
+            "smtp_log" => $smtpLog
         ];
     }
 
