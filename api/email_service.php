@@ -180,18 +180,21 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
         ];
     }
 
-    // High-Deliverability Native mail() with Envelope Sender & Return-Path
+    // High-Deliverability Native mail() with clean HTML headers (Eliminates noname attachment)
     $nativeHeaders = "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromEmail}>\r\n" .
                      "Reply-To: <{$fromEmail}>\r\n" .
                      "Return-Path: <{$fromEmail}>\r\n" .
                      "Sender: <{$fromEmail}>\r\n" .
                      "Message-ID: {$messageId}\r\n" .
+                     "Organization: Decor8 India Interiors Pvt. Ltd.\r\n" .
+                     "X-Priority: 3 (Normal)\r\n" .
                      "MIME-Version: 1.0\r\n" .
-                     "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n" .
+                     "Content-Type: text/html; charset=UTF-8\r\n" .
+                     "Content-Transfer-Encoding: 8bit\r\n" .
                      "X-Mailer: Decor8India-Mailer/2.0\r\n";
 
     $additionalParams = "-f" . escapeshellarg($fromEmail);
-    $mailResult = @mail($toEmail, $subject, $body, $nativeHeaders, $additionalParams);
+    $mailResult = @mail($toEmail, $subject, $htmlBody, $nativeHeaders, $additionalParams);
 
     return [
         "success" => $mailResult,
