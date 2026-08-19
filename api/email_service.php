@@ -491,8 +491,8 @@ function sendWelcomeClientNotification($clientEmail, $clientName, $projectTitle,
                         <tr>
                             <td style="color: #9E9EA8;">Access Password:</td>
                             <td>
-                                <strong style="color: #D4AF37; font-family: monospace; font-size: 15px; letter-spacing: 1px;">' . htmlspecialchars($tempPassword) . '</strong>
-                                <span style="font-size: 11px; color: #9E9EA8; margin-left: 6px; font-weight: normal;">(Your Registered Mobile Number)</span>
+                                <strong style="color: #D4AF37; font-family: monospace; font-size: 13.5px; letter-spacing: 0.5px;">Your Registered Mobile Number</strong>
+                                <span style="font-size: 11px; color: #9E9EA8; margin-left: 6px;">(e.g., 9876543210)</span>
                             </td>
                         </tr>
                         <tr>
@@ -500,8 +500,8 @@ function sendWelcomeClientNotification($clientEmail, $clientName, $projectTitle,
                             <td style="color: #FFFFFF;">Mr. Satish Bhat (CEO & Principal Architect)</td>
                         </tr>
                     </table>
-                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: #8A8D9A; line-height: 1.4;">
-                        💡 <em>Your default login password is your contact number. You can change your password anytime inside your Client Profile.</em>
+                    <div style="margin-top: 14px; padding: 12px; background-color: #14151B; border-radius: 8px; border-left: 3px solid #D4AF37; font-size: 12px; color: #C0C0C8; line-height: 1.5;">
+                        🔑 <strong>Security Note:</strong> Your initial login password is your <strong>registered 10-digit mobile number</strong>. For enhanced privacy, please change your password after your first login.
                     </div>
                 </td>
             </tr>
