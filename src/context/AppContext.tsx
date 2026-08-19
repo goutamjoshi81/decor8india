@@ -782,9 +782,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Rejected' } : b));
   };
 
-  const updateProjectProgress = (projectId: string, stage: ProjectStage, percentage: number) => {
+  const updateProjectProgress = (projectId: string, stage: ProjectStage, percentage: number, sendEmail: boolean = true) => {
+    let targetProjEmail = '';
+    let targetProjName = '';
+
     setProjects(prev => prev.map(proj => {
       if (proj.id !== projectId) return proj;
+
+      targetProjEmail = proj.clientEmail || '';
+      targetProjName = proj.clientName || '';
 
       const isCompleted = percentage >= 100 || stage === 'Handover Completed' || proj.status === 'Completed';
       const newStatus = isCompleted ? 'Completed' : proj.status;
@@ -829,10 +835,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveProjectUpdate({
         projectId,
+        clientEmail: targetProjEmail,
+        clientName: targetProjName,
         progressPercentage: percentage,
         currentStage: stage,
         status: percentage >= 100 || stage === 'Handover Completed' ? 'Completed' : 'Ongoing',
-        sendProgressEmail: true
+        sendProgressEmail: sendEmail !== false
       }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
     });
   };
@@ -843,14 +851,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `wu-${Date.now()}`,
       projectId
     };
-    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, workUpdates: [newUpdate, ...(p.workUpdates || [])] } : p));
+    let targetProjEmail = '';
+    let targetProjName = '';
+
+    setProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        targetProjEmail = p.clientEmail || '';
+        targetProjName = p.clientName || '';
+        return { ...p, workUpdates: [newUpdate, ...(p.workUpdates || [])] };
+      }
+      return p;
+    }));
 
     // Sync daily site photo feed to GoDaddy MySQL
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveProjectUpdate({
         projectId,
+        clientEmail: targetProjEmail,
+        clientName: targetProjName,
         workUpdate: newUpdate,
-        sendProgressEmail: sendEmail
+        sendProgressEmail: sendEmail !== false
       }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
     });
   };
@@ -861,14 +881,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `doc-${Date.now()}`,
       projectId
     };
-    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, documents: [newDoc, ...(p.documents || [])] } : p));
+    let targetProjEmail = '';
+    let targetProjName = '';
+
+    setProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        targetProjEmail = p.clientEmail || '';
+        targetProjName = p.clientName || '';
+        return { ...p, documents: [newDoc, ...(p.documents || [])] };
+      }
+      return p;
+    }));
 
     // Sync document/invoice to GoDaddy MySQL
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveProjectUpdate({
         projectId,
+        clientEmail: targetProjEmail,
+        clientName: targetProjName,
         document: newDoc,
-        sendDocumentEmail: sendEmail
+        sendDocumentEmail: sendEmail !== false
       }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
     });
   };
@@ -917,14 +949,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     }));
 
+    let targetProjEmail = '';
+    let targetProjName = '';
+    const targetProj = projects.find(p => p.id === projectId);
+    if (targetProj) {
+      targetProjEmail = targetProj.clientEmail || '';
+      targetProjName = targetProj.clientName || '';
+    }
+
     // Sync new payment & generated invoice to GoDaddy MySQL
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveProjectUpdate({
         projectId,
+        clientEmail: targetProjEmail,
+        clientName: targetProjName,
         payments: finalPayments,
         documents: finalDocuments,
         payment: newPay,
-        sendInvoiceEmail: sendEmail
+        sendInvoiceEmail: sendEmail !== false
       }).catch(err => console.warn('GoDaddy MySQL saveProjectUpdate fallback:', err));
     });
   };
