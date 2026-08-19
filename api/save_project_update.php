@@ -296,10 +296,51 @@ try {
         ]);
     }
 
+    // Trigger Automated Client Email Notifications
+    $emailNotificationsSent = [];
+    try {
+        require_once __DIR__ . '/email_service.php';
+
+        if (!empty($clientEmail)) {
+            // A. New Invoice / Payment Added
+            if (!empty($data->payment) && is_array($data->payment)) {
+                $invRes = sendInvoiceNotification($clientEmail, $clientName, $title, $data->payment);
+                $emailNotificationsSent[] = ["type" => "invoice", "result" => $invRes];
+            } else if (!empty($data->sendInvoiceEmail) && !empty($data->payments) && is_array($data->payments)) {
+                $latestPayment = end($data->payments);
+                if ($latestPayment) {
+                    $invRes = sendInvoiceNotification($clientEmail, $clientName, $title, $latestPayment);
+                    $emailNotificationsSent[] = ["type" => "invoice", "result" => $invRes];
+                }
+            }
+
+            // B. Project Progress / Milestone Updated
+            $oldProgress = isset($existing['progress_percentage']) ? (int)$existing['progress_percentage'] : -1;
+            if ($oldProgress !== -1 && $progressPercentage > $oldProgress && ($progressPercentage - $oldProgress >= 5 || $progressPercentage == 100)) {
+                $workNote = !empty($data->workUpdate['description']) ? $data->workUpdate['description'] : '';
+                $progRes = sendProgressNotification($clientEmail, $clientName, $title, $progressPercentage, $currentStage, $workNote);
+                $emailNotificationsSent[] = ["type" => "progress", "result" => $progRes];
+            } else if (!empty($data->sendProgressEmail)) {
+                $workNote = !empty($data->workUpdate['description']) ? $data->workUpdate['description'] : '';
+                $progRes = sendProgressNotification($clientEmail, $clientName, $title, $progressPercentage, $currentStage, $workNote);
+                $emailNotificationsSent[] = ["type" => "progress", "result" => $progRes];
+            }
+
+            // C. New Document Uploaded
+            if (!empty($data->document) && is_array($data->document)) {
+                $docRes = sendDocumentNotification($clientEmail, $clientName, $title, $data->document);
+                $emailNotificationsSent[] = ["type" => "document", "result" => $docRes];
+            }
+        }
+    } catch (Throwable $mailEx) {
+        $emailNotificationsSent[] = ["error" => $mailEx->getMessage()];
+    }
+
     echo json_encode([
         "success" => true,
         "message" => "Project synced successfully to GoDaddy MySQL!",
-        "projectId" => $projectId
+        "projectId" => $projectId,
+        "emailNotifications" => $emailNotificationsSent
     ]);
 
 } catch (Throwable $e) {

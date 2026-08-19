@@ -251,6 +251,17 @@ try {
 
     $pdo->commit();
 
+    // Trigger Automated Luxury Welcome Email to Client
+    $emailStatus = null;
+    try {
+        require_once __DIR__ . '/email_service.php';
+        if (!empty($clientEmail)) {
+            $emailStatus = sendWelcomeClientNotification($clientEmail, $clientName, $projectTitle, $clientPhone);
+        }
+    } catch (Throwable $mailEx) {
+        $emailStatus = ["success" => false, "error" => $mailEx->getMessage()];
+    }
+
     echo json_encode([
         "success" => true,
         "message" => "Client approved successfully! Added to users and projects table. Default password set to phone number: $clientPhone.",
@@ -258,7 +269,8 @@ try {
         "projectId" => $projectId,
         "userId" => $userId,
         "defaultPassword" => $clientPhone,
-        "clientEmail" => $clientEmail
+        "clientEmail" => $clientEmail,
+        "emailNotification" => $emailStatus
     ]);
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
