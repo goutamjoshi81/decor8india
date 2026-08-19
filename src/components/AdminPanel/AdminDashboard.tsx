@@ -2027,13 +2027,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     </div>
                   </div>
                 )}
-
-                {/* Live Audit Log Section at bottom of Project Process Workspace */}
-                <EmailActivityLogsSection />
-
               </div>
             )}
-
           </div>
         )}
 
