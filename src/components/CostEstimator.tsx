@@ -150,7 +150,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       carpetArea: serviceCategory === 'Residential' ? carpetArea : commCarpetArea,
       budgetRange: `₹ ${(calculation.totalCost / 100000).toFixed(2)} Lakhs`,
       preferredDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      requirements: `Instant Cost Estimate Request for ${serviceCategory} (${materialStandard} Standard). Total Estimated: ₹ ${calculation.totalCost.toLocaleString('en-IN')}${isEmiRequested ? ' | 0% EMI Plan Requested' : ''}`,
+      requirements: `Instant Cost Estimate Request for ${serviceCategory} (${materialStandard} Standard). Total Estimated: ₹ ${calculation.totalCost.toLocaleString('en-IN')}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
       estimatedCost: calculation.totalCost,
       isEmiRequested
     });
@@ -466,11 +466,11 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
               </div>
               <div className="space-y-0.5">
                 <div className="font-bold text-white flex items-center space-x-2">
-                  <span>0% Interest Easy EMI Available</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#D4AF37] text-black font-extrabold uppercase font-mono">No Extra Cost</span>
+                  <span>Easy EMI Financing Available</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#D4AF37] text-black font-extrabold uppercase font-mono">Up to 60 Months</span>
                 </div>
                 <div className="text-neutral-300 text-[11px]">
-                  Pay in flexible monthly installments up to 36 months through partner banking networks with 0% processing fee.
+                  Pay in flexible monthly installments up to 60 months through partner banking networks with minimal documentation.
                 </div>
               </div>
             </div>
@@ -521,7 +521,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   className="w-full px-3 py-2 rounded-lg bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
                 />
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <input 
                     type="email" 
                     placeholder="Email Address *" 
@@ -549,7 +549,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                     className="w-4 h-4 rounded accent-[#D4AF37] cursor-pointer" 
                   />
                   <span className="text-[11px] text-neutral-200 font-medium">
-                    I am interested in <strong className="text-[#D4AF37]">Easy 0% Interest EMI Financing</strong> for this project
+                    I am interested in <strong className="text-[#D4AF37]">Easy EMI Financing</strong> (Up to 60 Months) for this project
                   </span>
                 </label>
 

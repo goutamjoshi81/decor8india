@@ -36,6 +36,7 @@ import {
 import type { BranchOffice } from '../../types';
 
 import { InvoiceModal } from '../InvoiceModal';
+import { AnimatedTabs } from '../AnimatedTabs';
 
 interface AdminDashboardProps {
   onReturnToPublic: () => void;
@@ -915,11 +916,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex space-x-2 overflow-x-auto pb-2 border-b border-white/10">
-          {[
+        {/* Navigation Tabs with React Bits Physics & Spring Animations */}
+        <AnimatedTabs
+          tabs={[
             { id: 'analytics', label: 'Overview & KPIs', icon: LayoutDashboard },
-            { id: 'clients', label: `Client Approvals (${pendingApprovalsCount})`, icon: Users },
+            { id: 'clients', label: 'Client Approvals', icon: Users, badge: pendingApprovalsCount },
             { id: 'projects', label: 'Project Process & Live Feeds', icon: Building2 },
             { id: 'portfolio', label: 'Portfolio CMS', icon: ImageIcon },
             { id: 'services', label: 'Service & Pricing CMS', icon: DollarSign },
@@ -927,26 +928,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             { id: 'magazine', label: 'Magazine CMS', icon: BookOpen },
             { id: 'branches', label: 'Branch Offices CMS', icon: MapPin },
             { id: 'partners', label: 'Trusted Partners CMS', icon: ShieldCheck },
-            { id: 'careers', label: `Careers & Job Openings (${adminApplications.length})`, icon: Briefcase }
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  isActive 
-                    ? 'gold-gradient-bg text-black shadow-lg' 
-                    : 'bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+            { id: 'careers', label: 'Careers & Job Openings', icon: Briefcase, badge: adminApplications.length }
+          ]}
+          activeTab={activeTab}
+          onChange={(tabId) => setActiveTab(tabId as any)}
+          layoutId="activeAdminDashboardTab"
+          className="border-b border-white/10 pb-2"
+        />
 
         {/* TAB 1: ANALYTICS & KPIS */}
         {activeTab === 'analytics' && (

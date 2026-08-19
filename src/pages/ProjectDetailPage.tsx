@@ -4,15 +4,16 @@ import { useApp } from '../context/AppContext';
 import { 
   ArrowLeft, 
   MapPin, 
-  Maximize2, 
   Clock, 
   Calendar,
   Sparkles,
   ChevronRight,
   PhoneCall,
-  ImageIcon
+  ImageIcon,
+  Maximize2
 } from 'lucide-react';
 import { ContactSection } from '../components/ContactSection';
+import { LuxuryPhotoGallery } from '../components/LuxuryPhotoGallery';
 
 export const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +38,6 @@ export const ProjectDetailPage: React.FC = () => {
     );
   });
 
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
 
   if (!project) {
@@ -184,31 +184,13 @@ export const ProjectDetailPage: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="h-96 sm:h-[500px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
-                <img 
-                  src={galleryList[activeImageIndex]} 
-                  alt={project.title} 
-                  className="w-full h-full object-cover transition-all duration-500"
-                />
-              </div>
-
-              {galleryList.length > 1 && (
-                <div className="flex space-x-3 overflow-x-auto pb-2">
-                  {galleryList.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveImageIndex(idx)}
-                      className={`w-24 h-24 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
-                        activeImageIndex === idx ? 'border-[#D4AF37] scale-105' : 'border-transparent opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={img} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <LuxuryPhotoGallery
+              images={galleryList}
+              title={project.title}
+              subtitle="High-definition architectural photography and project capture"
+              mode="carousel"
+              showLightbox={true}
+            />
           )}
         </div>
 

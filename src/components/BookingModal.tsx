@@ -352,7 +352,7 @@ export const BookingModal: React.FC = () => {
                     className="w-4 h-4 rounded accent-[#D4AF37] cursor-pointer" 
                   />
                   <span className="text-xs text-white font-medium">
-                    Opt for <strong className="text-[#D4AF37]">Easy 0% Interest EMI Financing</strong> (Up to 36 Months)
+                    Opt for <strong className="text-[#D4AF37]">Easy EMI Financing</strong> (Up to 60 Months)
                   </span>
                 </label>
 

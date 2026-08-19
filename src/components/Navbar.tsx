@@ -8,7 +8,9 @@ import {
   PhoneCall, 
   ChevronRight,
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  Calculator,
+  Sparkles
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -17,12 +19,12 @@ export const Navbar: React.FC = () => {
     logout, 
     setIsBookingOpen, 
     setIsAuthOpen, 
-    setAuthMode,
-    setIsEstimatorOpen 
+    setAuthMode
   } = useApp();
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showEmiUnderDevModal, setShowEmiUnderDevModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -58,15 +60,18 @@ export const Navbar: React.FC = () => {
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
       {/* Top EMI Announcement Banner */}
-      <div className="bg-gradient-to-r from-[#1A1915] via-[#2A2312] to-[#1A1915] border-b border-[#D4AF37]/30 text-white text-[10px] sm:text-xs py-1.5 px-3 text-center flex items-center justify-center space-x-1.5 sm:space-x-2">
-        <span className="px-1.5 py-0.5 rounded bg-[#D4AF37] text-black font-extrabold uppercase text-[8px] sm:text-[9px] tracking-wider font-mono shrink-0">0% EMI</span>
-        <span className="font-medium text-neutral-200 truncate sm:whitespace-normal">Easy Monthly EMI Financing Available Up to 36 Months</span>
+      <div 
+        onClick={() => setShowEmiUnderDevModal(true)}
+        className="bg-gradient-to-r from-[#1A1915] via-[#2A2312] to-[#1A1915] border-b border-[#D4AF37]/30 text-white text-[10px] sm:text-xs py-1.5 px-3 text-center flex items-center justify-center space-x-1.5 sm:space-x-2 cursor-pointer group select-none"
+      >
+        <span className="px-1.5 py-0.5 rounded bg-[#D4AF37] text-black font-extrabold uppercase text-[8px] sm:text-[9px] tracking-wider font-mono shrink-0">EASY EMI</span>
+        <span className="font-medium text-neutral-200 truncate sm:whitespace-normal group-hover:text-white transition-colors">Easy Monthly EMI Financing Available Up to 60 Months</span>
         <button 
-          onClick={() => {
-            navigate('/estimator');
-            setIsEstimatorOpen(true);
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowEmiUnderDevModal(true);
           }}
-          className="hidden sm:inline-flex items-center space-x-1 text-[#D4AF37] font-bold hover:underline ml-2 shrink-0"
+          className="hidden sm:inline-flex items-center space-x-1 text-[#D4AF37] font-bold hover:underline ml-2 shrink-0 cursor-pointer"
         >
           <span>Calculate EMI</span>
           <ChevronRight className="w-3 h-3" />
@@ -258,6 +263,75 @@ export const Navbar: React.FC = () => {
         </div>
       )}
       </header>
+
+      {/* EMI Calculator Under Development Modal */}
+      {showEmiUnderDevModal && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setShowEmiUnderDevModal(false)}
+        >
+          <div 
+            className="relative w-full max-w-md p-6 sm:p-8 rounded-2xl glass-panel border border-[#D4AF37]/40 shadow-2xl shadow-black space-y-5 text-center overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Ambient Background Glow */}
+            <div className="absolute -top-12 -right-12 w-36 h-36 bg-[#D4AF37]/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-[#B8860B]/15 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowEmiUnderDevModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-all cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Icon & Badge */}
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4AF37]/25 to-[#B8860B]/10 border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37] shadow-inner">
+              <Calculator className="w-8 h-8 text-[#D4AF37]" />
+            </div>
+
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider font-mono">
+              <Sparkles className="w-3 h-3" />
+              <span>Feature Under Development</span>
+            </div>
+
+            {/* Content */}
+            <div className="space-y-2">
+              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
+                EMI Calculator <span className="gold-gradient-text">Under Development</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                Our automated real-time EMI & Bank Interest Calculator is currently being configured with partner banking networks (HDFC, ICICI, SBI).
+              </p>
+              <p className="text-xs text-neutral-400 font-mono">
+                Easy EMI plans up to <strong className="text-white">60 Months</strong> are available with personalized consultation.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2.5 pt-2">
+              <button
+                onClick={() => {
+                  setShowEmiUnderDevModal(false);
+                  setIsBookingOpen(true);
+                }}
+                className="w-full py-3 px-4 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity shadow-lg shadow-[#D4AF37]/20 flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <PhoneCall className="w-3.5 h-3.5" />
+                <span>Request Consultation for EMI</span>
+              </button>
+
+              <button
+                onClick={() => setShowEmiUnderDevModal(false)}
+                className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-neutral-300 hover:text-white transition-all cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

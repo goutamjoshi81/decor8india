@@ -17,6 +17,7 @@ import {
 
 import type { PaymentItem } from '../../types';
 import { InvoiceModal } from '../InvoiceModal';
+import { AnimatedTabs } from '../AnimatedTabs';
 
 interface ClientDashboardProps {
   onReturnToPublic: () => void;
@@ -160,34 +161,21 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
           </div>
         </div>
 
-        {/* Dashboard Navigation Tabs */}
-        <div className="flex space-x-2 overflow-x-auto pb-2 border-b border-white/10">
-          {[
+        {/* Dashboard Navigation Tabs with React Bits Physics & Spring Animations */}
+        <AnimatedTabs
+          tabs={[
             { id: 'overview', label: 'Dashboard Overview', icon: LayoutDashboard },
             { id: 'progress', label: 'Milestone Progress', icon: Clock },
-            { id: 'updates', label: 'Site Updates Feed', icon: ImageIcon },
-            { id: 'documents', label: 'Documents & Designs', icon: FileText },
+            { id: 'updates', label: 'Site Updates Feed', icon: ImageIcon, badge: clientProject.workUpdates.length },
+            { id: 'documents', label: 'Documents & Designs', icon: FileText, badge: clientProject.documents.length },
             { id: 'payments', label: 'Payment Ledger', icon: DollarSign },
             { id: 'profile', label: 'Account Profile', icon: UserCheck }
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  isActive 
-                    ? 'gold-gradient-bg text-black shadow-lg' 
-                    : 'bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+          ]}
+          activeTab={activeTab}
+          onChange={(tabId) => setActiveTab(tabId as any)}
+          layoutId="activeClientDashboardTab"
+          className="border-b border-white/10 pb-2"
+        />
 
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (

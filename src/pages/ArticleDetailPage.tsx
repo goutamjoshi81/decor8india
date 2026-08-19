@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { 
@@ -7,20 +7,15 @@ import {
   Share2, 
   BookOpen, 
   Calendar,
-  ChevronRight,
-  ChevronLeft,
-  Camera,
-  ZoomIn,
-  X
+  ChevronRight
 } from 'lucide-react';
 import { ContactSection } from '../components/ContactSection';
+import { LuxuryPhotoGallery } from '../components/LuxuryPhotoGallery';
 
 export const ArticleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { articles } = useApp();
-
-  const [selectedPhotoIdx, setSelectedPhotoIdx] = useState<number | null>(null);
 
   const decodedId = id ? decodeURIComponent(id).toLowerCase().trim() : '';
 
@@ -43,22 +38,6 @@ export const ArticleDetailPage: React.FC = () => {
       aId === cleanId
     );
   });
-
-  // Handle keyboard arrow & Escape key navigation for photo lightbox modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (selectedPhotoIdx === null || !article?.galleryImages) return;
-      if (e.key === 'Escape') setSelectedPhotoIdx(null);
-      if (e.key === 'ArrowRight') {
-        setSelectedPhotoIdx((prev) => (prev !== null && prev < article.galleryImages!.length - 1 ? prev + 1 : 0));
-      }
-      if (e.key === 'ArrowLeft') {
-        setSelectedPhotoIdx((prev) => (prev !== null && prev > 0 ? prev - 1 : article.galleryImages!.length - 1));
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedPhotoIdx, article]);
 
   if (!article) {
     return (
@@ -181,117 +160,17 @@ export const ArticleDetailPage: React.FC = () => {
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
 
-        {/* Article Photo Gallery Showcase with Hover Zoom & Popout Lightbox */}
+        {/* Article Photo Gallery Showcase with Luxury Animations & Lightbox */}
         {article.galleryImages && article.galleryImages.length > 0 && (
-          <div className="space-y-4 pt-8 border-t border-white/10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-xs font-semibold text-[#D4AF37] uppercase tracking-wider">
-                <Camera className="w-4 h-4" />
-                <span>Article Photo Gallery ({article.galleryImages.length} Photos)</span>
-              </div>
-              <span className="text-[11px] text-neutral-400 font-light">Click any photo to enlarge</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-              {article.galleryImages.map((photoUrl, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => setSelectedPhotoIdx(idx)}
-                  className="group relative h-60 rounded-2xl overflow-hidden border border-white/15 shadow-xl bg-black/60 cursor-pointer transition-all duration-500 hover:border-[#D4AF37] hover:shadow-2xl hover:shadow-[#D4AF37]/25 transform hover:-translate-y-1.5"
-                >
-                  {/* Photo with smooth zoom effect */}
-                  <img 
-                    src={photoUrl} 
-                    alt={`${article.title} - Photo ${idx + 1}`} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                  />
-                  
-                  {/* Dark gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300" />
-                  
-                  {/* Hover Badge with Zoom Icon */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                    <div className="w-12 h-12 rounded-full gold-gradient-bg flex items-center justify-center text-black shadow-lg mb-2 transform group-hover:scale-110 transition-transform duration-300">
-                      <ZoomIn className="w-6 h-6" />
-                    </div>
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">Enlarge Photo</span>
-                    <span className="text-[10px] text-neutral-300 mt-0.5">Visual Showcase #{idx + 1}</span>
-                  </div>
-
-                  {/* Corner Badge */}
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-[10px] font-semibold text-[#D4AF37] opacity-90 group-hover:opacity-0 transition-opacity">
-                    #{idx + 1}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Enlarge Image Lightbox Popout Modal */}
-        {selectedPhotoIdx !== null && article.galleryImages && article.galleryImages[selectedPhotoIdx] && (
-          <div 
-            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-300"
-            onClick={() => setSelectedPhotoIdx(null)}
-          >
-            {/* Close Button */}
-            <button 
-              onClick={(e) => { e.stopPropagation(); setSelectedPhotoIdx(null); }}
-              className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-red-500 text-white transition-all duration-300 z-50 cursor-pointer shadow-lg hover:scale-110"
-              title="Close (Esc)"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            {/* Previous Photo Button */}
-            {article.galleryImages.length > 1 && (
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPhotoIdx(prev => (prev !== null && prev > 0 ? prev - 1 : article.galleryImages!.length - 1));
-                }}
-                className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 p-3.5 rounded-full bg-white/10 hover:bg-[#D4AF37] text-white hover:text-black transition-all duration-300 z-50 cursor-pointer shadow-xl hover:scale-110"
-                title="Previous Photo (Left Arrow)"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            )}
-
-            {/* Next Photo Button */}
-            {article.galleryImages.length > 1 && (
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPhotoIdx(prev => (prev !== null && prev < article.galleryImages!.length - 1 ? prev + 1 : 0));
-                }}
-                className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 p-3.5 rounded-full bg-white/10 hover:bg-[#D4AF37] text-white hover:text-black transition-all duration-300 z-50 cursor-pointer shadow-xl hover:scale-110"
-                title="Next Photo (Right Arrow)"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            )}
-
-            {/* Modal Image Display Box */}
-            <div 
-              className="relative max-w-5xl max-h-[85vh] w-full flex flex-col items-center justify-center space-y-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="relative rounded-2xl overflow-hidden border border-[#D4AF37]/40 shadow-2xl bg-black flex items-center justify-center max-h-[75vh] max-w-full">
-                <img 
-                  src={article.galleryImages[selectedPhotoIdx]} 
-                  alt={`${article.title} - Enlarged Photo ${selectedPhotoIdx + 1}`} 
-                  className="max-h-[75vh] max-w-full object-contain rounded-2xl animate-in zoom-in-95 duration-300"
-                />
-              </div>
-
-              {/* Photo Title & Index Bar */}
-              <div className="flex items-center justify-between w-full max-w-2xl px-4 py-2 rounded-full glass-panel border border-white/15 text-xs text-neutral-300">
-                <span className="font-serif text-white truncate max-w-xs sm:max-w-md">{article.title}</span>
-                <span className="text-[#D4AF37] font-bold font-mono">
-                  Photo {selectedPhotoIdx + 1} of {article.galleryImages.length}
-                </span>
-              </div>
-            </div>
+          <div className="pt-8 border-t border-white/10">
+            <LuxuryPhotoGallery
+              images={article.galleryImages}
+              title={`Article Photo Gallery (${article.galleryImages.length} Photos)`}
+              subtitle="Click any photograph to open the high-definition visual inspection viewer"
+              mode="grid"
+              columns={3}
+              showLightbox={true}
+            />
           </div>
         )}
 

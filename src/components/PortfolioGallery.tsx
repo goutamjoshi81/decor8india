@@ -9,10 +9,10 @@ import {
   Calendar, 
   Star, 
   X, 
-  ChevronLeft,
-  ChevronRight,
-  Quote
+  Quote 
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { LuxuryPhotoGallery } from './LuxuryPhotoGallery';
 
 export const PortfolioGallery: React.FC = () => {
   const { projects } = useApp();
@@ -23,7 +23,6 @@ export const PortfolioGallery: React.FC = () => {
   
   // Before / After Slider Position (0 - 100%)
   const [beforeAfterPos, setBeforeAfterPos] = useState<number>(50);
-  const [activeGalleryIdx, setActiveGalleryIdx] = useState<number>(0);
 
   const completedProjects = projects.filter(p => 
     (p.status === 'Completed' || p.progressPercentage === 100 || p.currentStage === 'Handover Completed') &&
@@ -91,12 +90,26 @@ export const PortfolioGallery: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project) => (
-            <div 
+          <motion.div 
+            layout 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {filteredProjects.map((project, idx) => (
+            <motion.div 
               key={project.id}
+              layout
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ 
+                duration: 0.35, 
+                delay: Math.min(idx * 0.04, 0.3),
+                ease: [0.16, 1, 0.3, 1] 
+              }}
+              whileHover={{ y: -6 }}
               onClick={() => navigate(`/portfolio/${project.id}`)}
-              className="group glass-card-interactive rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between transition-transform duration-300 ease-out"
+              className="group glass-card-interactive rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between transition-shadow duration-300 ease-out shadow-xl hover:shadow-2xl hover:shadow-[#D4AF37]/15"
+              style={{ willChange: 'transform' }}
             >
               <div>
                 {/* Cover Image */}
@@ -178,7 +191,6 @@ export const PortfolioGallery: React.FC = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedProject(project);
-                      setActiveGalleryIdx(0);
                       setBeforeAfterPos(50);
                     }}
                     className="w-1/2 py-2.5 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-300 font-bold text-xs uppercase tracking-wider text-center transition-all"
@@ -187,9 +199,9 @@ export const PortfolioGallery: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
         )}
 
       </div>
@@ -301,52 +313,13 @@ export const PortfolioGallery: React.FC = () => {
                 : [selectedProject.coverImage].filter(Boolean);
 
               return (
-                <div className="space-y-4">
-                  <div className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Project Photography Gallery</div>
-                  <div className="relative h-96 rounded-2xl overflow-hidden border border-white/10">
-                    <img 
-                      src={galleryImages[activeGalleryIdx] || selectedProject.coverImage} 
-                      alt="Gallery View" 
-                      className="w-full h-full object-cover"
-                    />
-
-                    {/* Nav Buttons */}
-                    {galleryImages.length > 1 && (
-                      <>
-                        <button 
-                          onClick={() => setActiveGalleryIdx(prev => (prev > 0 ? prev - 1 : galleryImages.length - 1))}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-white hover:text-[#D4AF37]"
-                        >
-                          <ChevronLeft className="w-6 h-6" />
-                        </button>
-
-                        <button 
-                          onClick={() => setActiveGalleryIdx(prev => (prev < galleryImages.length - 1 ? prev + 1 : 0))}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-white hover:text-[#D4AF37]"
-                        >
-                          <ChevronRight className="w-6 h-6" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Gallery Thumbnails */}
-                  {galleryImages.length > 1 && (
-                    <div className="flex space-x-3 overflow-x-auto pb-2">
-                      {galleryImages.map((img, idx) => (
-                        <img 
-                          key={idx}
-                          src={img}
-                          alt="Thumb"
-                          onClick={() => setActiveGalleryIdx(idx)}
-                          className={`w-20 h-16 object-cover rounded-lg cursor-pointer border-2 transition-all ${
-                            activeGalleryIdx === idx ? 'border-[#D4AF37] scale-105' : 'border-transparent opacity-60 hover:opacity-100'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <LuxuryPhotoGallery
+                  images={galleryImages}
+                  title={`${selectedProject.title} - Photography`}
+                  subtitle="Architectural and interior space capture"
+                  mode="carousel"
+                  showLightbox={true}
+                />
               );
             })()}
 
