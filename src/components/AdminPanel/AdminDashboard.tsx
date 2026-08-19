@@ -45,6 +45,89 @@ interface AdminDashboardProps {
   onReturnToPublic: () => void;
 }
 
+const EmailActivityLogsSection: React.FC = () => {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchLogs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/get_email_logs.php');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.logs)) {
+        setLogs(data.logs);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
+
+  return (
+    <div className="p-6 sm:p-8 rounded-2xl glass-panel border border-[#D4AF37]/30 space-y-6 mt-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center space-x-2 text-xs font-mono font-bold text-[#D4AF37]">
+            <Mail className="w-4 h-4 text-[#D4AF37]" />
+            <span>AUTOMATED EMAIL DISPATCH AUDIT LOGS</span>
+          </div>
+          <h3 className="font-serif text-xl font-bold text-white mt-1">Sent Email Activity & Delivery Status Logs</h3>
+          <p className="text-xs text-neutral-400">Real-time delivery status of automated site updates, milestone progress emails, and invoice alerts.</p>
+        </div>
+
+        <button
+          onClick={fetchLogs}
+          disabled={loading}
+          className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-[#D4AF37] text-neutral-300 hover:text-black font-bold text-xs transition-colors flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+        >
+          <Sparkles className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <span>{loading ? 'Refreshing...' : 'Refresh Logs'}</span>
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {logs.length === 0 ? (
+          <div className="p-6 rounded-xl bg-black/40 border border-white/10 text-center text-xs text-neutral-400 italic">
+            No email activity logs recorded yet. Send a test email or update a project to record logs.
+          </div>
+        ) : (
+          logs.map((log, index) => {
+            const isSuccess = log.status === 'SUCCESS';
+            return (
+              <div key={log.id || index} className="p-4 rounded-xl glass-card border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] uppercase ${
+                      isSuccess ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    }`}>
+                      {isSuccess ? '🟢 DELIVERED' : '🔴 FAILED'}
+                    </span>
+                    <span className="font-bold text-white text-xs">{log.subject}</span>
+                  </div>
+                  <div className="text-[11px] text-neutral-400 flex items-center space-x-3 font-mono">
+                    <span>To: <strong className="text-neutral-200">{log.recipient}</strong> {log.recipient_name ? `(${log.recipient_name})` : ''}</span>
+                    <span>•</span>
+                    <span>Method: <strong className="text-[#D4AF37]">{log.method || 'SMTP'}</strong></span>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0 font-mono text-[11px] text-neutral-400">
+                  <div>{log.created_at}</div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic }) => {
   const { 
     currentUser, 
@@ -1945,6 +2028,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   </div>
                 )}
 
+                {/* Live Audit Log Section at bottom of Project Process Workspace */}
+                <EmailActivityLogsSection />
+
               </div>
             )}
 
@@ -2144,6 +2230,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                 </button>
               </form>
             </div>
+
+            {/* Sent Email Audit Trail Logs */}
+            <EmailActivityLogsSection />
           </div>
         )}
 

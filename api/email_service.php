@@ -168,13 +168,15 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
     }
 
     if ($smtpSuccess) {
-        return [
+        $res = [
             "success" => true,
             "method" => "SMTP",
             "message" => "Email sent successfully via authenticated SMTP.",
             "recipient" => $toEmail,
             "smtp_log" => $smtpLog
         ];
+        logEmailDelivery($toEmail, $toName, $subject, "SMTP", true, $res['message']);
+        return $res;
     }
 
     // High-Deliverability Native mail() with clean HTML headers (Eliminates noname attachment)
@@ -193,12 +195,66 @@ function sendSmtpEmail($toEmail, $toName, $subject, $htmlBody, $textBody = '') {
     $additionalParams = "-f" . escapeshellarg($fromEmail);
     $mailResult = @mail($toEmail, $subject, $htmlBody, $nativeHeaders, $additionalParams);
 
-    return [
-        "success" => $mailResult,
+    $res = [
+        "success" => (bool)$mailResult,
         "method" => $mailResult ? "PHP_MAIL_AUTHENTICATED" : "FAILED",
         "message" => $mailResult ? "Sent via cPanel authenticated mail transport." : "Failed to deliver via SMTP and mail().",
         "smtp_log" => $smtpLog
     ];
+    logEmailDelivery($toEmail, $toName, $subject, $mailResult ? "PHP_MAIL" : "FAILED", (bool)$mailResult, $res['message']);
+    return $res;
+}
+
+/**
+ * Log Sent Email to Database & Fallback JSON file
+ */
+function logEmailDelivery($toEmail, $toName, $subject, $method, $success, $details = '') {
+    $status = $success ? 'SUCCESS' : 'FAILED';
+    $timestamp = date('Y-m-d H:i:s');
+    
+    // 1. Try MySQL Insert
+    try {
+        require_once __DIR__ . '/db_config.php';
+        $pdo = getDbConnection();
+        if ($pdo) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `email_logs` (
+              `id` INT AUTO_INCREMENT PRIMARY KEY,
+              `recipient` VARCHAR(150) NOT NULL,
+              `recipient_name` VARCHAR(150) DEFAULT NULL,
+              `subject` VARCHAR(255) NOT NULL,
+              `method` VARCHAR(50) NOT NULL DEFAULT 'SMTP',
+              `status` VARCHAR(20) NOT NULL DEFAULT 'SUCCESS',
+              `details` TEXT DEFAULT NULL,
+              `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            $stmt = $pdo->prepare("INSERT INTO email_logs (recipient, recipient_name, subject, method, status, details) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$toEmail, $toName, $subject, $method, $status, is_string($details) ? $details : json_encode($details)]);
+        }
+    } catch (\Throwable $ex) {}
+
+    // 2. Fallback JSON File Log
+    try {
+        $logFile = __DIR__ . '/email_logs.json';
+        $logs = [];
+        if (file_exists($logFile)) {
+            $content = file_get_contents($logFile);
+            $logs = json_decode($content, true) ?: [];
+        }
+        array_unshift($logs, [
+            'id' => 'log-' . time() . '-' . rand(100, 999),
+            'recipient' => $toEmail,
+            'recipient_name' => $toName,
+            'subject' => $subject,
+            'method' => $method,
+            'status' => $status,
+            'details' => is_string($details) ? $details : json_encode($details),
+            'created_at' => $timestamp
+        ]);
+        // Keep last 100 logs
+        $logs = array_slice($logs, 0, 100);
+        @file_put_contents($logFile, json_encode($logs, JSON_PRETTY_PRINT));
+    } catch (\Throwable $ex) {}
 }
 
 /**
