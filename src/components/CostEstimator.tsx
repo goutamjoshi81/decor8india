@@ -53,17 +53,9 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return activeCategoryServices.find(s => s.id === selectedServiceId) || activeCategoryServices[0];
   }, [activeCategoryServices, selectedServiceId]);
 
-  // Residential State (Default sliders start at minimum)
-  const [propertyType, setPropertyType] = useState<'Apartment' | 'Villa' | 'Penthouse' | 'Duplex'>('Apartment');
-  const [bhkSize, setBhkSize] = useState<'1 BHK' | '2 BHK' | '3 BHK' | '4 BHK' | 'Grand Villa'>('1 BHK');
+  // Sliders State (Defaults strictly set to the start / minimum value)
   const [carpetArea, setCarpetArea] = useState<number>(250);
-
-  // Commercial State (Default slider starts at minimum 500)
-  const [commercialType, setCommercialType] = useState<'Office' | 'Retail' | 'Restaurant' | 'Hotel' | 'Clinic' | 'Showroom'>('Office');
   const [commCarpetArea, setCommCarpetArea] = useState<number>(500);
-
-  // Construction State (Default slider starts at minimum 1000)
-  const [constructionType, setConstructionType] = useState<'Turnkey Villa' | 'Commercial Structure' | 'Floor Extension'>('Turnkey Villa');
   const [constPlotArea, setConstPlotArea] = useState<number>(1000);
 
   // Lead Submission State & EMI Option
@@ -80,7 +72,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return MATERIAL_STANDARDS.find(m => m.id === materialStandard) || MATERIAL_STANDARDS[0];
   }, [materialStandard, serviceCategory]);
 
-  // Standard Multiplier for Eco (0.85), Urban (1.00), Luxe (1.25)
+  // Standard Multiplier: Eco (0.85), Urban (1.00), Luxe (1.25)
   const standardMultiplier = useMemo(() => {
     return materialStandard === 'Eco' ? 0.85 : materialStandard === 'Urban' ? 1.0 : 1.25;
   }, [materialStandard]);
@@ -117,7 +109,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return 0;
   }, [selectedService, hasDbDiscount]);
 
-  // Calculation Logic synchronized with DB prices and discounts
+  // Dynamic Calculation Logic based directly on selected DB service package, standard, and slider area
   const calculation = useMemo(() => {
     const rate = currentRatePerSqFt;
     const discountMultiplier = hasDbDiscount && selectedService?.discountPrice 
@@ -128,40 +120,13 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     let estDays = 45;
 
     if (serviceCategory === 'Residential') {
-      let baseRatePerSqFt = rate;
-
-      if (bhkSize === '1 BHK') baseRatePerSqFt *= 0.95;
-      if (bhkSize === '2 BHK') baseRatePerSqFt *= 1.0;
-      if (bhkSize === '3 BHK') baseRatePerSqFt *= 1.08;
-      if (bhkSize === '4 BHK') baseRatePerSqFt *= 1.15;
-      if (bhkSize === 'Grand Villa') baseRatePerSqFt *= 1.25;
-
-      let propMultiplier = 1.0;
-      if (propertyType === 'Villa') propMultiplier = 1.1;
-      if (propertyType === 'Penthouse') propMultiplier = 1.18;
-      if (propertyType === 'Duplex') propMultiplier = 1.12;
-
-      originalTotal = Math.round(carpetArea * baseRatePerSqFt * propMultiplier);
+      originalTotal = Math.round(carpetArea * rate);
       estDays = Math.max(30, Math.round(carpetArea / 40) + (materialStandard === 'Luxe' ? 20 : 10));
     } else if (serviceCategory === 'Commercial') {
-      let baseRate = rate;
-      if (commercialType === 'Office') baseRate *= 1.0;
-      if (commercialType === 'Retail') baseRate *= 1.08;
-      if (commercialType === 'Restaurant') baseRate *= 1.2;
-      if (commercialType === 'Hotel') baseRate *= 1.3;
-      if (commercialType === 'Clinic') baseRate *= 1.05;
-      if (commercialType === 'Showroom') baseRate *= 1.15;
-
-      originalTotal = Math.round(commCarpetArea * baseRate);
+      originalTotal = Math.round(commCarpetArea * rate);
       estDays = Math.max(35, Math.round(commCarpetArea / 60) + 15);
     } else {
-      // Construction Category
-      let constRate = rate;
-      if (constructionType === 'Turnkey Villa') constRate *= 1.0;
-      if (constructionType === 'Commercial Structure') constRate *= 1.15;
-      if (constructionType === 'Floor Extension') constRate *= 0.9;
-
-      originalTotal = Math.round(constPlotArea * constRate);
+      originalTotal = Math.round(constPlotArea * rate);
       estDays = Math.max(90, Math.round(constPlotArea / 25) + 30);
     }
 
@@ -182,12 +147,8 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
   }, [
     serviceCategory, 
     currentRatePerSqFt, 
-    bhkSize, 
-    propertyType, 
     carpetArea, 
-    commercialType, 
     commCarpetArea, 
-    constructionType, 
     constPlotArea, 
     materialStandard,
     hasDbDiscount,
@@ -203,6 +164,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     }
 
     const serviceTitle = selectedService ? selectedService.title : `${serviceCategory} Package`;
+    const selectedArea = serviceCategory === 'Residential' ? carpetArea : serviceCategory === 'Commercial' ? commCarpetArea : constPlotArea;
 
     submitBooking({
       clientName,
@@ -210,18 +172,19 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       clientPhone,
       serviceType: serviceCategory,
       packageName: `${serviceTitle} (${materialStandard} Standard)`,
-      propertyType: serviceCategory === 'Residential' ? propertyType : commercialType,
-      bhkSize: serviceCategory === 'Residential' ? bhkSize : undefined,
-      carpetArea: serviceCategory === 'Residential' ? carpetArea : serviceCategory === 'Commercial' ? commCarpetArea : constPlotArea,
+      propertyType: serviceCategory,
+      carpetArea: selectedArea,
       budgetRange: `₹ ${(calculation.totalCost / 100000).toFixed(2)} Lakhs`,
       preferredDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      requirements: `Calculated Estimate from Live DB Services. Selected: ${serviceTitle} | Grade: ${materialStandard} Standard (₹ ${currentRatePerSqFt}/sq.ft)${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
+      requirements: `Calculated Estimate from Live DB Services. Selected Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard (₹ ${currentRatePerSqFt}/sq.ft) | Area: ${selectedArea.toLocaleString()} Sq. Ft.${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
       estimatedCost: calculation.totalCost,
       isEmiRequested
     });
 
     setIsSubmitted(true);
   };
+
+  const standardLabel = materialStandard === 'Eco' ? 'Eco' : materialStandard === 'Urban' ? 'Urban' : 'Luxe';
 
   const Content = (
     <div className="space-y-8">
@@ -279,13 +242,13 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
             </button>
           </div>
 
-          {/* Database Service Package Selector */}
+          {/* Database Service Package Selector - Prices dynamically update with selected material standard */}
           {activeCategoryServices.length > 0 && (
             <div className="space-y-2.5 p-3.5 rounded-xl bg-black/40 border border-white/10">
               <div className="flex items-center justify-between">
                 <label className="text-[11px] sm:text-xs font-bold text-[#D4AF37] uppercase tracking-wider flex items-center space-x-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Choose Database Service Package</span>
+                  <span>Choose Service Package</span>
                 </label>
                 <span className="text-[10px] text-neutral-400 font-mono">
                   {activeCategoryServices.length} {serviceCategory} Packages
@@ -296,7 +259,10 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                 {activeCategoryServices.map((srv) => {
                   const isSelected = (selectedService?.id === srv.id);
                   const hasDiscount = Boolean(srv.discountPrice && srv.discountPrice > 0 && srv.discountPrice < srv.startingPrice);
-                  const effectiveEcoPrice = (hasDiscount ? srv.discountPrice! : srv.startingPrice) * 0.85;
+                  
+                  // Dynamic price calculated according to the currently selected materialStandard
+                  const effectiveOriginalPrice = srv.startingPrice * standardMultiplier;
+                  const effectiveDiscountedPrice = (hasDiscount ? srv.discountPrice! : srv.startingPrice) * standardMultiplier;
                   const discountPct = srv.discountPercentage || (hasDiscount ? Math.round(((srv.startingPrice - srv.discountPrice!) / srv.startingPrice) * 100) : 0);
 
                   return (
@@ -320,15 +286,15 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                       </div>
 
                       <div className="flex items-baseline justify-between mt-2 pt-1.5 border-t border-white/10">
-                        <span className="text-[9px] text-neutral-400 font-mono">From (Eco):</span>
+                        <span className="text-[9px] text-neutral-400 font-mono">From ({standardLabel}):</span>
                         <div className="flex items-baseline space-x-1.5">
                           {hasDiscount && (
                             <span className="text-[9px] text-neutral-500 line-through font-mono">
-                              ₹ {((srv.startingPrice * 0.85) / 100000).toFixed(2)}L
+                              ₹ {(effectiveOriginalPrice / 100000).toFixed(2)}L
                             </span>
                           )}
                           <span className="text-xs font-bold font-serif text-[#D4AF37]">
-                            ₹ {(effectiveEcoPrice / 100000).toFixed(2)} Lakhs
+                            ₹ {(effectiveDiscountedPrice / 100000).toFixed(2)} Lakhs
                           </span>
                         </div>
                       </div>
@@ -409,56 +375,14 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
             </div>
           </div>
 
-          {serviceCategory === 'Residential' ? (
-            /* Residential Inputs */
-            <div className="space-y-6">
-              
-              {/* BHK Size */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">1. Property BHK Size</label>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                  {(['1 BHK', '2 BHK', '3 BHK', '4 BHK', 'Grand Villa'] as const).map(bhk => (
-                    <button
-                      key={bhk}
-                      type="button"
-                      onClick={() => setBhkSize(bhk)}
-                      className={`py-2 px-1 rounded-lg text-xs font-semibold border transition-all ${
-                        bhkSize === bhk 
-                          ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#D4AF37]' 
-                          : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
-                      }`}
-                    >
-                      {bhk}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Property Type */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">2. Property Architecture</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {(['Apartment', 'Villa', 'Penthouse', 'Duplex'] as const).map(type => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setPropertyType(type)}
-                      className={`py-2 px-3 rounded-lg text-xs font-semibold border transition-all ${
-                        propertyType === type 
-                          ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#D4AF37]' 
-                          : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Carpet Area Slider */}
+          {/* Area Slider (Default set to start value) */}
+          <div className="space-y-6">
+            {serviceCategory === 'Residential' ? (
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">3. Residential Carpet Area (250 – 10,000 Sq. Ft.)</span>
+                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">
+                    Residential Carpet Area (250 – 10,000 Sq. Ft.)
+                  </span>
                   <span className="text-[#D4AF37] font-bold text-sm">{carpetArea.toLocaleString()} Sq. Ft.</span>
                 </div>
                 <input 
@@ -476,36 +400,12 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   <span>10,000 Sq. Ft.</span>
                 </div>
               </div>
-            </div>
-          ) : serviceCategory === 'Commercial' ? (
-            /* Commercial Inputs */
-            <div className="space-y-6">
-              
-              {/* Commercial Space Type */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">1. Commercial Category</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {(['Office', 'Retail', 'Restaurant', 'Hotel', 'Clinic', 'Showroom'] as const).map(type => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setCommercialType(type)}
-                      className={`py-2.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
-                        commercialType === type 
-                          ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#D4AF37]' 
-                          : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Commercial Carpet Area */}
+            ) : serviceCategory === 'Commercial' ? (
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">2. Commercial Carpet Area (500 – 20,000 Sq. Ft.)</span>
+                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">
+                    Commercial Carpet Area (500 – 20,000 Sq. Ft.)
+                  </span>
                   <span className="text-[#D4AF37] font-bold text-sm">{commCarpetArea.toLocaleString()} Sq. Ft.</span>
                 </div>
                 <input 
@@ -523,37 +423,12 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   <span>20,000 Sq. Ft.</span>
                 </div>
               </div>
-
-            </div>
-          ) : (
-            /* Construction Inputs */
-            <div className="space-y-6">
-              
-              {/* Construction Scope */}
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">1. Construction Project Type</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {(['Turnkey Villa', 'Commercial Structure', 'Floor Extension'] as const).map(type => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setConstructionType(type)}
-                      className={`py-2.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
-                        constructionType === type 
-                          ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-[#D4AF37]' 
-                          : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Plot / Built-Up Area */}
+            ) : (
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">2. Construction Carpet / Built-Up Area (1,000 – 30,000 Sq. Ft.)</span>
+                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">
+                    Construction Carpet / Built-Up Area (1,000 – 30,000 Sq. Ft.)
+                  </span>
                   <span className="text-[#D4AF37] font-bold text-sm">{constPlotArea.toLocaleString()} Sq. Ft.</span>
                 </div>
                 <input 
@@ -571,9 +446,8 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   <span>30,000 Sq. Ft.</span>
                 </div>
               </div>
-
-            </div>
-          )}
+            )}
+          </div>
 
         </div>
 
@@ -610,7 +484,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
 
                 {selectedService && (
                   <div className="text-[11px] text-[#D4AF37] font-medium truncate pt-1">
-                    Selected Package: <strong className="text-white">{selectedService.title}</strong>
+                    Selected Package: <strong className="text-white">{selectedService.title}</strong> ({materialStandard} Standard)
                   </div>
                 )}
               </div>
