@@ -536,6 +536,14 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                 <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
                   <span className="flex items-center space-x-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>Free Technical Site Visit & Consultation</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                  <span className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <span>3D Architectural Design & Virtual Walkthrough</span>
                   </span>
                   <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
@@ -552,14 +560,6 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                 <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
                   <span className="flex items-center space-x-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Designer False Ceiling & Ambient Lighting</span>
-                  </span>
-                  <span className="text-[10px] text-[#D4AF37] font-mono font-semibold">Included</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
-                  <span className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <span>Dedicated Project Manager & On-Site Audits</span>
                   </span>
                   <span className="text-[10px] text-emerald-400 font-mono font-semibold">Included</span>
@@ -568,9 +568,17 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                 <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
                   <span className="flex items-center space-x-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>10-Year Warranty & Zero Hidden Cost Guarantee</span>
+                    <span>1 Year Free Service & Maintenance Support</span>
                   </span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">Assured</span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                  <span className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>15-Year Warranty & Zero Hidden Cost Guarantee</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">15 Years Assured</span>
                 </div>
               </div>
             </div>
