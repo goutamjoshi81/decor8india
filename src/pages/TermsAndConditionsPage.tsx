@@ -277,10 +277,10 @@ export const TermsAndConditionsPage: React.FC = () => {
               <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-2">
                 <div className="font-bold text-white uppercase tracking-wider font-mono flex items-center space-x-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>2.1 Indicative Preliminary Estimates</span>
+                  <span>2.1 Primary Estimation & Variation Notice</span>
                 </div>
                 <p>
-                  All estimates generated via the online Cost Estimator, area sliders, and package selectors represent preliminary budget projections. They are calculated dynamically using active database service standards (Eco: 0.85x, Urban: 1.00x, Luxe: 1.25x) and nominal area ratios.
+                  Cost Estimator terms and conditions: It is strictly a primary estimation. All figures, price ranges, and turnkey timelines generated via the calculator represent preliminary budget projections for initial planning. After direct consultation, architectural discussions, detailed site measurements, and scope finalization, final project prices may vary.
                 </p>
               </div>
 

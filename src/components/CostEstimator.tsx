@@ -491,15 +491,15 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
               </div>
 
               {/* Terms & Conditions Applied Footnote */}
-              <div className="text-[10px] text-neutral-400 italic pt-1.5 border-t border-white/10 flex items-center space-x-1">
-                <span>* Indicative budget estimate.</span>
+              <div className="text-[10px] text-neutral-400 italic pt-1.5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <span>* This is just a primary estimation. After consultation and site inspection, prices may vary.</span>
                 <a 
                   href="/terms-and-conditions" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="underline text-neutral-300 hover:text-[#D4AF37] transition-colors inline-flex items-center space-x-0.5 ml-1 font-medium"
+                  className="underline text-neutral-300 hover:text-[#D4AF37] transition-colors inline-flex items-center space-x-0.5 font-medium shrink-0"
                 >
-                  <span>Terms & conditions applied</span>
+                  <span>Terms & conditions apply</span>
                   <ExternalLink className="w-2.5 h-2.5 inline ml-0.5" />
                 </a>
               </div>
@@ -633,7 +633,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
 
                 {/* Terms & Conditions Notice Mention above Submit Button */}
                 <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[10.5px] text-amber-300/90 leading-snug">
-                  <span className="font-bold text-amber-300">ℹ️ Notice:</span> Please read our{' '}
+                  <span className="font-bold text-amber-300">ℹ️ Important Notice:</span> This is just a primary estimation. After consultation, site measurements, and scope finalization, prices may vary. Please read our{' '}
                   <a 
                     href="/terms-and-conditions" 
                     target="_blank" 
@@ -643,7 +643,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                     <span>Terms & Conditions</span>
                     <ExternalLink className="w-2.5 h-2.5 inline ml-0.5" />
                   </a>{' '}
-                  properly before submitting. Final scope and bill of quantities (BOQ) are subject to actual on-site technical inspection.
+                  properly before submitting.
                 </div>
 
                 <button 
