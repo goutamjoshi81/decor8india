@@ -199,11 +199,12 @@ export const ServicesSection: React.FC = () => {
                     <div className="p-6 pt-0 space-y-4">
                       <div className="pt-4 border-t border-white/10 flex items-baseline justify-between">
                         <div>
-                          <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Starting From</span>
+                          <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Starting From (Eco)</span>
                           <span className="text-xl font-bold font-serif text-[#D4AF37]">
-                            ₹ {(service.startingPrice / 100000).toFixed(2)} Lakhs
+                            ₹ {((service.startingPrice * 0.85) / 100000).toFixed(2)} Lakhs
                           </span>
                         </div>
+
                         
                         <button
                           onClick={(e) => {

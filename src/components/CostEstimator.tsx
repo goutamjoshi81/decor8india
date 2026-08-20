@@ -24,21 +24,22 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
 
   const [serviceCategory, setServiceCategory] = useState<'Residential' | 'Commercial' | 'Construction'>('Residential');
   
-  // Material & Hardware Standard Tier
-  const [materialStandard, setMaterialStandard] = useState<'Eco' | 'Urban' | 'Luxe'>('Urban');
+  // Material & Hardware Standard Tier (Default: Eco Essential)
+  const [materialStandard, setMaterialStandard] = useState<'Eco' | 'Urban' | 'Luxe'>('Eco');
 
-  // Residential State
+  // Residential State (Default sliders start at minimum)
   const [propertyType, setPropertyType] = useState<'Apartment' | 'Villa' | 'Penthouse' | 'Duplex'>('Apartment');
-  const [bhkSize, setBhkSize] = useState<'1 BHK' | '2 BHK' | '3 BHK' | '4 BHK' | 'Grand Villa'>('3 BHK');
-  const [carpetArea, setCarpetArea] = useState<number>(1600);
+  const [bhkSize, setBhkSize] = useState<'1 BHK' | '2 BHK' | '3 BHK' | '4 BHK' | 'Grand Villa'>('1 BHK');
+  const [carpetArea, setCarpetArea] = useState<number>(250);
 
-  // Commercial State
+  // Commercial State (Default slider starts at minimum 500)
   const [commercialType, setCommercialType] = useState<'Office' | 'Retail' | 'Restaurant' | 'Hotel' | 'Clinic' | 'Showroom'>('Office');
-  const [commCarpetArea, setCommCarpetArea] = useState<number>(3500);
+  const [commCarpetArea, setCommCarpetArea] = useState<number>(500);
 
-  // Construction State
+  // Construction State (Default slider starts at minimum 1000)
   const [constructionType, setConstructionType] = useState<'Turnkey Villa' | 'Commercial Structure' | 'Floor Extension'>('Turnkey Villa');
-  const [constPlotArea, setConstPlotArea] = useState<number>(2400);
+  const [constPlotArea, setConstPlotArea] = useState<number>(1000);
+
 
   // Lead Submission State & EMI Option
   const [clientName, setClientName] = useState('');

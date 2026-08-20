@@ -34,7 +34,7 @@ export const ServiceDetailPage: React.FC = () => {
     );
   });
 
-  const [selectedStandard, setSelectedStandard] = useState<'Eco' | 'Urban' | 'Luxe'>('Luxe');
+  const [selectedStandard, setSelectedStandard] = useState<'Eco' | 'Urban' | 'Luxe'>('Eco');
 
   if (!service) {
     return (

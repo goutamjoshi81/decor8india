@@ -343,8 +343,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [selectedProjectId, setSelectedProjectId] = useState<string>(projects[0]?.id || '');
   const [projectSubTab, setProjectSubTab] = useState<'stage' | 'updates' | 'documents' | 'payments'>('stage');
 
-  // Stage progress state
-  const [stageProgressInput, setStageProgressInput] = useState<number>(65);
+  // Stage progress state (starts at 0 by default)
+  const [stageProgressInput, setStageProgressInput] = useState<number>(0);
+
 
   // Site Update Feed State
   const [feedTitle, setFeedTitle] = useState('');
