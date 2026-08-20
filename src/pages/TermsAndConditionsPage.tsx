@@ -361,7 +361,7 @@ export const TermsAndConditionsPage: React.FC = () => {
                   <span>3.3 Invoicing & GST Records</span>
                 </div>
                 <p className="text-neutral-300 font-light">
-                  All digital tax invoices generated with serial reference <span className="font-mono text-[#D4AF37] font-bold">INV-D8I-XXXXXX</span> comply with applicable GST frameworks. Receipts are digitally stored and downloadable from your client dashboard.
+                  Any digital invoice, receipt, or payment voucher generated automatically by the website or Client Portal serves strictly as a temporary payment proof and acknowledgement for the client. The official, statutory GST tax invoice will be prepared, finalized, and uploaded to the Client Portal by the admin upon successful completion and final handover of the project.
                 </p>
               </div>
             </div>
