@@ -305,7 +305,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
             </div>
           )}
 
-          {/* Material & Hardware Standard Selector (Eco / Urban / Luxe) */}
+          {/* Material & Hardware Standard Selector (Eco / Urban / Luxe) - Cleaned of per sq ft labels */}
           <div className="space-y-3 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10">
             <div className="flex items-center justify-between">
               <label className="text-[11px] sm:text-xs font-bold text-[#D4AF37] uppercase tracking-wider block">
@@ -316,27 +316,19 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
 
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {MATERIAL_STANDARDS.map((std) => {
-                const mult = std.id === 'Eco' ? 0.85 : std.id === 'Urban' ? 1.0 : 1.25;
-                const dynamicRate = Math.round(baseRateFromDb * mult);
-
                 return (
                   <button
                     key={std.id}
                     type="button"
                     onClick={() => setMaterialStandard(std.id)}
-                    className={`p-2 sm:p-3 rounded-xl text-center border transition-all flex flex-col justify-between ${
+                    className={`p-2.5 sm:p-3.5 rounded-xl text-center border transition-all flex flex-col items-center justify-center space-y-1 ${
                       materialStandard === std.id 
                         ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg ring-1 ring-[#D4AF37]/50' 
                         : 'bg-black/40 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
                     }`}
                   >
-                    <div>
-                      <div className="text-[10px] sm:text-xs font-bold text-white leading-tight">{std.badge}</div>
-                      <div className="text-[9px] sm:text-[10px] text-[#D4AF37] font-mono mt-0.5 font-bold whitespace-nowrap">
-                        ₹ {dynamicRate}/sq.ft
-                      </div>
-                    </div>
-                    <div className="text-[8px] sm:text-[9px] text-neutral-400 mt-1 line-clamp-1">{std.title}</div>
+                    <div className="text-[11px] sm:text-xs font-bold text-white leading-tight">{std.badge}</div>
+                    <div className="text-[9px] sm:text-[10px] text-neutral-400 line-clamp-1">{std.title}</div>
                   </button>
                 );
               })}
@@ -349,8 +341,8 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate text-[11px] sm:text-xs">{selectedStandardDetail.badge} — Specifications</span>
                 </div>
-                <span className="font-mono text-[10px] sm:text-[11px] text-white font-bold bg-[#D4AF37]/20 px-2 py-0.5 rounded border border-[#D4AF37]/40 shrink-0 self-start sm:self-auto">
-                  ₹ {currentRatePerSqFt} / sq. ft. ({serviceCategory})
+                <span className="font-mono text-[10px] sm:text-[11px] text-neutral-300 font-medium bg-white/5 px-2 py-0.5 rounded border border-white/10 shrink-0 self-start sm:self-auto">
+                  {selectedStandardDetail.title}
                 </span>
               </div>
               {serviceCategory === 'Construction' ? (
@@ -473,7 +465,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
               <div className="space-y-0.5">
                 <div className="flex items-baseline space-x-3">
                   <div className="text-4xl sm:text-5xl font-serif font-bold text-emerald-400">
-                    ₹ {(calculation.totalCost / 100000).toFixed(2)} <span className="text-2xl font-serif text-[#D4AF37]">Lakhs</span>
+                    ₹ {(calculation.totalCost / 100000).toFixed(2)}* <span className="text-2xl font-serif text-[#D4AF37]">Lakhs</span>
                   </div>
                   {hasDbDiscount && (
                     <div className="text-base sm:text-lg text-neutral-500 line-through font-mono font-bold">
@@ -494,6 +486,11 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                 <span>
                   Estimated Turnkey Timeline: <strong className="text-white font-semibold">{selectedService?.estimatedDuration || `${calculation.estDays} Days`}</strong>
                 </span>
+              </div>
+
+              {/* Terms & Conditions Applied Footnote */}
+              <div className="text-[10px] text-neutral-400 italic pt-1.5 border-t border-white/10 flex items-center space-x-1">
+                <span>* Indicative budget estimate. Terms & conditions applied.</span>
               </div>
             </div>
 
@@ -591,9 +588,14 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   </span>
                 </label>
 
+                {/* Terms & Conditions Notice Mention above Submit Button */}
+                <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[10.5px] text-amber-300/90 leading-snug">
+                  <span className="font-bold text-amber-300">ℹ️ Notice:</span> Please read our <span className="underline font-semibold text-amber-200">Terms & Conditions</span> properly before submitting. Final scope and bill of quantities (BOQ) are subject to actual on-site technical inspection.
+                </div>
+
                 <button 
                   type="submit"
-                  className="w-full py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2"
+                  className="w-full py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-lg shadow-[#D4AF37]/10"
                 >
                   <FileText className="w-4 h-4" />
                   <span>Submit Estimate Request</span>
@@ -617,6 +619,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                 </button>
               </div>
             )}
+
 
           </div>
 
