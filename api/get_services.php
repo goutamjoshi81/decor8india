@@ -15,6 +15,8 @@ try {
       `features` JSON DEFAULT NULL,
       `estimated_duration` varchar(50) DEFAULT NULL,
       `starting_price` decimal(12,2) DEFAULT 0.00,
+      `discount_price` decimal(12,2) DEFAULT NULL,
+      `discount_percentage` int DEFAULT 0,
       `image` text DEFAULT NULL,
       `icon_name` varchar(50) DEFAULT NULL,
       `is_active` tinyint(1) NOT NULL DEFAULT 1,
@@ -22,6 +24,14 @@ try {
       `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Auto-migrate columns if table already exists
+    try {
+        $pdo->exec("ALTER TABLE services ADD COLUMN discount_price decimal(12,2) DEFAULT NULL");
+    } catch (\PDOException $e) {}
+    try {
+        $pdo->exec("ALTER TABLE services ADD COLUMN discount_percentage int DEFAULT 0");
+    } catch (\PDOException $e) {}
 
     $id = isset($_GET['id']) ? trim($_GET['id']) : null;
 
@@ -34,6 +44,8 @@ try {
         if ($row) {
             $row['features'] = json_decode($row['features'], true) ?: [];
             $row['startingPrice'] = floatval($row['starting_price']);
+            $row['discountPrice'] = isset($row['discount_price']) && $row['discount_price'] !== null ? floatval($row['discount_price']) : null;
+            $row['discountPercentage'] = isset($row['discount_percentage']) ? intval($row['discount_percentage']) : 0;
             $row['estimatedDuration'] = $row['estimated_duration'];
             $row['iconName'] = $row['icon_name'];
             $row['isActive'] = (bool)$row['is_active'];
@@ -56,6 +68,8 @@ try {
         $services = array_map(function($row) {
             $row['features'] = json_decode($row['features'], true) ?: [];
             $row['startingPrice'] = floatval($row['starting_price']);
+            $row['discountPrice'] = isset($row['discount_price']) && $row['discount_price'] !== null ? floatval($row['discount_price']) : null;
+            $row['discountPercentage'] = isset($row['discount_percentage']) ? intval($row['discount_percentage']) : 0;
             $row['estimatedDuration'] = $row['estimated_duration'];
             $row['iconName'] = $row['icon_name'];
             $row['isActive'] = (bool)$row['is_active'];

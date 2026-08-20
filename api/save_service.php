@@ -15,6 +15,8 @@ try {
       `features` JSON DEFAULT NULL,
       `estimated_duration` varchar(50) DEFAULT NULL,
       `starting_price` decimal(12,2) DEFAULT 0.00,
+      `discount_price` decimal(12,2) DEFAULT NULL,
+      `discount_percentage` int DEFAULT 0,
       `image` text DEFAULT NULL,
       `icon_name` varchar(50) DEFAULT NULL,
       `is_active` tinyint(1) NOT NULL DEFAULT 1,
@@ -22,6 +24,14 @@ try {
       `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Auto-migrate columns if table already exists
+    try {
+        $pdo->exec("ALTER TABLE services ADD COLUMN discount_price decimal(12,2) DEFAULT NULL");
+    } catch (\PDOException $e) {}
+    try {
+        $pdo->exec("ALTER TABLE services ADD COLUMN discount_percentage int DEFAULT 0");
+    } catch (\PDOException $e) {}
 
     $data = json_decode(file_get_contents("php://input"), true);
 
@@ -38,14 +48,39 @@ try {
         exit();
     }
 
+    // Helper to extract and compute discount fields
+    $extractDiscount = function($item) {
+        $startingPrice = floatval($item['startingPrice'] ?? $item['starting_price'] ?? 0);
+        $discountPrice = isset($item['discountPrice']) && $item['discountPrice'] !== null && $item['discountPrice'] !== '' 
+            ? floatval($item['discountPrice']) 
+            : (isset($item['discount_price']) && $item['discount_price'] !== null && $item['discount_price'] !== '' ? floatval($item['discount_price']) : null);
+        
+        $discountPct = isset($item['discountPercentage']) ? intval($item['discountPercentage']) : (isset($item['discount_percentage']) ? intval($item['discount_percentage']) : 0);
+
+        if ($discountPrice !== null && $discountPrice > 0 && $startingPrice > 0 && $discountPrice < $startingPrice) {
+            if ($discountPct <= 0) {
+                $discountPct = (int)round((( $startingPrice - $discountPrice ) / $startingPrice) * 100);
+            }
+        } elseif ($discountPct > 0 && $startingPrice > 0 && ($discountPrice === null || $discountPrice <= 0)) {
+            $discountPrice = round($startingPrice * (1 - ($discountPct / 100)), 2);
+        } else if ($discountPrice !== null && $discountPrice >= $startingPrice) {
+            // No actual discount
+            $discountPrice = null;
+            $discountPct = 0;
+        }
+
+        return [$discountPrice, $discountPct];
+    };
+
     // Handle bulk save (array of services)
     if (isset($data['_bulk']) && is_array($data['services'])) {
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare("INSERT INTO services (id, title, type, description, features, estimated_duration, starting_price, image, icon_name, is_active, sort_order)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE title=VALUES(title), type=VALUES(type), description=VALUES(description), features=VALUES(features), estimated_duration=VALUES(estimated_duration), starting_price=VALUES(starting_price), image=VALUES(image), icon_name=VALUES(icon_name), is_active=VALUES(is_active), sort_order=VALUES(sort_order)");
+        $stmt = $pdo->prepare("INSERT INTO services (id, title, type, description, features, estimated_duration, starting_price, discount_price, discount_percentage, image, icon_name, is_active, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE title=VALUES(title), type=VALUES(type), description=VALUES(description), features=VALUES(features), estimated_duration=VALUES(estimated_duration), starting_price=VALUES(starting_price), discount_price=VALUES(discount_price), discount_percentage=VALUES(discount_percentage), image=VALUES(image), icon_name=VALUES(icon_name), is_active=VALUES(is_active), sort_order=VALUES(sort_order)");
         
         foreach ($data['services'] as $idx => $s) {
+            list($dPrice, $dPct) = $extractDiscount($s);
             $stmt->execute([
                 $s['id'],
                 $s['title'],
@@ -54,6 +89,8 @@ try {
                 json_encode($s['features'] ?? []),
                 $s['estimatedDuration'] ?? $s['estimated_duration'] ?? null,
                 floatval($s['startingPrice'] ?? $s['starting_price'] ?? 0),
+                $dPrice,
+                $dPct,
                 $s['image'] ?? null,
                 $s['iconName'] ?? $s['icon_name'] ?? null,
                 isset($s['isActive']) ? (int)$s['isActive'] : (isset($s['is_active']) ? (int)$s['is_active'] : 1),
@@ -66,9 +103,10 @@ try {
     }
 
     // Single service upsert
-    $stmt = $pdo->prepare("INSERT INTO services (id, title, type, description, features, estimated_duration, starting_price, image, icon_name, is_active, sort_order)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE title=VALUES(title), type=VALUES(type), description=VALUES(description), features=VALUES(features), estimated_duration=VALUES(estimated_duration), starting_price=VALUES(starting_price), image=VALUES(image), icon_name=VALUES(icon_name), is_active=VALUES(is_active), sort_order=VALUES(sort_order)");
+    list($singleDPrice, $singleDPct) = $extractDiscount($data);
+    $stmt = $pdo->prepare("INSERT INTO services (id, title, type, description, features, estimated_duration, starting_price, discount_price, discount_percentage, image, icon_name, is_active, sort_order)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE title=VALUES(title), type=VALUES(type), description=VALUES(description), features=VALUES(features), estimated_duration=VALUES(estimated_duration), starting_price=VALUES(starting_price), discount_price=VALUES(discount_price), discount_percentage=VALUES(discount_percentage), image=VALUES(image), icon_name=VALUES(icon_name), is_active=VALUES(is_active), sort_order=VALUES(sort_order)");
 
     $stmt->execute([
         $data['id'],
@@ -78,6 +116,8 @@ try {
         json_encode($data['features'] ?? []),
         $data['estimatedDuration'] ?? $data['estimated_duration'] ?? null,
         floatval($data['startingPrice'] ?? $data['starting_price'] ?? 0),
+        $singleDPrice,
+        $singleDPct,
         $data['image'] ?? null,
         $data['iconName'] ?? $data['icon_name'] ?? null,
         isset($data['isActive']) ? (int)$data['isActive'] : (isset($data['is_active']) ? (int)$data['is_active'] : 1),
@@ -86,8 +126,11 @@ try {
 
     echo json_encode([
         "success" => true,
-        "message" => "Service '{$data['id']}' saved successfully."
+        "message" => "Service '{$data['id']}' saved successfully.",
+        "discountPrice" => $singleDPrice,
+        "discountPercentage" => $singleDPct
     ]);
+
 
 } catch (Throwable $e) {
     echo json_encode([

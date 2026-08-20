@@ -57,7 +57,14 @@ export const ServiceDetailPage: React.FC = () => {
 
   // Price multiplier based on standard option
   const priceMultiplier = selectedStandard === 'Eco' ? 0.85 : selectedStandard === 'Urban' ? 1.0 : 1.25;
-  const calculatedPrice = Math.round(service.startingPrice * priceMultiplier);
+  const hasDiscount = Boolean(service.discountPrice && service.discountPrice > 0 && service.discountPrice < service.startingPrice);
+  
+  const calculatedOriginalPrice = Math.round(service.startingPrice * priceMultiplier);
+  const calculatedFinalPrice = hasDiscount 
+    ? Math.round(service.discountPrice! * priceMultiplier) 
+    : calculatedOriginalPrice;
+  
+  const discountPct = service.discountPercentage || (hasDiscount ? Math.round(((service.startingPrice - service.discountPrice!) / service.startingPrice) * 100) : 0);
 
   return (
     <main className="pt-28 pb-20 bg-[#0B0C0E] text-[#E5E3DF] min-h-screen">
@@ -75,8 +82,15 @@ export const ServiceDetailPage: React.FC = () => {
         {/* Hero Banner Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full gold-gradient-bg text-black text-xs font-bold uppercase tracking-wider">
-              <span>{service.type} Interior Solution</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full gold-gradient-bg text-black text-xs font-bold uppercase tracking-wider">
+                <span>{service.type} Interior Solution</span>
+              </div>
+              {hasDiscount && (
+                <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold uppercase tracking-wider font-mono">
+                  <span>🔥 Special Offer: {discountPct}% OFF</span>
+                </div>
+              )}
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-serif font-bold text-white leading-tight">
@@ -88,24 +102,34 @@ export const ServiceDetailPage: React.FC = () => {
             </p>
 
             {/* Price & Duration Badge */}
-            <div className="p-6 rounded-2xl glass-panel-gold border border-[#D4AF37]/30 flex items-center justify-between gap-4">
-              <div>
-                <div className="text-[10px] text-neutral-400 uppercase font-mono tracking-wider">Starting Package Investment</div>
-                <div className="text-2xl sm:text-3xl font-bold font-serif text-emerald-400">
-                  ₹ {(calculatedPrice / 100000).toFixed(2)} Lakhs
+            <div className="p-6 rounded-2xl glass-panel-gold border border-[#D4AF37]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="text-[10px] text-neutral-400 uppercase font-mono tracking-wider">
+                  Package Investment ({selectedStandard === 'Eco' ? 'Eco Essential' : selectedStandard === 'Urban' ? 'Urban Premium' : 'Royal Luxe'})
+                </div>
+                <div className="flex items-baseline space-x-3">
+                  <div className="text-2xl sm:text-4xl font-bold font-serif text-emerald-400">
+                    ₹ {(calculatedFinalPrice / 100000).toFixed(2)} Lakhs
+                  </div>
+                  {hasDiscount && (
+                    <div className="text-sm sm:text-base text-neutral-500 line-through font-mono font-semibold">
+                      ₹ {(calculatedOriginalPrice / 100000).toFixed(2)} L
+                    </div>
+                  )}
                 </div>
                 <div className="text-[10px] text-neutral-400">Est. Timeline: {service.estimatedDuration}</div>
               </div>
 
               <button 
                 onClick={() => setIsBookingOpen(true)}
-                className="px-6 py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider shrink-0 shadow-lg shadow-[#D4AF37]/20 flex items-center space-x-2"
+                className="px-6 py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider shrink-0 shadow-lg shadow-[#D4AF37]/20 flex items-center space-x-2 w-full sm:w-auto justify-center"
               >
                 <PhoneCall className="w-4 h-4" />
                 <span>Book Consultation</span>
               </button>
             </div>
           </div>
+
 
           <div className="lg:col-span-6 h-80 sm:h-[420px] rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
             <img src={service.image} alt={service.title} className="w-full h-full object-cover" />

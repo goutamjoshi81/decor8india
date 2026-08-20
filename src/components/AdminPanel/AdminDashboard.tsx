@@ -504,13 +504,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [srvFeaturesText, setSrvFeaturesText] = useState('');
   const [srvDuration, setSrvDuration] = useState('30 - 45 Days');
   const [srvPrice, setSrvPrice] = useState<number>(450000);
+  const [srvDiscountPrice, setSrvDiscountPrice] = useState<number | ''>('');
+  const [srvDiscountPct, setSrvDiscountPct] = useState<number | ''>('');
   const [srvImage, setSrvImage] = useState('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');
   const [srvIcon, setSrvIcon] = useState('Home');
   const [srvIsActive, setSrvIsActive] = useState(true);
 
-  // Inline Quick Price Edit State
+  // Inline Quick Price & Discount Edit State
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [quickPriceInput, setQuickPriceInput] = useState<number>(0);
+  const [quickDiscountInput, setQuickDiscountInput] = useState<number | ''>('');
 
   const openAddServiceModal = () => {
     setEditingService(null);
@@ -520,6 +523,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     setSrvFeaturesText('Modular Kitchen, Master Suite Wardrobe, Ceiling Concealed Lights, Designer TV Unit');
     setSrvDuration('35 - 50 Days');
     setSrvPrice(550000);
+    setSrvDiscountPrice('');
+    setSrvDiscountPct('');
     setSrvImage('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');
     setSrvIcon('Home');
     setSrvIsActive(true);
@@ -534,6 +539,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     setSrvFeaturesText(srv.features.join(', '));
     setSrvDuration(srv.estimatedDuration);
     setSrvPrice(srv.startingPrice);
+    setSrvDiscountPrice(srv.discountPrice !== undefined && srv.discountPrice !== null ? srv.discountPrice : '');
+    setSrvDiscountPct(srv.discountPercentage || (srv.discountPrice && srv.discountPrice < srv.startingPrice ? Math.round(((srv.startingPrice - srv.discountPrice) / srv.startingPrice) * 100) : ''));
     setSrvImage(srv.image);
     setSrvIcon(srv.iconName);
     setSrvIsActive(srv.isActive);
@@ -545,6 +552,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     if (!srvTitle) return;
 
     const featuresList = srvFeaturesText.split(',').map(f => f.trim()).filter(Boolean);
+    const parsedDiscountPrice = typeof srvDiscountPrice === 'number' && srvDiscountPrice > 0 && srvDiscountPrice < Number(srvPrice) 
+      ? srvDiscountPrice 
+      : undefined;
+    const parsedDiscountPct = parsedDiscountPrice 
+      ? (typeof srvDiscountPct === 'number' && srvDiscountPct > 0 ? srvDiscountPct : Math.round(((Number(srvPrice) - parsedDiscountPrice) / Number(srvPrice)) * 100))
+      : 0;
 
     if (editingService) {
       updateService(editingService.id, {
@@ -554,11 +567,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         features: featuresList,
         estimatedDuration: srvDuration,
         startingPrice: Number(srvPrice),
+        discountPrice: parsedDiscountPrice,
+        discountPercentage: parsedDiscountPct,
         image: srvImage,
         iconName: srvIcon,
         isActive: srvIsActive
       });
-      alert('Service package updated successfully!');
+      alert('Service package updated successfully with active pricing & discount details!');
     } else {
       addService({
         title: srvTitle,
@@ -567,6 +582,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         features: featuresList,
         estimatedDuration: srvDuration,
         startingPrice: Number(srvPrice),
+        discountPrice: parsedDiscountPrice,
+        discountPercentage: parsedDiscountPct,
         image: srvImage,
         iconName: srvIcon,
         isActive: srvIsActive
@@ -576,6 +593,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
     setIsServiceModalOpen(false);
   };
+
 
   // ---------------- MASTER ARCHITECTS CMS STATE ----------------
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
@@ -2692,13 +2710,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     <th className="p-4 rounded-l-lg">Package Title</th>
                     <th className="p-4">Type</th>
                     <th className="p-4">Duration</th>
-                    <th className="p-4">Starting Price</th>
+                    <th className="p-4">Price & Active Discount</th>
                     <th className="p-4">Status</th>
                     <th className="p-4 rounded-r-lg text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
-                  {services.map((s) => (
+                  {services.map((s) => {
+                    const hasDiscount = s.discountPrice !== undefined && s.discountPrice !== null && s.discountPrice > 0 && s.discountPrice < s.startingPrice;
+                    const discountPct = s.discountPercentage || (hasDiscount ? Math.round(((s.startingPrice - (s.discountPrice || 0)) / s.startingPrice) * 100) : 0);
+
+                    return (
                     <tr key={s.id} className="hover:bg-white/5">
                       <td className="p-4 font-bold text-white">
                         <div className="flex items-center space-x-3">
@@ -2713,27 +2735,81 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         <span className="px-2 py-0.5 rounded bg-white/10 text-neutral-300 font-bold">{s.type}</span>
                       </td>
                       <td className="p-4 font-mono">{s.estimatedDuration}</td>
-                      <td className="p-4 font-mono text-emerald-400 font-bold">
+                      <td className="p-4 font-mono">
                         {editingPriceId === s.id ? (
-                          <div className="flex items-center space-x-1">
-                            <input 
-                              type="number"
-                              value={quickPriceInput}
-                              onChange={(e) => setQuickPriceInput(Number(e.target.value))}
-                              className="w-24 px-2 py-1 rounded bg-black border border-[#D4AF37] text-white text-xs"
-                            />
-                            <button 
-                              onClick={() => {
-                                updateServicePrice(s.id, quickPriceInput);
-                                setEditingPriceId(null);
-                              }}
-                              className="px-2 py-1 rounded bg-emerald-500 text-black font-bold text-[10px]"
-                            >
-                              Save
-                            </button>
+                          <div className="space-y-1.5 bg-black/80 p-2 rounded-xl border border-[#D4AF37]/50 max-w-xs">
+                            <div>
+                              <label className="text-[9px] text-neutral-400 uppercase font-mono block">Original Price (₹):</label>
+                              <input 
+                                type="number"
+                                value={quickPriceInput}
+                                onChange={(e) => setQuickPriceInput(Number(e.target.value))}
+                                className="w-full px-2 py-1 rounded bg-black border border-white/20 text-white text-xs font-bold"
+                                placeholder="Base Price"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-[#D4AF37] uppercase font-mono block">Discount Offer Price (₹):</label>
+                              <input 
+                                type="number"
+                                value={quickDiscountInput}
+                                onChange={(e) => setQuickDiscountInput(e.target.value === '' ? '' : Number(e.target.value))}
+                                className="w-full px-2 py-1 rounded bg-black border border-[#D4AF37]/50 text-emerald-400 text-xs font-bold"
+                                placeholder="Discounted Price (Optional)"
+                              />
+                            </div>
+                            <div className="flex items-center space-x-1.5 pt-1">
+                              <button 
+                                onClick={() => {
+                                  const parsedDisc = typeof quickDiscountInput === 'number' && quickDiscountInput > 0 && quickDiscountInput < quickPriceInput 
+                                    ? quickDiscountInput 
+                                    : null;
+                                  updateServicePrice(s.id, quickPriceInput, parsedDisc);
+                                  setEditingPriceId(null);
+                                }}
+                                className="px-2.5 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-[10px] uppercase"
+                              >
+                                Save Pricing
+                              </button>
+                              <button 
+                                onClick={() => setEditingPriceId(null)}
+                                className="px-2 py-1 rounded bg-white/10 text-neutral-400 hover:text-white text-[10px]"
+                              >
+                                Cancel
+                              </button>
+                            </div>
                           </div>
                         ) : (
-                          `₹ ${(s.startingPrice / 100000).toFixed(2)} Lakhs`
+                          <div className="space-y-0.5">
+                            {hasDiscount ? (
+                              <>
+                                <div className="text-[11px] text-neutral-400 line-through">
+                                  ₹ {(s.startingPrice / 100000).toFixed(2)} Lakhs
+                                </div>
+                                <div className="text-emerald-400 font-bold text-sm flex items-center space-x-1.5">
+                                  <span>₹ {((s.discountPrice || 0) / 100000).toFixed(2)} Lakhs</span>
+                                  <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/40">
+                                    {discountPct}% OFF
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-[#D4AF37] font-bold text-sm">
+                                ₹ {(s.startingPrice / 100000).toFixed(2)} Lakhs
+                              </div>
+                            )}
+                            <button
+                              onClick={() => {
+                                setEditingPriceId(s.id);
+                                setQuickPriceInput(s.startingPrice);
+                                setQuickDiscountInput(s.discountPrice || '');
+                              }}
+                              className="text-[10px] text-neutral-400 hover:text-[#D4AF37] flex items-center space-x-1 cursor-pointer pt-0.5"
+                            >
+                              <Edit className="w-2.5 h-2.5" />
+                              <span>Quick Edit Price / Discount</span>
+                            </button>
+                          </div>
                         )}
                       </td>
                       <td className="p-4">
@@ -2765,8 +2841,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         </button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
+
               </table>
             </div>
           </div>
@@ -4071,12 +4149,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-neutral-300">Starting Price (INR ₹) *</label>
+                  <label className="text-xs font-semibold text-neutral-300">Original Base Price (INR ₹) *</label>
                   <input 
                     type="number" 
                     required
                     value={srvPrice}
-                    onChange={(e) => setSrvPrice(Number(e.target.value))}
+                    onChange={(e) => {
+                      const newBase = Number(e.target.value);
+                      setSrvPrice(newBase);
+                      if (typeof srvDiscountPct === 'number' && srvDiscountPct > 0) {
+                        setSrvDiscountPrice(Math.round(newBase * (1 - srvDiscountPct / 100)));
+                      }
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>
@@ -4114,6 +4198,84 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   </select>
                 </div>
               </div>
+
+              {/* Special Discount Offer Section */}
+              <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-black/60 to-emerald-500/10 border border-[#D4AF37]/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider font-mono">
+                    🏷️ Promotional Discount Offer (Optional)
+                  </span>
+                  {(srvDiscountPrice !== '' || srvDiscountPct !== '') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSrvDiscountPrice('');
+                        setSrvDiscountPct('');
+                      }}
+                      className="text-[11px] text-red-400 hover:text-red-300 underline"
+                    >
+                      Clear Discount
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-neutral-300">Discounted Offer Price (₹)</label>
+                    <input 
+                      type="number" 
+                      placeholder="e.g. 475000 (Leaves blank for no discount)"
+                      value={srvDiscountPrice}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? '' : Number(e.target.value);
+                        setSrvDiscountPrice(val);
+                        if (typeof val === 'number' && val > 0 && val < srvPrice) {
+                          setSrvDiscountPct(Math.round(((srvPrice - val) / srvPrice) * 100));
+                        } else {
+                          setSrvDiscountPct('');
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-emerald-500/40 text-xs text-emerald-400 font-bold focus:outline-none focus:border-emerald-400"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-neutral-300">Discount Percentage (%)</label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      max="90"
+                      placeholder="e.g. 15"
+                      value={srvDiscountPct}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? '' : Number(e.target.value);
+                        setSrvDiscountPct(val);
+                        if (typeof val === 'number' && val > 0 && val < 100) {
+                          setSrvDiscountPrice(Math.round(srvPrice * (1 - val / 100)));
+                        } else {
+                          setSrvDiscountPrice('');
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-[#D4AF37]/40 text-xs text-[#D4AF37] font-bold focus:outline-none focus:border-[#D4AF37]"
+                    />
+                  </div>
+                </div>
+
+                {/* Live Preview Bar */}
+                {typeof srvDiscountPrice === 'number' && srvDiscountPrice > 0 && srvDiscountPrice < srvPrice && (
+                  <div className="p-3 rounded-lg bg-black/80 border border-emerald-500/30 flex items-center justify-between text-xs animate-in fade-in">
+                    <span className="text-neutral-400">Public Display Preview:</span>
+                    <div className="flex items-center space-x-2 font-mono">
+                      <span className="line-through text-neutral-500">₹ {(srvPrice / 100000).toFixed(2)} L</span>
+                      <span className="text-emerald-400 font-bold text-sm">₹ {(srvDiscountPrice / 100000).toFixed(2)} Lakhs</span>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/40">
+                        {srvDiscountPct || Math.round(((srvPrice - srvDiscountPrice) / srvPrice) * 100)}% OFF
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-neutral-300">Image Cover *</label>

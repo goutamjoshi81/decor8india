@@ -178,10 +178,13 @@ export interface ServiceItem {
   features: string[];
   estimatedDuration: string;
   startingPrice: number;
+  discountPrice?: number;
+  discountPercentage?: number;
   image: string;
   iconName: string;
   isActive: boolean;
 }
+
 
 export interface Article {
   id: string;

@@ -195,15 +195,39 @@ export const ServicesSection: React.FC = () => {
 
                     </div>
 
-                    {/* Card Footer: Starting Price & Book CTA */}
+                      {/* Card Footer: Starting Price & Book CTA */}
                     <div className="p-6 pt-0 space-y-4">
                       <div className="pt-4 border-t border-white/10 flex items-baseline justify-between">
-                        <div>
-                          <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Starting From (Eco)</span>
-                          <span className="text-xl font-bold font-serif text-[#D4AF37]">
-                            ₹ {((service.startingPrice * 0.85) / 100000).toFixed(2)} Lakhs
-                          </span>
-                        </div>
+                        {(() => {
+                          const hasDiscount = Boolean(service.discountPrice && service.discountPrice > 0 && service.discountPrice < service.startingPrice);
+                          const originalEco = (service.startingPrice * 0.85) / 100000;
+                          const discountedEco = hasDiscount ? ((service.discountPrice! * 0.85) / 100000) : originalEco;
+                          const discountPct = service.discountPercentage || (hasDiscount ? Math.round(((service.startingPrice - service.discountPrice!) / service.startingPrice) * 100) : 0);
+
+                          return (
+                            <div>
+                              <div className="flex items-center space-x-1.5">
+                                <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Starting From (Eco)</span>
+                                {hasDiscount && (
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/40">
+                                    {discountPct}% OFF
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-baseline space-x-2">
+                                <span className="text-xl font-bold font-serif text-[#D4AF37]">
+                                  ₹ {discountedEco.toFixed(2)} Lakhs
+                                </span>
+                                {hasDiscount && (
+                                  <span className="text-xs text-neutral-500 line-through font-mono">
+                                    ₹ {originalEco.toFixed(2)} L
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
 
                         
                         <button

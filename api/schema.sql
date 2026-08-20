@@ -91,6 +91,8 @@ CREATE TABLE IF NOT EXISTS `services` (
   `features` JSON DEFAULT NULL,
   `estimated_duration` varchar(50) DEFAULT NULL,
   `starting_price` decimal(12,2) DEFAULT 0.00,
+  `discount_price` decimal(12,2) DEFAULT NULL,
+  `discount_percentage` int DEFAULT 0,
   `image` text DEFAULT NULL,
   `icon_name` varchar(50) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
@@ -98,6 +100,7 @@ CREATE TABLE IF NOT EXISTS `services` (
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- Table 6: Articles / Blog Posts (moved from cms_data JSON blob)
 CREATE TABLE IF NOT EXISTS `articles` (

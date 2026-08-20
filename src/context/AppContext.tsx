@@ -87,7 +87,8 @@ interface AppContextType {
   addService: (service: Omit<ServiceItem, 'id'>) => void;
   updateService: (id: string, service: Partial<ServiceItem>) => void;
   deleteService: (id: string) => void;
-  updateServicePrice: (serviceId: string, newPrice: number) => void;
+  updateServicePrice: (serviceId: string, newPrice: number, newDiscountPrice?: number | null) => void;
+
   toggleServiceStatus: (serviceId: string) => void;
 
   branchOffices: BranchOffice[];
@@ -1149,9 +1150,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const updateServicePrice = (serviceId: string, newPrice: number) => {
-    updateService(serviceId, { startingPrice: newPrice });
+  const updateServicePrice = (serviceId: string, newPrice: number, newDiscountPrice?: number | null) => {
+    const updates: Partial<ServiceItem> = { startingPrice: newPrice };
+    if (newDiscountPrice !== undefined) {
+      updates.discountPrice = newDiscountPrice !== null && newDiscountPrice > 0 && newDiscountPrice < newPrice ? newDiscountPrice : undefined;
+      updates.discountPercentage = updates.discountPrice ? Math.round(((newPrice - updates.discountPrice) / newPrice) * 100) : 0;
+    }
+    updateService(serviceId, updates);
   };
+
+
 
   const toggleServiceStatus = (serviceId: string) => {
     const s = services.find(item => item.id === serviceId);
