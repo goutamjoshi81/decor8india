@@ -70,6 +70,34 @@ if (isset($_GET['send']) || $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else if ($type === 'welcome') {
         $result = sendWelcomeClientNotification($recipient, $clientName, $projectTitle, "Your Registered Mobile Number");
 
+    } else if ($type === 'admin_booking') {
+        $result = sendAdminNewBookingNotification([
+            'id' => 'bk-TEST-' . rand(1000, 9999),
+            'clientName' => 'Vikramaditya Rao',
+            'clientEmail' => 'vikram.rao@example.com',
+            'clientPhone' => '+91 98450 12345',
+            'packageName' => '4BHK Luxury Turnkey Interior Package',
+            'serviceType' => 'Residential',
+            'preferredDate' => date('Y-m-d', strtotime('+3 days')),
+            'estimatedCost' => 1850000.00,
+            'isEmiRequested' => 1,
+            'requirements' => 'Italian marble flooring in foyer, concealed mood lighting, customized walk-in master wardrobe and bar counter.'
+        ]);
+
+    } else if ($type === 'admin_site_visit') {
+        $result = sendAdminNewSiteVisitNotification([
+            'id' => 'sv-TEST-' . rand(1000, 9999),
+            'clientName' => 'Dr. Ananya Sharma',
+            'clientEmail' => 'ananya.sharma@example.com',
+            'clientPhone' => '+91 99001 88776',
+            'projectTitle' => 'Vasanthpura Penthouse Luxury Experience Studio',
+            'preferredDate' => date('Y-m-d', strtotime('+2 days')),
+            'timeSlot' => 'Morning (10:00 AM - 1:00 PM)',
+            'gatePassCode' => 'GP-' . strtoupper(substr(md5(uniqid()), 0, 6)),
+            'isEmiRequested' => 0,
+            'notes' => 'Would like to inspect Italian modular kitchen finish and acoustic ceiling isolation in home theatre area.'
+        ]);
+
     } else {
         $result = sendSmtpEmail(
             $recipient, 

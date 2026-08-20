@@ -698,4 +698,301 @@ function sendSiteUpdateFeedNotification($clientEmail, $clientName, $projectTitle
 
     return sendSmtpEmail($clientEmail, $clientName, $subject, getEmailLayout($subject, $previewText, $html));
 }
+
+/**
+ * Helper: Fetch Admin Notification Email Preference and Target Address
+ */
+function getAdminEmailSettings() {
+    $default = [
+        'enabled' => true,
+        'email' => 'support@decor8india.com'
+    ];
+
+    try {
+        require_once __DIR__ . '/db_config.php';
+        $pdo = getDbConnection();
+        if ($pdo) {
+            $stmt = $pdo->query("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('admin_email_enquiry_notifications', 'admin_notification_email')");
+            $rows = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            if (!empty($rows)) {
+                if (isset($rows['admin_email_enquiry_notifications'])) {
+                    $default['enabled'] = ($rows['admin_email_enquiry_notifications'] === '1' || $rows['admin_email_enquiry_notifications'] === 'true' || $rows['admin_email_enquiry_notifications'] === 1 || $rows['admin_email_enquiry_notifications'] === true);
+                }
+                if (!empty($rows['admin_notification_email']) && filter_var(trim($rows['admin_notification_email']), FILTER_VALIDATE_EMAIL)) {
+                    $default['email'] = trim($rows['admin_notification_email']);
+                }
+                return $default;
+            }
+        }
+    } catch (\Throwable $ex) {}
+
+    // Fallback to settings.json
+    $jsonFile = __DIR__ . '/settings.json';
+    if (file_exists($jsonFile)) {
+        $content = @file_get_contents($jsonFile);
+        $data = json_decode($content, true);
+        if (is_array($data)) {
+            if (isset($data['admin_email_enquiry_notifications'])) {
+                $default['enabled'] = (bool)$data['admin_email_enquiry_notifications'];
+            }
+            if (!empty($data['admin_notification_email'])) {
+                $default['email'] = trim($data['admin_notification_email']);
+            }
+        }
+    }
+
+    return $default;
+}
+
+/**
+ * 5. Send Automated Admin Alert for New Consultation / Package Booking Enquiry
+ */
+function sendAdminNewBookingNotification($bookingData) {
+    $settings = getAdminEmailSettings();
+    if (!$settings['enabled']) {
+        return [
+            "success" => true,
+            "bypassed" => true,
+            "message" => "Admin email alerts for new enquiries are turned OFF in settings."
+        ];
+    }
+
+    $adminEmail = $settings['email'];
+    $baseUrl = defined('APP_BASE_URL') ? APP_BASE_URL : 'https://decor8india.com';
+    $adminUrl = $baseUrl . '/admin';
+
+    $bookingId = is_array($bookingData) ? ($bookingData['id'] ?? 'bk-'.time()) : ($bookingData->id ?? 'bk-'.time());
+    $clientName = is_array($bookingData) ? ($bookingData['clientName'] ?? $bookingData['client_name'] ?? 'Client') : ($bookingData->clientName ?? $bookingData->client_name ?? 'Client');
+    $clientEmail = is_array($bookingData) ? ($bookingData['clientEmail'] ?? $bookingData['client_email'] ?? '') : ($bookingData->clientEmail ?? $bookingData->client_email ?? '');
+    $clientPhone = is_array($bookingData) ? ($bookingData['clientPhone'] ?? $bookingData['client_phone'] ?? '') : ($bookingData->clientPhone ?? $bookingData->client_phone ?? '');
+    $packageName = is_array($bookingData) ? ($bookingData['packageName'] ?? $bookingData['package_name'] ?? 'Architectural Consultation') : ($bookingData->packageName ?? $bookingData->package_name ?? 'Architectural Consultation');
+    $serviceType = is_array($bookingData) ? ($bookingData['serviceType'] ?? $bookingData['service_type'] ?? 'Residential') : ($bookingData->serviceType ?? $bookingData->service_type ?? 'Residential');
+    $preferredDate = is_array($bookingData) ? ($bookingData['preferredDate'] ?? $bookingData['preferred_date'] ?? date('Y-m-d')) : ($bookingData->preferredDate ?? $bookingData->preferred_date ?? date('Y-m-d'));
+    $estimatedCost = is_array($bookingData) ? ($bookingData['estimatedCost'] ?? $bookingData['estimated_cost'] ?? 0) : ($bookingData->estimatedCost ?? $bookingData->estimated_cost ?? 0);
+    $isEmiRequested = is_array($bookingData) ? !empty($bookingData['isEmiRequested'] ?? $bookingData['is_emi_requested']) : !empty($bookingData->isEmiRequested ?? $bookingData->is_emi_requested);
+    $requirements = is_array($bookingData) ? ($bookingData['requirements'] ?? '') : ($bookingData->requirements ?? '');
+    $floorPlanUrl = is_array($bookingData) ? ($bookingData['floorPlanUrl'] ?? $bookingData['floor_plan_url'] ?? '') : ($bookingData->floorPlanUrl ?? $bookingData->floor_plan_url ?? '');
+
+    $formattedBudget = floatval($estimatedCost) > 0 ? ('₹ ' . number_format((float)$estimatedCost, 2) . ' (' . number_format((float)$estimatedCost / 100000, 2) . ' Lakhs)') : 'Custom Quotation';
+
+    $subject = "🔥 NEW CLIENT ENQUIRY: {$clientName} — {$packageName}";
+    $previewText = "New client booking enquiry received from {$clientName} ({$clientPhone}) for {$packageName}.";
+
+    $floorPlanHtml = '';
+    if (!empty($floorPlanUrl) && $floorPlanUrl !== '#') {
+        $floorPlanHtml = '
+        <tr>
+            <td style="color: #9E9EA8; padding: 6px 0; vertical-align: top;">Floor Plan:</td>
+            <td style="padding: 6px 0;">
+                <a href="' . htmlspecialchars($floorPlanUrl) . '" target="_blank" style="color: #D4AF37; text-decoration: underline; font-weight: 600;">View Uploaded Plan / File</a>
+            </td>
+        </tr>';
+    }
+
+    $html = '
+        <div style="margin-bottom: 20px;">
+            <div style="display: inline-block; padding: 4px 12px; background: rgba(212, 175, 55, 0.15); border: 1px solid #D4AF37; border-radius: 20px; font-size: 11px; font-weight: 700; color: #D4AF37; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px;">
+                ⚡ NEW CLIENT BOOKING & ENQUIRY
+            </div>
+            <h2 style="font-family: Georgia, serif; color: #FFFFFF; font-size: 22px; margin: 0 0 8px 0;">
+                New Project Consultation Request
+            </h2>
+            <p style="margin: 0; font-size: 13.5px; color: #B8B8C0;">
+                A new client has submitted a design booking via the Decor8 India portal. Details are listed below for immediate review:
+            </p>
+        </div>
+
+        <!-- Details Card -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #1D1E26; border: 1px solid #D4AF37; border-radius: 12px; margin-bottom: 24px; overflow: hidden;">
+            <tr>
+                <td style="padding: 14px 20px; background-color: #242530; border-bottom: 1px solid rgba(212,175,55,0.3);">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td>
+                                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #D4AF37; letter-spacing: 1.5px; font-family: monospace;">
+                                    ENQUIRY ID: ' . htmlspecialchars($bookingId) . '
+                                </span>
+                            </td>
+                            <td style="text-align: right; font-size: 11px; color: #9E9EA8; font-family: monospace;">
+                                ' . date('d M Y, h:i A') . '
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 20px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 13.5px; line-height: 1.6;">
+                        <tr>
+                            <td style="color: #9E9EA8; width: 35%; padding: 6px 0;">Client Name:</td>
+                            <td style="color: #FFFFFF; font-weight: 700; padding: 6px 0;">' . htmlspecialchars($clientName) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Email Address:</td>
+                            <td style="padding: 6px 0;"><a href="mailto:' . htmlspecialchars($clientEmail) . '" style="color: #D4AF37; text-decoration: none; font-weight: 600;">' . htmlspecialchars($clientEmail) . '</a></td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Contact Phone:</td>
+                            <td style="color: #FFFFFF; font-weight: 700; font-family: monospace; padding: 6px 0;"><a href="tel:' . htmlspecialchars($clientPhone) . '" style="color: #4ADE80; text-decoration: none;">' . htmlspecialchars($clientPhone) . '</a></td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Service Package:</td>
+                            <td style="color: #FFFFFF; font-weight: 600; padding: 6px 0;">' . htmlspecialchars($packageName) . ' <span style="color: #B8860B; font-size: 12px;">(' . htmlspecialchars($serviceType) . ')</span></td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Preferred Date:</td>
+                            <td style="color: #FFFFFF; font-weight: 600; font-family: monospace; padding: 6px 0;">📅 ' . htmlspecialchars($preferredDate) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Estimated Budget:</td>
+                            <td style="color: #D4AF37; font-weight: 700; font-size: 14.5px; padding: 6px 0;">' . $formattedBudget . '</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">0% EMI Financing:</td>
+                            <td style="padding: 6px 0;">' . ($isEmiRequested ? '<span style="color: #D4AF37; font-weight: 700;">⭐ YES — Interested in 0% EMI Interest Plans</span>' : '<span style="color: #9E9EA8;">Standard Payment</span>') . '</td>
+                        </tr>
+                        ' . $floorPlanHtml . '
+                    </table>
+
+                    ' . (!empty($requirements) ? '
+                    <div style="margin-top: 16px; padding: 14px; background-color: #14151B; border-radius: 8px; border-left: 3px solid #D4AF37;">
+                        <div style="font-size: 11px; font-weight: 700; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Client Notes & Requirements:</div>
+                        <div style="font-size: 13px; color: #E0E0E0; line-height: 1.6;">' . nl2br(htmlspecialchars($requirements)) . '</div>
+                    </div>
+                    ' : '') . '
+                </td>
+            </tr>
+        </table>
+
+        <!-- CTA Action Buttons -->
+        <div style="text-align: center; margin: 28px 0 20px 0;">
+            <a href="' . $adminUrl . '" style="display: inline-block; padding: 14px 36px; background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); color: #000000; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 18px rgba(212,175,55,0.4);">
+                Open Admin Pipeline to Review & Approve
+            </a>
+        </div>
+    ';
+
+    return sendSmtpEmail($adminEmail, "Decor8 India Admin", $subject, getEmailLayout($subject, $previewText, $html));
+}
+
+/**
+ * 6. Send Automated Admin Alert for In-Person Live Site Visit Request
+ */
+function sendAdminNewSiteVisitNotification($visitData) {
+    $settings = getAdminEmailSettings();
+    if (!$settings['enabled']) {
+        return [
+            "success" => true,
+            "bypassed" => true,
+            "message" => "Admin email alerts for new enquiries are turned OFF in settings."
+        ];
+    }
+
+    $adminEmail = $settings['email'];
+    $baseUrl = defined('APP_BASE_URL') ? APP_BASE_URL : 'https://decor8india.com';
+    $adminUrl = $baseUrl . '/admin';
+
+    $visitId = is_array($visitData) ? ($visitData['id'] ?? $visitData['visitId'] ?? 'sv-'.time()) : ($visitData->id ?? $visitData->visitId ?? 'sv-'.time());
+    $clientName = is_array($visitData) ? ($visitData['clientName'] ?? $visitData['client_name'] ?? 'Client') : ($visitData->clientName ?? $visitData->client_name ?? 'Client');
+    $clientEmail = is_array($visitData) ? ($visitData['clientEmail'] ?? $visitData['client_email'] ?? '') : ($visitData->clientEmail ?? $visitData->client_email ?? '');
+    $clientPhone = is_array($visitData) ? ($visitData['clientPhone'] ?? $visitData['client_phone'] ?? '') : ($visitData->clientPhone ?? $visitData->client_phone ?? '');
+    $projectTitle = is_array($visitData) ? ($visitData['projectTitle'] ?? $visitData['project_title'] ?? 'General Live Site Inspection') : ($visitData->projectTitle ?? $visitData->project_title ?? 'General Live Site Inspection');
+    $preferredDate = is_array($visitData) ? ($visitData['preferredDate'] ?? $visitData['preferred_date'] ?? date('Y-m-d')) : ($visitData->preferredDate ?? $visitData->preferred_date ?? date('Y-m-d'));
+    $timeSlot = is_array($visitData) ? ($visitData['timeSlot'] ?? $visitData['time_slot'] ?? 'Morning (10:00 AM - 1:00 PM)') : ($visitData->timeSlot ?? $visitData->time_slot ?? 'Morning (10:00 AM - 1:00 PM)');
+    $gatePassCode = is_array($visitData) ? ($visitData['gatePassCode'] ?? $visitData['gate_pass_code'] ?? 'GP-AUTO') : ($visitData->gatePassCode ?? $visitData->gate_pass_code ?? 'GP-AUTO');
+    $isEmiRequested = is_array($visitData) ? !empty($visitData['isEmiRequested'] ?? $visitData['is_emi_requested']) : !empty($visitData->isEmiRequested ?? $visitData->is_emi_requested);
+    $notes = is_array($visitData) ? ($visitData['notes'] ?? '') : ($visitData->notes ?? '');
+
+    $subject = "📍 IN-PERSON SITE VISIT REQUEST: {$clientName} — {$projectTitle}";
+    $previewText = "New in-person site visit request received from {$clientName} ({$clientPhone}) for {$projectTitle}.";
+
+    $html = '
+        <div style="margin-bottom: 20px;">
+            <div style="display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; border-radius: 20px; font-size: 11px; font-weight: 700; color: #10B981; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px;">
+                📍 NEW IN-PERSON LIVE SITE VISIT REQUEST
+            </div>
+            <h2 style="font-family: Georgia, serif; color: #FFFFFF; font-size: 22px; margin: 0 0 8px 0;">
+                Live Site Inspection Scheduled
+            </h2>
+            <p style="margin: 0; font-size: 13.5px; color: #B8B8C0;">
+                A client has booked an in-person walkthrough tour of an active project site. Review details below:
+            </p>
+        </div>
+
+        <!-- Details Card -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #1D1E26; border: 1px solid #10B981; border-radius: 12px; margin-bottom: 24px; overflow: hidden;">
+            <tr>
+                <td style="padding: 14px 20px; background-color: #1A2E26; border-bottom: 1px solid rgba(16,185,129,0.3);">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td>
+                                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #10B981; letter-spacing: 1.5px; font-family: monospace;">
+                                    VISIT ID: ' . htmlspecialchars($visitId) . '
+                                </span>
+                            </td>
+                            <td style="text-align: right; font-size: 11px; color: #9E9EA8; font-family: monospace;">
+                                ' . date('d M Y, h:i A') . '
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 20px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 13.5px; line-height: 1.6;">
+                        <tr>
+                            <td style="color: #9E9EA8; width: 35%; padding: 6px 0;">Client Name:</td>
+                            <td style="color: #FFFFFF; font-weight: 700; padding: 6px 0;">' . htmlspecialchars($clientName) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Email Address:</td>
+                            <td style="padding: 6px 0;"><a href="mailto:' . htmlspecialchars($clientEmail) . '" style="color: #D4AF37; text-decoration: none; font-weight: 600;">' . htmlspecialchars($clientEmail) . '</a></td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Contact Phone:</td>
+                            <td style="color: #FFFFFF; font-weight: 700; font-family: monospace; padding: 6px 0;"><a href="tel:' . htmlspecialchars($clientPhone) . '" style="color: #4ADE80; text-decoration: none;">' . htmlspecialchars($clientPhone) . '</a></td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Target Site / Project:</td>
+                            <td style="color: #FFFFFF; font-weight: 700; padding: 6px 0;">' . htmlspecialchars($projectTitle) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Scheduled Date:</td>
+                            <td style="color: #D4AF37; font-weight: 700; font-family: monospace; padding: 6px 0;">📅 ' . htmlspecialchars($preferredDate) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Time Slot:</td>
+                            <td style="color: #FFFFFF; font-weight: 600; padding: 6px 0;">⏰ ' . htmlspecialchars($timeSlot) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">Gate Pass Code:</td>
+                            <td style="padding: 6px 0;"><strong style="color: #10B981; font-family: monospace; font-size: 15px; letter-spacing: 1px;">' . htmlspecialchars($gatePassCode) . '</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="color: #9E9EA8; padding: 6px 0;">0% EMI Financing:</td>
+                            <td style="padding: 6px 0;">' . ($isEmiRequested ? '<span style="color: #D4AF37; font-weight: 700;">⭐ YES — Wants 0% EMI Interest Info</span>' : '<span style="color: #9E9EA8;">Standard Plan</span>') . '</td>
+                        </tr>
+                    </table>
+
+                    ' . (!empty($notes) ? '
+                    <div style="margin-top: 16px; padding: 14px; background-color: #14151B; border-radius: 8px; border-left: 3px solid #10B981;">
+                        <div style="font-size: 11px; font-weight: 700; color: #10B981; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Site Inspection Notes:</div>
+                        <div style="font-size: 13px; color: #E0E0E0; line-height: 1.6;">' . nl2br(htmlspecialchars($notes)) . '</div>
+                    </div>
+                    ' : '') . '
+                </td>
+            </tr>
+        </table>
+
+        <!-- CTA Action Buttons -->
+        <div style="text-align: center; margin: 28px 0 20px 0;">
+            <a href="' . $adminUrl . '" style="display: inline-block; padding: 14px 36px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #000000; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; text-decoration: none; border-radius: 8px; box-shadow: 0 4px 18px rgba(16,185,129,0.4);">
+                Manage Site Visit & Gate Pass in Admin Portal
+            </a>
+        </div>
+    ';
+
+    return sendSmtpEmail($adminEmail, "Decor8 India Admin", $subject, getEmailLayout($subject, $previewText, $html));
+}
 ?>
+

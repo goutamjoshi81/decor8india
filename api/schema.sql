@@ -188,4 +188,19 @@ CREATE TABLE IF NOT EXISTS `job_applications` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Table 12: System & Admin Notification Settings
+CREATE TABLE IF NOT EXISTS `settings` (
+  `setting_key` varchar(100) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Seed Default Settings
+INSERT INTO `settings` (`setting_key`, `setting_value`) VALUES
+('admin_email_enquiry_notifications', '1'),
+('admin_notification_email', 'support@decor8india.com')
+ON DUPLICATE KEY UPDATE `setting_key` = VALUES(`setting_key`);
+
 COMMIT;
+

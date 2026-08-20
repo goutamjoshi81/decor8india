@@ -543,5 +543,40 @@ export const apiService = {
       console.warn('Backend API deletePartner error:', error);
       return { success: false, message: 'Server connection error.' };
     }
+  },
+
+  // System & Admin Notification Settings
+  async getSettings(): Promise<{ success: boolean; settings?: { admin_email_enquiry_notifications: boolean; admin_notification_email: string }; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_settings.php`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getSettings error:', error);
+      return { 
+        success: false, 
+        settings: { 
+          admin_email_enquiry_notifications: true, 
+          admin_notification_email: 'support@decor8india.com' 
+        }, 
+        message: 'Server connection error.' 
+      };
+    }
+  },
+
+  async saveSettings(settingsData: { admin_email_enquiry_notifications?: boolean; admin_notification_email?: string }): Promise<{ success: boolean; settings?: any; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_settings.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settingsData)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API saveSettings error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
   }
 };
+

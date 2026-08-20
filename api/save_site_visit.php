@@ -1,5 +1,6 @@
 <?php
 require_once 'db_config.php';
+require_once 'email_service.php';
 
 try {
     $pdo = getDbConnection();
@@ -63,31 +64,26 @@ try {
     ]);
 
     if ($success) {
-        // Send email alert to admin
-        $to = "info@decor8india.com, satish@decor8india.com";
-        $subject = "📍 IN-PERSON LIVE SITE VISIT REQUEST: $clientName ($projectTitle)";
-        $message = "New In-Person Live Site Tour Request Received:\n\n"
-                 . "Visit ID: $visitId\n"
-                 . "Client Name: $clientName\n"
-                 . "Phone: $clientPhone\n"
-                 . "Email: $clientEmail\n"
-                 . "Target Site: $projectTitle\n"
-                 . "Requested Date: $preferredDate\n"
-                 . "Time Slot: $timeSlot\n"
-                 . "Gate Pass Code: $gatePassCode\n"
-                 . "0% EMI Financing Info Requested: " . ($isEmiRequested ? "YES" : "NO") . "\n"
-                 . "Notes: $notes\n\n"
-                 . "Log into Admin Dashboard to manage gate pass and contact client.\n\n"
-                 . "Decor8 India - Live Site Inspection Service";
-        $headers = "From: site-visits@decor8india.com\r\n" . "Reply-To: $clientEmail\r\n";
-
-        @mail($to, $subject, $message, $headers);
+        // Send automated Luxury Emerald/Gold Admin Alert (honors admin toggle setting)
+        $emailDispatch = sendAdminNewSiteVisitNotification([
+            'id' => $visitId,
+            'clientName' => $clientName,
+            'clientEmail' => $clientEmail,
+            'clientPhone' => $clientPhone,
+            'projectTitle' => $projectTitle,
+            'preferredDate' => $preferredDate,
+            'timeSlot' => $timeSlot,
+            'gatePassCode' => $gatePassCode,
+            'notes' => $notes,
+            'isEmiRequested' => $isEmiRequested
+        ]);
 
         echo json_encode([
             "success" => true,
             "message" => "Site visit request saved successfully!",
             "visitId" => $visitId,
-            "gatePassCode" => $gatePassCode
+            "gatePassCode" => $gatePassCode,
+            "email_status" => $emailDispatch
         ]);
     } else {
         echo json_encode(["success" => false, "message" => "Failed to save site visit request to database."]);
@@ -100,3 +96,4 @@ try {
     ]);
 }
 ?>
+

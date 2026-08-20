@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { apiService } from '../../services/apiService';
 import type { Project, ServiceItem, ProjectStage, TeamMember, PaymentItem } from '../../types';
 import { 
   LayoutDashboard, 
@@ -34,7 +35,10 @@ import {
   Heading2,
   Mail,
   Send,
-  CheckCircle2
+  CheckCircle2,
+  Bell,
+  BellOff,
+  Check
 } from 'lucide-react';
 import type { BranchOffice } from '../../types';
 
@@ -172,6 +176,92 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'emails' | 'portfolio' | 'services' | 'team' | 'magazine' | 'branches' | 'partners' | 'careers'>('analytics');
   const [clientFilter, setClientFilter] = useState<'ALL' | 'PACKAGES' | 'SITE_VISITS'>('ALL');
 
+  // Admin New Enquiry Email Notification Setting State
+  const [adminEmailEnquiryEnabled, setAdminEmailEnquiryEnabled] = useState<boolean>(true);
+  const [adminNotificationEmail, setAdminNotificationEmail] = useState<string>('support@decor8india.com');
+  const [isEditingAdminEmail, setIsEditingAdminEmail] = useState<boolean>(false);
+  const [tempAdminEmail, setTempAdminEmail] = useState<string>('support@decor8india.com');
+  const [isSavingAdminSettings, setIsSavingAdminSettings] = useState<boolean>(false);
+  const [testAlertSending, setTestAlertSending] = useState<boolean>(false);
+
+  // Load Admin System Settings on Component Mount
+  const fetchAdminSettings = useCallback(async () => {
+    try {
+      const res = await apiService.getSettings();
+      if (res.success && res.settings) {
+        setAdminEmailEnquiryEnabled(Boolean(res.settings.admin_email_enquiry_notifications));
+        if (res.settings.admin_notification_email) {
+          setAdminNotificationEmail(res.settings.admin_notification_email);
+          setTempAdminEmail(res.settings.admin_notification_email);
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch admin settings:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAdminSettings();
+  }, [fetchAdminSettings]);
+
+  // Handler: Toggle Admin Email Notifications ON / OFF
+  const handleToggleAdminEmailNotifications = async (newVal: boolean) => {
+    setAdminEmailEnquiryEnabled(newVal);
+    try {
+      await apiService.saveSettings({
+        admin_email_enquiry_notifications: newVal,
+        admin_notification_email: adminNotificationEmail
+      });
+    } catch (err) {
+      console.error('Failed to persist admin notification toggle:', err);
+    }
+  };
+
+  // Handler: Save Updated Admin Target Email
+  const handleSaveAdminNotificationEmail = async () => {
+    const trimmed = tempAdminEmail.trim();
+    if (!trimmed || !trimmed.includes('@') || !trimmed.includes('.')) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+    setIsSavingAdminSettings(true);
+    try {
+      const res = await apiService.saveSettings({
+        admin_email_enquiry_notifications: adminEmailEnquiryEnabled,
+        admin_notification_email: trimmed
+      });
+      if (res.success) {
+        setAdminNotificationEmail(trimmed);
+        setIsEditingAdminEmail(false);
+        alert(`✅ Admin notification email updated to: ${trimmed}`);
+      } else {
+        alert(res.message || 'Failed to update email setting.');
+      }
+    } catch (err) {
+      alert('Error updating notification email in database.');
+    } finally {
+      setIsSavingAdminSettings(false);
+    }
+  };
+
+  // Handler: Send Instant Test Admin Notification Email
+  const handleSendTestAdminAlert = async (type: 'admin_booking' | 'admin_site_visit') => {
+    setTestAlertSending(true);
+    try {
+      const res = await fetch(`/api/test_email.php?send=1&type=${type}&to=${encodeURIComponent(adminNotificationEmail)}`);
+      const data = await res.json();
+      if (data.status === 'SUCCESS' || data.details?.success) {
+        alert(`✅ Instant test email for ${type === 'admin_booking' ? 'Consultation Booking' : 'Live Site Visit'} was dispatched via ${data.details?.method || 'SMTP'} to ${adminNotificationEmail}!`);
+      } else {
+        alert(`⚠️ Notification status: ${data.details?.message || 'Check email logs'}`);
+      }
+    } catch (err: any) {
+      alert(`❌ Error sending test email: ${err.message}`);
+    } finally {
+      setTestAlertSending(false);
+    }
+  };
+
   // Client Email Notification Toggle State
   const [notifyClientByEmail, setNotifyClientByEmail] = useState<boolean>(true);
   const [customEmailRecipient, setCustomEmailRecipient] = useState('');
@@ -189,6 +279,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   // Budget Editing State (Project Workspace)
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [editBudgetValue, setEditBudgetValue] = useState('');
+
 
   // Reusable file-to-server uploader (saves to GoDaddy /uploads/ directory so all devices see photos/docs)
   const handleFileUpload = useCallback((file: File, setter: (url: string) => void) => {
@@ -1202,6 +1293,166 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
               </div>
             </div>
 
+            {/* ADMIN EMAIL ENQUIRY NOTIFICATION CONTROL CARD */}
+            <div className={`p-5 sm:p-6 rounded-2xl border transition-all ${
+              adminEmailEnquiryEnabled 
+                ? 'bg-gradient-to-r from-[#181A22] via-[#1C1A14] to-[#121318] border-[#D4AF37]/50 shadow-xl shadow-[#D4AF37]/5' 
+                : 'bg-black/50 border-white/10 opacity-80'
+            }`}>
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+                
+                {/* Left side: Icon, Status, and Title */}
+                <div className="flex items-start space-x-4">
+                  <div className={`p-3 rounded-2xl border shrink-0 transition-colors ${
+                    adminEmailEnquiryEnabled 
+                      ? 'bg-gradient-to-br from-[#D4AF37]/20 to-amber-500/10 border-[#D4AF37] text-[#D4AF37]' 
+                      : 'bg-white/5 border-white/10 text-neutral-500'
+                  }`}>
+                    {adminEmailEnquiryEnabled ? (
+                      <Bell className="w-6 h-6 animate-bounce" />
+                    ) : (
+                      <BellOff className="w-6 h-6" />
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[11px] font-mono uppercase tracking-widest font-bold text-[#D4AF37]">
+                        Admin Instant Enquiry Alert Engine
+                      </span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider font-mono flex items-center gap-1.5 ${
+                        adminEmailEnquiryEnabled 
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm' 
+                          : 'bg-neutral-800 text-neutral-400 border border-white/10'
+                      }`}>
+                        <span className={`w-2 h-2 rounded-full ${adminEmailEnquiryEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-neutral-500'}`}></span>
+                        <span>{adminEmailEnquiryEnabled ? 'RECEIVING ALERTS ON' : 'ALERTS PAUSED (OFF)'}</span>
+                      </span>
+                    </div>
+
+                    <h3 className="font-serif text-lg sm:text-xl font-bold text-white">
+                      Automated Email on New Client Booking & Live Site Visit
+                    </h3>
+
+                    <p className="text-xs text-neutral-400 leading-relaxed max-w-2xl">
+                      {adminEmailEnquiryEnabled ? (
+                        <>Whenever a client submits a new booking or live site visit request, an instant luxury notification with client contact details is delivered to <strong className="text-white font-mono">{adminNotificationEmail}</strong>.</>
+                      ) : (
+                        <>Email alerts for new enquiries are currently <span className="text-amber-400 font-semibold">muted</span>. Inquiries are still recorded in the table below, but outgoing alert emails are skipped.</>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right side: Big Toggle Switch & Action Tools */}
+                <div className="flex flex-wrap items-center gap-4 shrink-0 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-4 lg:pt-0 border-white/10">
+                  
+                  {/* Email Target / Edit Box */}
+                  <div className="flex items-center space-x-2">
+                    {isEditingAdminEmail ? (
+                      <div className="flex items-center space-x-2 bg-black/80 p-1.5 rounded-xl border border-[#D4AF37]/50">
+                        <input
+                          type="email"
+                          value={tempAdminEmail}
+                          onChange={(e) => setTempAdminEmail(e.target.value)}
+                          placeholder="admin@decor8india.com"
+                          className="px-3 py-1.5 rounded-lg bg-white/10 border border-white/20 text-xs text-white font-mono focus:outline-none focus:border-[#D4AF37] w-48 sm:w-56"
+                          autoFocus
+                        />
+                        <button
+                          onClick={handleSaveAdminNotificationEmail}
+                          disabled={isSavingAdminSettings}
+                          className="px-3 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-amber-400 text-black font-bold text-xs transition-colors flex items-center space-x-1 cursor-pointer disabled:opacity-50"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Save</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTempAdminEmail(adminNotificationEmail);
+                            setIsEditingAdminEmail(false);
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-neutral-300 text-xs"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2 bg-black/60 px-3.5 py-2 rounded-xl border border-white/10">
+                        <div className="text-left">
+                          <span className="text-[10px] text-neutral-400 uppercase font-mono block">Send Alerts To:</span>
+                          <span className="text-xs font-bold text-neutral-200 font-mono">{adminNotificationEmail}</span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setTempAdminEmail(adminNotificationEmail);
+                            setIsEditingAdminEmail(true);
+                          }}
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                          title="Change admin recipient email"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Main Toggle Switch */}
+                  <div className="flex items-center space-x-3 bg-black/70 px-4 py-2 rounded-xl border border-white/15">
+                    <span className="text-xs font-bold text-neutral-300 uppercase font-mono">Alerts:</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={adminEmailEnquiryEnabled}
+                      onClick={() => handleToggleAdminEmailNotifications(!adminEmailEnquiryEnabled)}
+                      className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${
+                        adminEmailEnquiryEnabled ? 'bg-emerald-500' : 'bg-neutral-800'
+                      }`}
+                      title={adminEmailEnquiryEnabled ? "Click to Turn OFF Email Alerts" : "Click to Turn ON Email Alerts"}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition duration-300 ease-in-out ${
+                          adminEmailEnquiryEnabled ? 'translate-x-7 bg-black' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                    <span className={`text-xs font-extrabold font-mono uppercase ${
+                      adminEmailEnquiryEnabled ? 'text-emerald-400' : 'text-neutral-400'
+                    }`}>
+                      {adminEmailEnquiryEnabled ? 'ON' : 'OFF'}
+                    </span>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Quick Diagnostic Test Row */}
+              <div className="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <span className="text-neutral-400 text-[11px]">
+                  💡 Test reception anytime to verify delivery into <span className="text-[#D4AF37] font-mono">{adminNotificationEmail}</span>
+                </span>
+                
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleSendTestAdminAlert('admin_booking')}
+                    disabled={testAlertSending}
+                    className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#D4AF37] text-white hover:text-black font-semibold text-[11px] transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-50 border border-white/10"
+                  >
+                    <Send className={`w-3 h-3 ${testAlertSending ? 'animate-spin' : ''}`} />
+                    <span>Test Booking Alert Email</span>
+                  </button>
+                  <button
+                    onClick={() => handleSendTestAdminAlert('admin_site_visit')}
+                    disabled={testAlertSending}
+                    className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-emerald-500 text-white hover:text-black font-semibold text-[11px] transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-50 border border-white/10"
+                  >
+                    <Send className={`w-3 h-3 ${testAlertSending ? 'animate-spin' : ''}`} />
+                    <span>Test Site Visit Alert Email</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-neutral-300">
                 <thead className="bg-black/60 text-[#D4AF37] font-mono text-[11px] uppercase tracking-wider">
@@ -2074,6 +2325,116 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                 <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-1">
                   <span className="text-neutral-400 font-mono text-[11px] uppercase">Sender Identity</span>
                   <div className="text-[#D4AF37] font-bold">Decor8 India Studio &lt;support@decor8india.com&gt;</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Admin Enquiry Alert Subscription Card */}
+            <div className="p-6 sm:p-8 rounded-2xl glass-panel border border-[#D4AF37]/30 space-y-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2 text-xs font-mono font-bold text-[#D4AF37]">
+                    <Bell className="w-4 h-4 text-[#D4AF37]" />
+                    <span>ADMIN INCOMING ENQUIRY NOTIFICATION DISPATCH</span>
+                  </div>
+                  <h3 className="font-serif text-xl font-bold text-white">Instant Alerts for New Bookings & Site Visits</h3>
+                  <p className="text-xs text-neutral-400">Receive immediate notifications with complete client details whenever a new consultation or site tour request is submitted.</p>
+                </div>
+
+                {/* Status Badge */}
+                <div className="flex items-center space-x-3 bg-black/60 p-2 sm:p-2.5 rounded-2xl border border-white/15 shrink-0">
+                  <span className="text-xs font-bold text-neutral-300">Receive Alerts:</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={adminEmailEnquiryEnabled}
+                    onClick={() => handleToggleAdminEmailNotifications(!adminEmailEnquiryEnabled)}
+                    className={`relative inline-flex h-8 w-16 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-in-out focus:outline-none ${
+                      adminEmailEnquiryEnabled ? 'bg-emerald-500' : 'bg-neutral-800'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-300 ease-in-out ${
+                        adminEmailEnquiryEnabled ? 'translate-x-8 bg-black' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-xs font-extrabold font-mono uppercase ${
+                    adminEmailEnquiryEnabled ? 'text-emerald-400' : 'text-neutral-400'
+                  }`}>
+                    {adminEmailEnquiryEnabled ? '🟢 ON' : '⚪ OFF'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/10 text-xs">
+                <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-2">
+                  <span className="text-neutral-400 font-mono text-[11px] uppercase block">Admin Notification Target Address</span>
+                  {isEditingAdminEmail ? (
+                    <div className="flex items-center space-x-2 pt-1">
+                      <input
+                        type="email"
+                        value={tempAdminEmail}
+                        onChange={(e) => setTempAdminEmail(e.target.value)}
+                        placeholder="admin@decor8india.com"
+                        className="px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-xs text-white font-mono focus:outline-none focus:border-[#D4AF37] flex-1"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleSaveAdminNotificationEmail}
+                        disabled={isSavingAdminSettings}
+                        className="px-3 py-2 rounded-lg bg-[#D4AF37] hover:bg-amber-400 text-black font-bold text-xs flex items-center space-x-1 cursor-pointer disabled:opacity-50"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Save</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setTempAdminEmail(adminNotificationEmail);
+                          setIsEditingAdminEmail(false);
+                        }}
+                        className="px-2.5 py-2 rounded-lg bg-white/10 text-neutral-300 hover:text-white text-xs"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-white font-mono">{adminNotificationEmail}</span>
+                      <button
+                        onClick={() => {
+                          setTempAdminEmail(adminNotificationEmail);
+                          setIsEditingAdminEmail(true);
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-[#D4AF37] text-white hover:text-black font-semibold text-xs transition-colors flex items-center space-x-1 cursor-pointer"
+                      >
+                        <Edit className="w-3 h-3" />
+                        <span>Edit Email</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-2 flex flex-col justify-between">
+                  <span className="text-neutral-400 font-mono text-[11px] uppercase block">Direct Live Diagnostic Test</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => handleSendTestAdminAlert('admin_booking')}
+                      disabled={testAlertSending}
+                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[#D4AF37] text-white hover:text-black font-bold text-xs transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-50 border border-white/10"
+                    >
+                      <Send className={`w-3 h-3 ${testAlertSending ? 'animate-spin' : ''}`} />
+                      <span>Test Booking Email</span>
+                    </button>
+                    <button
+                      onClick={() => handleSendTestAdminAlert('admin_site_visit')}
+                      disabled={testAlertSending}
+                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-emerald-500 text-white hover:text-black font-bold text-xs transition-all flex items-center space-x-1.5 cursor-pointer disabled:opacity-50 border border-white/10"
+                    >
+                      <Send className={`w-3 h-3 ${testAlertSending ? 'animate-spin' : ''}`} />
+                      <span>Test Site Visit Email</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
