@@ -55,9 +55,9 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return activeCategoryServices.find(s => s.id === selectedServiceId) || activeCategoryServices[0];
   }, [activeCategoryServices, selectedServiceId]);
 
-  // Sliders State (Defaults strictly set to the start / minimum value)
-  const [carpetArea, setCarpetArea] = useState<number>(250);
-  const [commCarpetArea, setCommCarpetArea] = useState<number>(500);
+  // Sliders State (Default set to 1,000 Sq. Ft.)
+  const [carpetArea, setCarpetArea] = useState<number>(1000);
+  const [commCarpetArea, setCommCarpetArea] = useState<number>(1000);
   const [constPlotArea, setConstPlotArea] = useState<number>(1000);
 
   // Lead Submission State & EMI Option
@@ -521,33 +521,57 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
               </div>
             </div>
 
-            {/* Cost Breakdown */}
-            <div className="space-y-2 pt-2 border-t border-[#D4AF37]/20">
-              <div className="text-xs font-semibold text-white uppercase tracking-wider mb-2">Estimated Expense Distribution:</div>
+            {/* Turnkey Scope & Inclusions Included in this Estimate */}
+            <div className="space-y-2.5 pt-2 border-t border-[#D4AF37]/20">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-white uppercase tracking-wider">
+                  Turnkey Package Inclusions:
+                </span>
+                <span className="text-[10px] text-[#D4AF37] font-mono font-semibold">
+                  {materialStandard} Standard
+                </span>
+              </div>
               
-              <div className="flex justify-between text-xs text-neutral-300">
-                <span>Civil & Base Prep (20-25%)</span>
-                <span className="font-mono text-white font-medium">₹ {(calculation.civilCost / 100000).toFixed(2)} L</span>
-              </div>
+              <div className="grid grid-cols-1 gap-1.5 text-xs text-neutral-300">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                  <span className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>3D Architectural Design & Virtual Walkthrough</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
+                </div>
 
-              <div className="flex justify-between text-xs text-neutral-300">
-                <span>Modular Woodwork & Carpentry (40-45%)</span>
-                <span className="font-mono text-white font-medium">₹ {(calculation.carpentryCost / 100000).toFixed(2)} L</span>
-              </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                  <span className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>Factory-Crafted Modular Woodwork & Hardware</span>
+                  </span>
+                  <span className="text-[10px] text-[#D4AF37] font-mono font-semibold">Included</span>
+                </div>
 
-              <div className="flex justify-between text-xs text-neutral-300">
-                <span>Electrical & Smart Automation (15%)</span>
-                <span className="font-mono text-white font-medium">₹ {(calculation.electricalCost / 100000).toFixed(2)} L</span>
-              </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                  <span className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>Designer False Ceiling & Ambient Lighting</span>
+                  </span>
+                  <span className="text-[10px] text-[#D4AF37] font-mono font-semibold">Included</span>
+                </div>
 
-              <div className="flex justify-between text-xs text-neutral-300">
-                <span>False Ceiling & Architectural Lights (10%)</span>
-                <span className="font-mono text-white font-medium">₹ {(calculation.ceilingCost / 100000).toFixed(2)} L</span>
-              </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                  <span className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>Dedicated Project Manager & On-Site Audits</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-semibold">Included</span>
+                </div>
 
-              <div className="flex justify-between text-xs text-neutral-300">
-                <span>Soft Furnishings & Paint (10%)</span>
-                <span className="font-mono text-white font-medium">₹ {(calculation.furnishingCost / 100000).toFixed(2)} L</span>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                  <span className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <span>10-Year Warranty & Zero Hidden Cost Guarantee</span>
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">Assured</span>
+                </div>
               </div>
             </div>
 
