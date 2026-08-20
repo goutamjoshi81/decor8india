@@ -1,17 +1,21 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { MATERIAL_STANDARDS, CONSTRUCTION_STANDARDS, STANDARD_PRICING } from '../data/initialData';
 import type { MaterialStandardDetail, ConstructionStandardDetail } from '../data/initialData';
+import type { ServiceItem } from '../types';
 import { 
   Calculator, 
   Home, 
   Building2, 
   CheckCircle2, 
-  X,
-  FileText,
-  HardHat,
-  ShieldCheck,
-  CreditCard
+  X, 
+  FileText, 
+  HardHat, 
+  ShieldCheck, 
+  CreditCard,
+  Sparkles,
+  Tag,
+  Clock
 } from 'lucide-react';
 
 interface CostEstimatorProps {
@@ -20,12 +24,34 @@ interface CostEstimatorProps {
 }
 
 export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, onCloseModal }) => {
-  const { submitBooking } = useApp();
+  const { services, submitBooking } = useApp();
 
   const [serviceCategory, setServiceCategory] = useState<'Residential' | 'Commercial' | 'Construction'>('Residential');
   
   // Material & Hardware Standard Tier (Default: Eco Essential)
   const [materialStandard, setMaterialStandard] = useState<'Eco' | 'Urban' | 'Luxe'>('Eco');
+
+  // DB-Connected Service Selection
+  const activeCategoryServices = useMemo(() => {
+    return services.filter(s => s.type === serviceCategory && s.isActive);
+  }, [services, serviceCategory]);
+
+  const [selectedServiceId, setSelectedServiceId] = useState<string>('');
+
+  // Auto-sync selectedServiceId when category or services list changes
+  useEffect(() => {
+    if (activeCategoryServices.length > 0) {
+      if (!selectedServiceId || !activeCategoryServices.some(s => s.id === selectedServiceId)) {
+        setSelectedServiceId(activeCategoryServices[0].id);
+      }
+    } else {
+      setSelectedServiceId('');
+    }
+  }, [activeCategoryServices, selectedServiceId]);
+
+  const selectedService: ServiceItem | undefined = useMemo(() => {
+    return activeCategoryServices.find(s => s.id === selectedServiceId) || activeCategoryServices[0];
+  }, [activeCategoryServices, selectedServiceId]);
 
   // Residential State (Default sliders start at minimum)
   const [propertyType, setPropertyType] = useState<'Apartment' | 'Villa' | 'Penthouse' | 'Duplex'>('Apartment');
@@ -40,7 +66,6 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
   const [constructionType, setConstructionType] = useState<'Turnkey Villa' | 'Commercial Structure' | 'Floor Extension'>('Turnkey Villa');
   const [constPlotArea, setConstPlotArea] = useState<number>(1000);
 
-
   // Lead Submission State & EMI Option
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
@@ -50,19 +75,57 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
 
   const selectedStandardDetail = useMemo(() => {
     if (serviceCategory === 'Construction') {
-      return CONSTRUCTION_STANDARDS.find(m => m.id === materialStandard) || CONSTRUCTION_STANDARDS[1];
+      return CONSTRUCTION_STANDARDS.find(m => m.id === materialStandard) || CONSTRUCTION_STANDARDS[0];
     }
-    return MATERIAL_STANDARDS.find(m => m.id === materialStandard) || MATERIAL_STANDARDS[1];
+    return MATERIAL_STANDARDS.find(m => m.id === materialStandard) || MATERIAL_STANDARDS[0];
   }, [materialStandard, serviceCategory]);
 
-  // Current Rate per sq ft based on Category + Standard
-  const currentRatePerSqFt = useMemo(() => {
-    return STANDARD_PRICING[serviceCategory][materialStandard];
-  }, [serviceCategory, materialStandard]);
+  // Standard Multiplier for Eco (0.85), Urban (1.00), Luxe (1.25)
+  const standardMultiplier = useMemo(() => {
+    return materialStandard === 'Eco' ? 0.85 : materialStandard === 'Urban' ? 1.0 : 1.25;
+  }, [materialStandard]);
 
-  // Calculation Logic
+  // Baseline per-sq-ft rate derived directly from DB Service Starting Price
+  const baseRateFromDb = useMemo(() => {
+    if (selectedService && selectedService.startingPrice > 0) {
+      const nominalArea = serviceCategory === 'Residential' ? 1000 : serviceCategory === 'Commercial' ? 2500 : 1500;
+      return Math.round(selectedService.startingPrice / nominalArea);
+    }
+    return STANDARD_PRICING[serviceCategory]['Urban'];
+  }, [selectedService, serviceCategory]);
+
+  // Active Rate per Sq. Ft. calculated for chosen material standard tier
+  const currentRatePerSqFt = useMemo(() => {
+    return Math.round(baseRateFromDb * standardMultiplier);
+  }, [baseRateFromDb, standardMultiplier]);
+
+  // Check if active DB service has a promotional discount
+  const hasDbDiscount = Boolean(
+    selectedService?.discountPrice && 
+    selectedService.discountPrice > 0 && 
+    selectedService.discountPrice < selectedService.startingPrice
+  );
+
+  const discountPercentage = useMemo(() => {
+    if (!selectedService) return 0;
+    if (selectedService.discountPercentage && selectedService.discountPercentage > 0) {
+      return selectedService.discountPercentage;
+    }
+    if (hasDbDiscount && selectedService.discountPrice) {
+      return Math.round(((selectedService.startingPrice - selectedService.discountPrice) / selectedService.startingPrice) * 100);
+    }
+    return 0;
+  }, [selectedService, hasDbDiscount]);
+
+  // Calculation Logic synchronized with DB prices and discounts
   const calculation = useMemo(() => {
     const rate = currentRatePerSqFt;
+    const discountMultiplier = hasDbDiscount && selectedService?.discountPrice 
+      ? (selectedService.discountPrice / selectedService.startingPrice)
+      : 1.0;
+
+    let originalTotal = 0;
+    let estDays = 45;
 
     if (serviceCategory === 'Residential') {
       let baseRatePerSqFt = rate;
@@ -78,18 +141,8 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       if (propertyType === 'Penthouse') propMultiplier = 1.18;
       if (propertyType === 'Duplex') propMultiplier = 1.12;
 
-      const totalCost = Math.round(carpetArea * baseRatePerSqFt * propMultiplier);
-      const estDays = Math.max(30, Math.round(carpetArea / 40) + (materialStandard === 'Luxe' ? 20 : 10));
-
-      return {
-        totalCost,
-        estDays,
-        civilCost: Math.round(totalCost * 0.20),
-        carpentryCost: Math.round(totalCost * 0.45),
-        electricalCost: Math.round(totalCost * 0.15),
-        ceilingCost: Math.round(totalCost * 0.10),
-        furnishingCost: Math.round(totalCost * 0.10)
-      };
+      originalTotal = Math.round(carpetArea * baseRatePerSqFt * propMultiplier);
+      estDays = Math.max(30, Math.round(carpetArea / 40) + (materialStandard === 'Luxe' ? 20 : 10));
     } else if (serviceCategory === 'Commercial') {
       let baseRate = rate;
       if (commercialType === 'Office') baseRate *= 1.0;
@@ -99,18 +152,8 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       if (commercialType === 'Clinic') baseRate *= 1.05;
       if (commercialType === 'Showroom') baseRate *= 1.15;
 
-      const totalCost = Math.round(commCarpetArea * baseRate);
-      const estDays = Math.max(35, Math.round(commCarpetArea / 60) + 15);
-
-      return {
-        totalCost,
-        estDays,
-        civilCost: Math.round(totalCost * 0.25),
-        carpentryCost: Math.round(totalCost * 0.40),
-        electricalCost: Math.round(totalCost * 0.18),
-        ceilingCost: Math.round(totalCost * 0.07),
-        furnishingCost: Math.round(totalCost * 0.10)
-      };
+      originalTotal = Math.round(commCarpetArea * baseRate);
+      estDays = Math.max(35, Math.round(commCarpetArea / 60) + 15);
     } else {
       // Construction Category
       let constRate = rate;
@@ -118,20 +161,39 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       if (constructionType === 'Commercial Structure') constRate *= 1.15;
       if (constructionType === 'Floor Extension') constRate *= 0.9;
 
-      const totalCost = Math.round(constPlotArea * constRate);
-      const estDays = Math.max(90, Math.round(constPlotArea / 25) + 30);
-
-      return {
-        totalCost,
-        estDays,
-        civilCost: Math.round(totalCost * 0.50),
-        carpentryCost: Math.round(totalCost * 0.20),
-        electricalCost: Math.round(totalCost * 0.12),
-        ceilingCost: Math.round(totalCost * 0.08),
-        furnishingCost: Math.round(totalCost * 0.10)
-      };
+      originalTotal = Math.round(constPlotArea * constRate);
+      estDays = Math.max(90, Math.round(constPlotArea / 25) + 30);
     }
-  }, [serviceCategory, currentRatePerSqFt, bhkSize, propertyType, carpetArea, commercialType, commCarpetArea, constructionType, constPlotArea, materialStandard]);
+
+    const finalTotal = hasDbDiscount ? Math.round(originalTotal * discountMultiplier) : originalTotal;
+
+    return {
+      originalTotal,
+      totalCost: finalTotal,
+      hasDiscount: hasDbDiscount,
+      discountPercentage,
+      estDays,
+      civilCost: Math.round(finalTotal * (serviceCategory === 'Construction' ? 0.50 : serviceCategory === 'Commercial' ? 0.25 : 0.20)),
+      carpentryCost: Math.round(finalTotal * (serviceCategory === 'Construction' ? 0.20 : serviceCategory === 'Commercial' ? 0.40 : 0.45)),
+      electricalCost: Math.round(finalTotal * (serviceCategory === 'Construction' ? 0.12 : serviceCategory === 'Commercial' ? 0.18 : 0.15)),
+      ceilingCost: Math.round(finalTotal * (serviceCategory === 'Construction' ? 0.08 : serviceCategory === 'Commercial' ? 0.07 : 0.10)),
+      furnishingCost: Math.round(finalTotal * (serviceCategory === 'Construction' ? 0.10 : serviceCategory === 'Commercial' ? 0.10 : 0.10))
+    };
+  }, [
+    serviceCategory, 
+    currentRatePerSqFt, 
+    bhkSize, 
+    propertyType, 
+    carpetArea, 
+    commercialType, 
+    commCarpetArea, 
+    constructionType, 
+    constPlotArea, 
+    materialStandard,
+    hasDbDiscount,
+    selectedService,
+    discountPercentage
+  ]);
 
   const handleSubmitEstimate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,18 +202,20 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       return;
     }
 
+    const serviceTitle = selectedService ? selectedService.title : `${serviceCategory} Package`;
+
     submitBooking({
       clientName,
       clientEmail,
       clientPhone,
       serviceType: serviceCategory,
-      packageName: serviceCategory === 'Residential' ? `${bhkSize} (${propertyType})` : `${commercialType} Fitout`,
+      packageName: `${serviceTitle} (${materialStandard} Standard)`,
       propertyType: serviceCategory === 'Residential' ? propertyType : commercialType,
       bhkSize: serviceCategory === 'Residential' ? bhkSize : undefined,
-      carpetArea: serviceCategory === 'Residential' ? carpetArea : commCarpetArea,
+      carpetArea: serviceCategory === 'Residential' ? carpetArea : serviceCategory === 'Commercial' ? commCarpetArea : constPlotArea,
       budgetRange: `₹ ${(calculation.totalCost / 100000).toFixed(2)} Lakhs`,
       preferredDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      requirements: `Instant Cost Estimate Request for ${serviceCategory} (${materialStandard} Standard). Total Estimated: ₹ ${calculation.totalCost.toLocaleString('en-IN')}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
+      requirements: `Calculated Estimate from Live DB Services. Selected: ${serviceTitle} | Grade: ${materialStandard} Standard (₹ ${currentRatePerSqFt}/sq.ft)${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
       estimatedCost: calculation.totalCost,
       isEmiRequested
     });
@@ -172,7 +236,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
           Calculate Your Instant <span className="gold-gradient-text italic font-normal">Interior Project Budget</span>
         </h2>
         <p className="text-xs sm:text-sm text-neutral-400">
-          Get an accurate cost breakdown and timeline estimate tailored to your exact carpet area and material standards.
+          Real-time dynamic cost calculation powered directly by official database service packages, live discounts, and material standard specifications.
         </p>
       </div>
 
@@ -215,6 +279,66 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
             </button>
           </div>
 
+          {/* Database Service Package Selector */}
+          {activeCategoryServices.length > 0 && (
+            <div className="space-y-2.5 p-3.5 rounded-xl bg-black/40 border border-white/10">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] sm:text-xs font-bold text-[#D4AF37] uppercase tracking-wider flex items-center space-x-1.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Choose Database Service Package</span>
+                </label>
+                <span className="text-[10px] text-neutral-400 font-mono">
+                  {activeCategoryServices.length} {serviceCategory} Packages
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {activeCategoryServices.map((srv) => {
+                  const isSelected = (selectedService?.id === srv.id);
+                  const hasDiscount = Boolean(srv.discountPrice && srv.discountPrice > 0 && srv.discountPrice < srv.startingPrice);
+                  const effectiveEcoPrice = (hasDiscount ? srv.discountPrice! : srv.startingPrice) * 0.85;
+                  const discountPct = srv.discountPercentage || (hasDiscount ? Math.round(((srv.startingPrice - srv.discountPrice!) / srv.startingPrice) * 100) : 0);
+
+                  return (
+                    <button
+                      key={srv.id}
+                      type="button"
+                      onClick={() => setSelectedServiceId(srv.id)}
+                      className={`p-2.5 rounded-xl text-left border transition-all relative overflow-hidden flex flex-col justify-between ${
+                        isSelected
+                          ? 'bg-[#D4AF37]/15 border-[#D4AF37] ring-1 ring-[#D4AF37]/50 shadow-md'
+                          : 'bg-white/5 border-white/10 hover:border-white/25 text-neutral-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="font-bold text-xs text-white line-clamp-1">{srv.title}</div>
+                        {hasDiscount && (
+                          <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/40 shrink-0">
+                            {discountPct}% OFF
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-baseline justify-between mt-2 pt-1.5 border-t border-white/10">
+                        <span className="text-[9px] text-neutral-400 font-mono">From (Eco):</span>
+                        <div className="flex items-baseline space-x-1.5">
+                          {hasDiscount && (
+                            <span className="text-[9px] text-neutral-500 line-through font-mono">
+                              ₹ {((srv.startingPrice * 0.85) / 100000).toFixed(2)}L
+                            </span>
+                          )}
+                          <span className="text-xs font-bold font-serif text-[#D4AF37]">
+                            ₹ {(effectiveEcoPrice / 100000).toFixed(2)} Lakhs
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Material & Hardware Standard Selector (Eco / Urban / Luxe) */}
           <div className="space-y-3 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10">
             <div className="flex items-center justify-between">
@@ -226,10 +350,13 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
 
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {MATERIAL_STANDARDS.map((std) => {
-                const rate = STANDARD_PRICING[serviceCategory][std.id];
+                const mult = std.id === 'Eco' ? 0.85 : std.id === 'Urban' ? 1.0 : 1.25;
+                const dynamicRate = Math.round(baseRateFromDb * mult);
+
                 return (
                   <button
                     key={std.id}
+                    type="button"
                     onClick={() => setMaterialStandard(std.id)}
                     className={`p-2 sm:p-3 rounded-xl text-center border transition-all flex flex-col justify-between ${
                       materialStandard === std.id 
@@ -239,7 +366,9 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   >
                     <div>
                       <div className="text-[10px] sm:text-xs font-bold text-white leading-tight">{std.badge}</div>
-                      <div className="text-[9px] sm:text-[10px] text-[#D4AF37] font-mono mt-0.5 font-bold whitespace-nowrap">₹ {rate}/sq.ft</div>
+                      <div className="text-[9px] sm:text-[10px] text-[#D4AF37] font-mono mt-0.5 font-bold whitespace-nowrap">
+                        ₹ {dynamicRate}/sq.ft
+                      </div>
                     </div>
                     <div className="text-[8px] sm:text-[9px] text-neutral-400 mt-1 line-clamp-1">{std.title}</div>
                   </button>
@@ -291,6 +420,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   {(['1 BHK', '2 BHK', '3 BHK', '4 BHK', 'Grand Villa'] as const).map(bhk => (
                     <button
                       key={bhk}
+                      type="button"
                       onClick={() => setBhkSize(bhk)}
                       className={`py-2 px-1 rounded-lg text-xs font-semibold border transition-all ${
                         bhkSize === bhk 
@@ -311,6 +441,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   {(['Apartment', 'Villa', 'Penthouse', 'Duplex'] as const).map(type => (
                     <button
                       key={type}
+                      type="button"
                       onClick={() => setPropertyType(type)}
                       className={`py-2 px-3 rounded-lg text-xs font-semibold border transition-all ${
                         propertyType === type 
@@ -357,6 +488,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   {(['Office', 'Retail', 'Restaurant', 'Hotel', 'Clinic', 'Showroom'] as const).map(type => (
                     <button
                       key={type}
+                      type="button"
                       onClick={() => setCommercialType(type)}
                       className={`py-2.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
                         commercialType === type 
@@ -404,6 +536,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   {(['Turnkey Villa', 'Commercial Structure', 'Floor Extension'] as const).map(type => (
                     <button
                       key={type}
+                      type="button"
                       onClick={() => setConstructionType(type)}
                       className={`py-2.5 px-3 rounded-lg text-xs font-semibold border transition-all ${
                         constructionType === type 
@@ -450,13 +583,43 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
           <div className="p-6 sm:p-8 rounded-2xl glass-panel-gold border border-[#D4AF37]/40 space-y-6 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none" />
 
-            <div className="space-y-1">
-              <span className="text-[11px] uppercase tracking-widest text-[#D4AF37] font-semibold">Instant Estimate Summary</span>
-              <div className="text-4xl sm:text-5xl font-serif font-bold text-white">
-                ₹ {(calculation.totalCost / 100000).toFixed(2)} <span className="text-2xl font-serif text-[#D4AF37]">Lakhs</span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] uppercase tracking-widest text-[#D4AF37] font-semibold">
+                  Instant Estimate Summary
+                </span>
+                {hasDbDiscount && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px] border border-emerald-500/40 flex items-center space-x-1">
+                    <Tag className="w-3 h-3" />
+                    <span>{discountPercentage}% OFF APPLIED</span>
+                  </span>
+                )}
               </div>
-              <div className="text-xs text-neutral-400 font-mono pt-1">
-                Estimated Turnkey Completion: <span className="text-white font-semibold">{calculation.estDays} Days</span>
+
+              <div className="space-y-0.5">
+                <div className="flex items-baseline space-x-3">
+                  <div className="text-4xl sm:text-5xl font-serif font-bold text-emerald-400">
+                    ₹ {(calculation.totalCost / 100000).toFixed(2)} <span className="text-2xl font-serif text-[#D4AF37]">Lakhs</span>
+                  </div>
+                  {hasDbDiscount && (
+                    <div className="text-base sm:text-lg text-neutral-500 line-through font-mono font-bold">
+                      ₹ {(calculation.originalTotal / 100000).toFixed(2)} L
+                    </div>
+                  )}
+                </div>
+
+                {selectedService && (
+                  <div className="text-[11px] text-[#D4AF37] font-medium truncate pt-1">
+                    Selected Package: <strong className="text-white">{selectedService.title}</strong>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-xs text-neutral-400 font-mono pt-1 flex items-center space-x-1.5">
+                <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>
+                  Estimated Turnkey Timeline: <strong className="text-white font-semibold">{selectedService?.estimatedDuration || `${calculation.estDays} Days`}</strong>
+                </span>
               </div>
             </div>
 
