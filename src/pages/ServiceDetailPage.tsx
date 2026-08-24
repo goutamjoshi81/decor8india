@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { STANDARD_PRICING } from '../data/initialData';
 import { 
   ArrowLeft, 
   Check, 
@@ -55,8 +56,9 @@ export const ServiceDetailPage: React.FC = () => {
     );
   }
 
-  // Price multiplier based on standard option
-  const priceMultiplier = selectedStandard === 'Eco' ? 0.85 : selectedStandard === 'Urban' ? 1.0 : 1.25;
+  // Price multiplier derived directly from STANDARD_PRICING for this service category
+  const serviceType = service.type || 'Residential';
+  const priceMultiplier = (STANDARD_PRICING[serviceType]?.[selectedStandard] || 1450) / (STANDARD_PRICING[serviceType]?.Urban || 1450);
   const hasDiscount = Boolean(service.discountPrice && service.discountPrice > 0 && service.discountPrice < service.startingPrice);
   
   const calculatedOriginalPrice = Math.round(service.startingPrice * priceMultiplier);

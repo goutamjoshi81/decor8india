@@ -48,8 +48,7 @@ export const BookingModal: React.FC = () => {
   if (!isBookingOpen) return null;
 
   const currentRate = STANDARD_PRICING[serviceType][selectedStandard];
-  const baseUrbanRate = STANDARD_PRICING[serviceType]['Urban'];
-  const standardMultiplier = currentRate / baseUrbanRate;
+  const standardMultiplier = currentRate / STANDARD_PRICING[serviceType]['Urban'];
 
   const filteredServices = services.filter(s => s.type === serviceType && s.isActive);
 

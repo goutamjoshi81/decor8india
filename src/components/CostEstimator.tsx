@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { MATERIAL_STANDARDS, CONSTRUCTION_STANDARDS } from '../data/initialData';
+import { MATERIAL_STANDARDS, CONSTRUCTION_STANDARDS, STANDARD_PRICING } from '../data/initialData';
 import type { MaterialStandardDetail, ConstructionStandardDetail } from '../data/initialData';
 import type { ServiceItem } from '../types';
 import { 
@@ -74,10 +74,20 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return MATERIAL_STANDARDS.find(m => m.id === materialStandard) || MATERIAL_STANDARDS[0];
   }, [materialStandard, serviceCategory]);
 
-  // Standard Multiplier: Eco (0.85), Urban (1.00), Luxe (1.25)
+  // Standard Multiplier derived directly from official STANDARD_PRICING for the active category
   const standardMultiplier = useMemo(() => {
-    return materialStandard === 'Eco' ? 0.85 : materialStandard === 'Urban' ? 1.0 : 1.25;
-  }, [materialStandard]);
+    const ecoRate = STANDARD_PRICING[serviceCategory]?.Eco || 1250;
+    const urbanRate = STANDARD_PRICING[serviceCategory]?.Urban || 1450;
+    const luxeRate = STANDARD_PRICING[serviceCategory]?.Luxe || 1950;
+
+    if (materialStandard === 'Eco') {
+      return ecoRate / urbanRate;
+    }
+    if (materialStandard === 'Luxe') {
+      return luxeRate / urbanRate;
+    }
+    return 1.0;
+  }, [materialStandard, serviceCategory]);
 
   // Check if active DB service has a promotional discount
   const hasDbDiscount = Boolean(

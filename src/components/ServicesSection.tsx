@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { STANDARD_PRICING } from '../data/initialData';
 import type { ServiceItem } from '../types';
 import { 
   Home, 
@@ -200,8 +201,9 @@ export const ServicesSection: React.FC = () => {
                       <div className="pt-4 border-t border-white/10 flex items-baseline justify-between">
                         {(() => {
                           const hasDiscount = Boolean(service.discountPrice && service.discountPrice > 0 && service.discountPrice < service.startingPrice);
-                          const originalEco = (service.startingPrice * 0.85) / 100000;
-                          const discountedEco = hasDiscount ? ((service.discountPrice! * 0.85) / 100000) : originalEco;
+                          const ecoMultiplier = STANDARD_PRICING[service.type]?.Eco / STANDARD_PRICING[service.type]?.Urban || 0.85;
+                          const originalEco = (service.startingPrice * ecoMultiplier) / 100000;
+                          const discountedEco = hasDiscount ? ((service.discountPrice! * ecoMultiplier) / 100000) : originalEco;
                           const discountPct = service.discountPercentage || (hasDiscount ? Math.round(((service.startingPrice - service.discountPrice!) / service.startingPrice) * 100) : 0);
 
                           return (
