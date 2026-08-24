@@ -281,12 +281,21 @@ export const apiService = {
     }
   },
 
-  async saveService(serviceData: any): Promise<{ success: boolean; message?: string }> {
+  async saveService(serviceData: any): Promise<{ success: boolean; message?: string; discountPrice?: number | null; discountPercentage?: number }> {
     try {
+      const payload = {
+        ...serviceData,
+        discountPrice: (serviceData.discountPrice !== undefined && serviceData.discountPrice !== null && serviceData.discountPrice !== '' && Number(serviceData.discountPrice) > 0 && Number(serviceData.discountPrice) < Number(serviceData.startingPrice))
+          ? Number(serviceData.discountPrice)
+          : null,
+        discountPercentage: (serviceData.discountPrice && Number(serviceData.discountPrice) > 0)
+          ? (Number(serviceData.discountPercentage) || 0)
+          : 0
+      };
       const response = await fetch(`${API_BASE_URL}/save_service.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(serviceData)
+        body: JSON.stringify(payload)
       });
       const data = await response.json();
       return data;
@@ -298,10 +307,19 @@ export const apiService = {
 
   async saveServicesBulk(services: any[]): Promise<{ success: boolean; message?: string }> {
     try {
+      const sanitizedServices = (services || []).map(s => ({
+        ...s,
+        discountPrice: (s.discountPrice !== undefined && s.discountPrice !== null && s.discountPrice !== '' && Number(s.discountPrice) > 0 && Number(s.discountPrice) < Number(s.startingPrice))
+          ? Number(s.discountPrice)
+          : null,
+        discountPercentage: (s.discountPrice && Number(s.discountPrice) > 0)
+          ? (Number(s.discountPercentage) || 0)
+          : 0
+      }));
       const response = await fetch(`${API_BASE_URL}/save_service.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ _bulk: true, services, id: 'bulk', title: 'bulk' })
+        body: JSON.stringify({ _bulk: true, services: sanitizedServices, id: 'bulk', title: 'bulk' })
       });
       const data = await response.json();
       return data;

@@ -1,6 +1,6 @@
 <?php
 // Decor8 India - Service Save/Update Endpoint
-// Inserts or updates a single service in the dedicated 'services' table
+// Inserts or updates services in the dedicated 'services' table with full discount support
 require_once 'db_config.php';
 
 try {
@@ -35,8 +35,8 @@ try {
 
     $data = json_decode(file_get_contents("php://input"), true);
 
-    if (empty($data['id']) || empty($data['title'])) {
-        echo json_encode(["success" => false, "message" => "Service id and title are required."]);
+    if (!$data) {
+        echo json_encode(["success" => false, "message" => "Invalid JSON payload."]);
         exit();
     }
 
@@ -52,6 +52,7 @@ try {
     $extractDiscount = function($item) {
         $startingPrice = floatval($item['startingPrice'] ?? $item['starting_price'] ?? 0);
         $rawDiscountPrice = $item['discountPrice'] ?? $item['discount_price'] ?? null;
+        
         $discountPrice = ($rawDiscountPrice !== null && $rawDiscountPrice !== '' && floatval($rawDiscountPrice) > 0) 
             ? floatval($rawDiscountPrice) 
             : null;
@@ -59,6 +60,7 @@ try {
         $rawPct = $item['discountPercentage'] ?? $item['discount_percentage'] ?? 0;
         $discountPct = intval($rawPct);
 
+        // If discount is explicitly valid and less than starting price
         if ($discountPrice !== null && $discountPrice > 0 && $startingPrice > 0 && $discountPrice < $startingPrice) {
             if ($discountPct <= 0) {
                 $discountPct = (int)round((( $startingPrice - $discountPrice ) / $startingPrice) * 100);
@@ -74,57 +76,107 @@ try {
         return [$discountPrice, $discountPct];
     };
 
+    // Helper to upsert a single service with explicit typed parameter binding
+    $upsertService = function($pdo, $s, $idx = 0) use ($extractDiscount) {
+        list($dPrice, $dPct) = $extractDiscount($s);
+        $startingPrice = floatval($s['startingPrice'] ?? $s['starting_price'] ?? 0);
+        $featuresJson = json_encode($s['features'] ?? []);
+        $isActive = isset($s['isActive']) ? (int)$s['isActive'] : (isset($s['is_active']) ? (int)$s['is_active'] : 1);
+        $sortOrder = isset($s['sort_order']) ? intval($s['sort_order']) : intval($idx);
+        $type = $s['type'] ?? 'Residential';
+        $desc = $s['description'] ?? null;
+        $duration = $s['estimatedDuration'] ?? $s['estimated_duration'] ?? null;
+        $image = $s['image'] ?? null;
+        $iconName = $s['iconName'] ?? $s['icon_name'] ?? null;
+        $id = $s['id'];
+        $title = $s['title'];
+
+        // Check if row already exists
+        $checkStmt = $pdo->prepare("SELECT id FROM services WHERE id = ? LIMIT 1");
+        $checkStmt->execute([$id]);
+        $exists = $checkStmt->fetchColumn();
+
+        if ($exists) {
+            $updateStmt = $pdo->prepare("UPDATE services SET 
+                title = :title, 
+                type = :type, 
+                description = :description, 
+                features = :features, 
+                estimated_duration = :duration, 
+                starting_price = :startingPrice, 
+                discount_price = :discountPrice, 
+                discount_percentage = :discountPercentage, 
+                image = :image, 
+                icon_name = :iconName, 
+                is_active = :isActive, 
+                sort_order = :sortOrder 
+                WHERE id = :id");
+            
+            $updateStmt->bindValue(':title', $title, PDO::PARAM_STR);
+            $updateStmt->bindValue(':type', $type, PDO::PARAM_STR);
+            $updateStmt->bindValue(':description', $desc, $desc === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $updateStmt->bindValue(':features', $featuresJson, PDO::PARAM_STR);
+            $updateStmt->bindValue(':duration', $duration, $duration === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $updateStmt->bindValue(':startingPrice', $startingPrice);
+            if ($dPrice === null) {
+                $updateStmt->bindValue(':discountPrice', null, PDO::PARAM_NULL);
+            } else {
+                $updateStmt->bindValue(':discountPrice', $dPrice);
+            }
+            $updateStmt->bindValue(':discountPercentage', $dPct, PDO::PARAM_INT);
+            $updateStmt->bindValue(':image', $image, $image === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $updateStmt->bindValue(':iconName', $iconName, $iconName === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $updateStmt->bindValue(':isActive', $isActive, PDO::PARAM_INT);
+            $updateStmt->bindValue(':sortOrder', $sortOrder, PDO::PARAM_INT);
+            $updateStmt->bindValue(':id', $id, PDO::PARAM_STR);
+            $updateStmt->execute();
+        } else {
+            $insertStmt = $pdo->prepare("INSERT INTO services (id, title, type, description, features, estimated_duration, starting_price, discount_price, discount_percentage, image, icon_name, is_active, sort_order)
+                VALUES (:id, :title, :type, :description, :features, :duration, :startingPrice, :discountPrice, :discountPercentage, :image, :iconName, :isActive, :sortOrder)");
+            
+            $insertStmt->bindValue(':id', $id, PDO::PARAM_STR);
+            $insertStmt->bindValue(':title', $title, PDO::PARAM_STR);
+            $insertStmt->bindValue(':type', $type, PDO::PARAM_STR);
+            $insertStmt->bindValue(':description', $desc, $desc === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $insertStmt->bindValue(':features', $featuresJson, PDO::PARAM_STR);
+            $insertStmt->bindValue(':duration', $duration, $duration === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $insertStmt->bindValue(':startingPrice', $startingPrice);
+            if ($dPrice === null) {
+                $insertStmt->bindValue(':discountPrice', null, PDO::PARAM_NULL);
+            } else {
+                $insertStmt->bindValue(':discountPrice', $dPrice);
+            }
+            $insertStmt->bindValue(':discountPercentage', $dPct, PDO::PARAM_INT);
+            $insertStmt->bindValue(':image', $image, $image === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $insertStmt->bindValue(':iconName', $iconName, $iconName === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $insertStmt->bindValue(':isActive', $isActive, PDO::PARAM_INT);
+            $insertStmt->bindValue(':sortOrder', $sortOrder, PDO::PARAM_INT);
+            $insertStmt->execute();
+        }
+
+        return [$dPrice, $dPct];
+    };
+
     // Handle bulk save (array of services)
     if (isset($data['_bulk']) && is_array($data['services'])) {
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare("INSERT INTO services (id, title, type, description, features, estimated_duration, starting_price, discount_price, discount_percentage, image, icon_name, is_active, sort_order)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE title=VALUES(title), type=VALUES(type), description=VALUES(description), features=VALUES(features), estimated_duration=VALUES(estimated_duration), starting_price=VALUES(starting_price), discount_price=VALUES(discount_price), discount_percentage=VALUES(discount_percentage), image=VALUES(image), icon_name=VALUES(icon_name), is_active=VALUES(is_active), sort_order=VALUES(sort_order)");
-        
         foreach ($data['services'] as $idx => $s) {
-            list($dPrice, $dPct) = $extractDiscount($s);
-            $stmt->execute([
-                $s['id'],
-                $s['title'],
-                $s['type'] ?? 'Residential',
-                $s['description'] ?? null,
-                json_encode($s['features'] ?? []),
-                $s['estimatedDuration'] ?? $s['estimated_duration'] ?? null,
-                floatval($s['startingPrice'] ?? $s['starting_price'] ?? 0),
-                $dPrice,
-                $dPct,
-                $s['image'] ?? null,
-                $s['iconName'] ?? $s['icon_name'] ?? null,
-                isset($s['isActive']) ? (int)$s['isActive'] : (isset($s['is_active']) ? (int)$s['is_active'] : 1),
-                $idx
-            ]);
+            if (!empty($s['id']) && !empty($s['title'])) {
+                $upsertService($pdo, $s, $idx);
+            }
         }
         $pdo->commit();
         echo json_encode(["success" => true, "message" => "All services saved."]);
         exit();
     }
 
-    // Single service upsert
-    list($singleDPrice, $singleDPct) = $extractDiscount($data);
-    $stmt = $pdo->prepare("INSERT INTO services (id, title, type, description, features, estimated_duration, starting_price, discount_price, discount_percentage, image, icon_name, is_active, sort_order)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE title=VALUES(title), type=VALUES(type), description=VALUES(description), features=VALUES(features), estimated_duration=VALUES(estimated_duration), starting_price=VALUES(starting_price), discount_price=VALUES(discount_price), discount_percentage=VALUES(discount_percentage), image=VALUES(image), icon_name=VALUES(icon_name), is_active=VALUES(is_active), sort_order=VALUES(sort_order)");
+    if (empty($data['id']) || empty($data['title'])) {
+        echo json_encode(["success" => false, "message" => "Service id and title are required."]);
+        exit();
+    }
 
-    $stmt->execute([
-        $data['id'],
-        $data['title'],
-        $data['type'] ?? 'Residential',
-        $data['description'] ?? null,
-        json_encode($data['features'] ?? []),
-        $data['estimatedDuration'] ?? $data['estimated_duration'] ?? null,
-        floatval($data['startingPrice'] ?? $data['starting_price'] ?? 0),
-        $singleDPrice,
-        $singleDPct,
-        $data['image'] ?? null,
-        $data['iconName'] ?? $data['icon_name'] ?? null,
-        isset($data['isActive']) ? (int)$data['isActive'] : (isset($data['is_active']) ? (int)$data['is_active'] : 1),
-        intval($data['sort_order'] ?? 0)
-    ]);
+    // Single service upsert
+    list($singleDPrice, $singleDPct) = $upsertService($pdo, $data, intval($data['sort_order'] ?? 0));
 
     echo json_encode([
         "success" => true,
@@ -133,8 +185,10 @@ try {
         "discountPercentage" => $singleDPct
     ]);
 
-
 } catch (Throwable $e) {
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     echo json_encode([
         "success" => false,
         "message" => "Error saving service.",

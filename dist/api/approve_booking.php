@@ -213,8 +213,7 @@ try {
                 "amount" => $finalPrice ? round($finalPrice * 0.1) : 100000,
                 "paidAmount" => 0,
                 "dueDate" => date('Y-m-d', strtotime('+3 days')),
-                "status" => "Pending",
-                "invoiceUrl" => "INV-D8I-" . sprintf("%06d", mt_rand(100000, 999999))
+                "status" => "Pending"
             ]
         ];
 
@@ -223,7 +222,7 @@ try {
         $defaultReqs = !empty($booking['requirements']) ? $booking['requirements'] : 'Approved luxury interior transformation.';
 
         $projStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_name, client_email, designer_name, category, style, cover_image, gallery_images_json, location, area, budget, contract_price, completion_time, status, show_on_landing_page, progress_percentage, current_stage, expected_completion, description, work_updates_json, documents_json, payments_json, milestones_json) 
-            VALUES (?, ?, ?, ?, ?, 'Mr. Satish Bhat (CEO & Principal Architect)', ?, 'Modern', ?, ?, 'City Center', ?, ?, ?, '60 Days', 'Ongoing', 1, 10, 'Design Discussion', ?, ?, ?, ?, ?, ?)");
+            VALUES (?, ?, ?, ?, ?, 'Aarav Mehta (Principal Architect)', ?, 'Modern', ?, ?, 'City Center', ?, ?, ?, '60 Days', 'Ongoing', 1, 10, 'Design Discussion', ?, ?, ?, ?, ?, ?)");
         
         $expectedCompletion = date('Y-m-d', strtotime('+60 days'));
         $area = !empty($booking['carpet_area']) ? ($booking['carpet_area'] . ' Sq. Ft.') : '1,500 Sq. Ft.';
@@ -251,17 +250,6 @@ try {
 
     $pdo->commit();
 
-    // Trigger Automated Luxury Welcome Email to Client
-    $emailStatus = null;
-    try {
-        require_once __DIR__ . '/email_service.php';
-        if (!empty($clientEmail)) {
-            $emailStatus = sendWelcomeClientNotification($clientEmail, $clientName, $projectTitle, $clientPhone);
-        }
-    } catch (Throwable $mailEx) {
-        $emailStatus = ["success" => false, "error" => $mailEx->getMessage()];
-    }
-
     echo json_encode([
         "success" => true,
         "message" => "Client approved successfully! Added to users and projects table. Default password set to phone number: $clientPhone.",
@@ -269,8 +257,7 @@ try {
         "projectId" => $projectId,
         "userId" => $userId,
         "defaultPassword" => $clientPhone,
-        "clientEmail" => $clientEmail,
-        "emailNotification" => $emailStatus
+        "clientEmail" => $clientEmail
     ]);
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
