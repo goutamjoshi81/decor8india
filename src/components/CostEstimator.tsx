@@ -55,10 +55,10 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return activeCategoryServices.find(s => s.id === selectedServiceId) || activeCategoryServices[0];
   }, [activeCategoryServices, selectedServiceId]);
 
-  // Sliders State (Default set to 1,000 Sq. Ft.)
+  // Sliders State (Default set to 1,500 Sq. Ft. for Construction, 1,000 for Residential/Commercial)
   const [carpetArea, setCarpetArea] = useState<number>(1000);
   const [commCarpetArea, setCommCarpetArea] = useState<number>(1000);
-  const [constPlotArea, setConstPlotArea] = useState<number>(1000);
+  const [constPlotArea, setConstPlotArea] = useState<number>(1500);
 
   // Lead Submission State & EMI Option
   const [clientName, setClientName] = useState('');
@@ -90,8 +90,11 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
 
   // Active Rate per Sq. Ft. calculated for chosen material standard tier
   const currentRatePerSqFt = useMemo(() => {
+    if (serviceCategory === 'Construction') {
+      return STANDARD_PRICING.Construction[materialStandard];
+    }
     return Math.round(baseRateFromDb * standardMultiplier);
-  }, [baseRateFromDb, standardMultiplier]);
+  }, [baseRateFromDb, standardMultiplier, serviceCategory, materialStandard]);
 
   // Check if active DB service has a promotional discount
   const hasDbDiscount = Boolean(
@@ -318,6 +321,9 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
 
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {MATERIAL_STANDARDS.map((std) => {
+                const isConstruction = serviceCategory === 'Construction';
+                const constRate = STANDARD_PRICING.Construction[std.id];
+
                 return (
                   <button
                     key={std.id}
@@ -330,7 +336,13 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                     }`}
                   >
                     <div className="text-[11px] sm:text-xs font-bold text-white leading-tight">{std.badge}</div>
-                    <div className="text-[9px] sm:text-[10px] text-neutral-400 line-clamp-1">{std.title}</div>
+                    {isConstruction ? (
+                      <div className="text-[10px] sm:text-[11px] text-[#D4AF37] font-mono font-bold mt-0.5">
+                        ₹ {constRate.toLocaleString()} / sq. ft.
+                      </div>
+                    ) : (
+                      <div className="text-[9px] sm:text-[10px] text-neutral-400 line-clamp-1">{std.title}</div>
+                    )}
                   </button>
                 );
               })}
@@ -429,7 +441,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   type="range" 
                   min="1000" 
                   max="30000" 
-                  step="500" 
+                  step="100" 
                   value={constPlotArea} 
                   onChange={(e) => setConstPlotArea(Number(e.target.value))}
                   className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
