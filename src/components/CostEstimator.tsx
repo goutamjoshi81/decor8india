@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { MATERIAL_STANDARDS, CONSTRUCTION_STANDARDS, STANDARD_PRICING } from '../data/initialData';
+import { MATERIAL_STANDARDS, CONSTRUCTION_STANDARDS } from '../data/initialData';
 import type { MaterialStandardDetail, ConstructionStandardDetail } from '../data/initialData';
 import type { ServiceItem } from '../types';
 import { 
@@ -55,11 +55,6 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return activeCategoryServices.find(s => s.id === selectedServiceId) || activeCategoryServices[0];
   }, [activeCategoryServices, selectedServiceId]);
 
-  // Sliders State (Default set to 1,500 Sq. Ft. for Construction, 1,000 for Residential/Commercial)
-  const [carpetArea, setCarpetArea] = useState<number>(1000);
-  const [commCarpetArea, setCommCarpetArea] = useState<number>(1000);
-  const [constPlotArea, setConstPlotArea] = useState<number>(1500);
-
   // Lead Submission State & EMI Option
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
@@ -79,23 +74,6 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return materialStandard === 'Eco' ? 0.85 : materialStandard === 'Urban' ? 1.0 : 1.25;
   }, [materialStandard]);
 
-  // Baseline per-sq-ft rate derived directly from DB Service Starting Price
-  const baseRateFromDb = useMemo(() => {
-    if (selectedService && selectedService.startingPrice > 0) {
-      const nominalArea = serviceCategory === 'Residential' ? 1000 : serviceCategory === 'Commercial' ? 2500 : 1500;
-      return Math.round(selectedService.startingPrice / nominalArea);
-    }
-    return STANDARD_PRICING[serviceCategory]['Urban'];
-  }, [selectedService, serviceCategory]);
-
-  // Active Rate per Sq. Ft. calculated for chosen material standard tier
-  const currentRatePerSqFt = useMemo(() => {
-    if (serviceCategory === 'Construction') {
-      return STANDARD_PRICING.Construction[materialStandard];
-    }
-    return Math.round(baseRateFromDb * standardMultiplier);
-  }, [baseRateFromDb, standardMultiplier, serviceCategory, materialStandard]);
-
   // Check if active DB service has a promotional discount
   const hasDbDiscount = Boolean(
     selectedService?.discountPrice && 
@@ -114,28 +92,19 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return 0;
   }, [selectedService, hasDbDiscount]);
 
-  // Dynamic Calculation Logic based directly on selected DB service package, standard, and slider area
+  // Dynamic Calculation Logic: Direct 1-to-1 match with the selected service package & tier standard
   const calculation = useMemo(() => {
-    const rate = currentRatePerSqFt;
-    const discountMultiplier = hasDbDiscount && selectedService?.discountPrice 
-      ? (selectedService.discountPrice / selectedService.startingPrice)
-      : 1.0;
+    const baseStartingPrice = selectedService ? selectedService.startingPrice : 500000;
+    const baseDiscountPrice = (hasDbDiscount && selectedService?.discountPrice) ? selectedService.discountPrice : baseStartingPrice;
 
-    let originalTotal = 0;
-    let estDays = 45;
+    const originalTotal = Math.round(baseStartingPrice * standardMultiplier);
+    const finalTotal = Math.round(baseDiscountPrice * standardMultiplier);
 
-    if (serviceCategory === 'Residential') {
-      originalTotal = Math.round(carpetArea * rate);
-      estDays = Math.max(30, Math.round(carpetArea / 40) + (materialStandard === 'Luxe' ? 20 : 10));
-    } else if (serviceCategory === 'Commercial') {
-      originalTotal = Math.round(commCarpetArea * rate);
-      estDays = Math.max(35, Math.round(commCarpetArea / 60) + 15);
-    } else {
-      originalTotal = Math.round(constPlotArea * rate);
-      estDays = Math.max(90, Math.round(constPlotArea / 25) + 30);
-    }
-
-    const finalTotal = hasDbDiscount ? Math.round(originalTotal * discountMultiplier) : originalTotal;
+    const estDays = serviceCategory === 'Construction' 
+      ? (materialStandard === 'Luxe' ? 180 : 120)
+      : serviceCategory === 'Commercial'
+      ? (materialStandard === 'Luxe' ? 60 : 45)
+      : (materialStandard === 'Luxe' ? 50 : 35);
 
     return {
       originalTotal,
@@ -151,11 +120,8 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     };
   }, [
     serviceCategory, 
-    currentRatePerSqFt, 
-    carpetArea, 
-    commCarpetArea, 
-    constPlotArea, 
     materialStandard,
+    standardMultiplier,
     hasDbDiscount,
     selectedService,
     discountPercentage
@@ -169,7 +135,6 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     }
 
     const serviceTitle = selectedService ? selectedService.title : `${serviceCategory} Package`;
-    const selectedArea = serviceCategory === 'Residential' ? carpetArea : serviceCategory === 'Commercial' ? commCarpetArea : constPlotArea;
 
     submitBooking({
       clientName,
@@ -178,10 +143,10 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       serviceType: serviceCategory,
       packageName: `${serviceTitle} (${materialStandard} Standard)`,
       propertyType: serviceCategory,
-      carpetArea: selectedArea,
+      carpetArea: 1000,
       budgetRange: `₹ ${(calculation.totalCost / 100000).toFixed(2)} Lakhs`,
       preferredDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      requirements: `Calculated Estimate from Live DB Services. Selected Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard (₹ ${currentRatePerSqFt}/sq.ft) | Area: ${selectedArea.toLocaleString()} Sq. Ft.${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
+      requirements: `Calculated Estimate from Live DB Services. Selected Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
       estimatedCost: calculation.totalCost,
       isEmiRequested
     });
@@ -320,32 +285,21 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
             </div>
 
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-              {MATERIAL_STANDARDS.map((std) => {
-                const isConstruction = serviceCategory === 'Construction';
-                const constRate = STANDARD_PRICING.Construction[std.id];
-
-                return (
-                  <button
-                    key={std.id}
-                    type="button"
-                    onClick={() => setMaterialStandard(std.id)}
-                    className={`p-2.5 sm:p-3.5 rounded-xl text-center border transition-all flex flex-col items-center justify-center space-y-1 ${
-                      materialStandard === std.id 
-                        ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg ring-1 ring-[#D4AF37]/50' 
-                        : 'bg-black/40 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
-                    }`}
-                  >
-                    <div className="text-[11px] sm:text-xs font-bold text-white leading-tight">{std.badge}</div>
-                    {isConstruction ? (
-                      <div className="text-[10px] sm:text-[11px] text-[#D4AF37] font-mono font-bold mt-0.5">
-                        ₹ {constRate.toLocaleString()} / sq. ft.
-                      </div>
-                    ) : (
-                      <div className="text-[9px] sm:text-[10px] text-neutral-400 line-clamp-1">{std.title}</div>
-                    )}
-                  </button>
-                );
-              })}
+              {MATERIAL_STANDARDS.map((std) => (
+                <button
+                  key={std.id}
+                  type="button"
+                  onClick={() => setMaterialStandard(std.id)}
+                  className={`p-2.5 sm:p-3.5 rounded-xl text-center border transition-all flex flex-col items-center justify-center space-y-1 ${
+                    materialStandard === std.id 
+                      ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg ring-1 ring-[#D4AF37]/50' 
+                      : 'bg-black/40 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
+                  }`}
+                >
+                  <div className="text-[11px] sm:text-xs font-bold text-white leading-tight">{std.badge}</div>
+                  <div className="text-[9px] sm:text-[10px] text-neutral-400 line-clamp-1">{std.title}</div>
+                </button>
+              ))}
             </div>
 
             {/* Standard Specs Drawer */}
@@ -379,80 +333,6 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Area Slider (Default set to start value) */}
-          <div className="space-y-6">
-            {serviceCategory === 'Residential' ? (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">
-                    Residential Carpet Area (250 – 10,000 Sq. Ft.)
-                  </span>
-                  <span className="text-[#D4AF37] font-bold text-sm">{carpetArea.toLocaleString()} Sq. Ft.</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="250" 
-                  max="10000" 
-                  step="50" 
-                  value={carpetArea} 
-                  onChange={(e) => setCarpetArea(Number(e.target.value))}
-                  className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
-                />
-                <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
-                  <span>250 Sq. Ft.</span>
-                  <span>5,000 Sq. Ft.</span>
-                  <span>10,000 Sq. Ft.</span>
-                </div>
-              </div>
-            ) : serviceCategory === 'Commercial' ? (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">
-                    Commercial Carpet Area (500 – 20,000 Sq. Ft.)
-                  </span>
-                  <span className="text-[#D4AF37] font-bold text-sm">{commCarpetArea.toLocaleString()} Sq. Ft.</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="500" 
-                  max="20000" 
-                  step="250" 
-                  value={commCarpetArea} 
-                  onChange={(e) => setCommCarpetArea(Number(e.target.value))}
-                  className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
-                />
-                <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
-                  <span>500 Sq. Ft.</span>
-                  <span>10,000 Sq. Ft.</span>
-                  <span>20,000 Sq. Ft.</span>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">
-                    Construction Carpet / Built-Up Area (1,000 – 30,000 Sq. Ft.)
-                  </span>
-                  <span className="text-[#D4AF37] font-bold text-sm">{constPlotArea.toLocaleString()} Sq. Ft.</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="1000" 
-                  max="30000" 
-                  step="100" 
-                  value={constPlotArea} 
-                  onChange={(e) => setConstPlotArea(Number(e.target.value))}
-                  className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
-                />
-                <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
-                  <span>1,000 Sq. Ft.</span>
-                  <span>15,000 Sq. Ft.</span>
-                  <span>30,000 Sq. Ft.</span>
-                </div>
-              </div>
-            )}
           </div>
 
         </div>
