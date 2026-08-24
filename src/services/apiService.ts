@@ -329,6 +329,21 @@ export const apiService = {
     }
   },
 
+  async removeServiceDiscount(id: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_service.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, title: '_remove_discount', _action: 'remove_discount' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API removeServiceDiscount error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
   async deleteService(id: string): Promise<{ success: boolean; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/save_service.php`, {

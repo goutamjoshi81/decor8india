@@ -48,6 +48,20 @@ try {
         exit();
     }
 
+    // Handle direct remove discount action
+    if (!empty($data['_action']) && $data['_action'] === 'remove_discount') {
+        $stmt = $pdo->prepare("UPDATE services SET discount_price = NULL, discount_percentage = 0 WHERE id = ?");
+        $stmt->execute([$data['id']]);
+        echo json_encode([
+            "success" => true, 
+            "message" => "Discount removed from database.",
+            "id" => $data['id'],
+            "discountPrice" => null,
+            "discountPercentage" => 0
+        ]);
+        exit();
+    }
+
     // Helper to extract and compute discount fields
     $extractDiscount = function($item) {
         $startingPrice = floatval($item['startingPrice'] ?? $item['starting_price'] ?? 0);

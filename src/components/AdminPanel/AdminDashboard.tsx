@@ -156,6 +156,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     updateService,
     deleteService,
     updateServicePrice,
+    removeServiceDiscount,
     toggleServiceStatus,
     articles,
     addArticle,
@@ -2825,7 +2826,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                                 <button
                                   onClick={() => {
                                     if (confirm(`Remove promotional discount for "${s.title}" and restore standard rate ₹ ${(s.startingPrice / 100000).toFixed(2)} Lakhs? (The service will remain active without discount)`)) {
-                                      updateServicePrice(s.id, s.startingPrice, null);
+                                      removeServiceDiscount(s.id);
                                     }
                                   }}
                                   className="text-[10px] text-amber-400 hover:text-amber-300 flex items-center space-x-0.5 cursor-pointer underline font-medium"

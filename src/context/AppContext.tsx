@@ -85,10 +85,10 @@ interface AppContextType {
   deleteTeamMember: (id: string) => void;
 
   addService: (service: Omit<ServiceItem, 'id'>) => void;
-  updateService: (id: string, service: Partial<ServiceItem>) => void;
+  updateService: (id: string, serviceData: Partial<ServiceItem>) => void;
   deleteService: (id: string) => void;
   updateServicePrice: (serviceId: string, newPrice: number, newDiscountPrice?: number | null) => void;
-
+  removeServiceDiscount: (serviceId: string) => void;
   toggleServiceStatus: (serviceId: string) => void;
 
   branchOffices: BranchOffice[];
@@ -1163,16 +1163,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const removeServiceDiscount = (serviceId: string) => {
+    setServices(prev => prev.map(s => {
+      if (s.id !== serviceId) return s;
+      const copy = { ...s };
+      delete copy.discountPrice;
+      copy.discountPercentage = 0;
+      return copy;
+    }));
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.removeServiceDiscount(serviceId).catch(err => console.warn('Remove discount error:', err));
+    });
+  };
+
   const updateServicePrice = (serviceId: string, newPrice: number, newDiscountPrice?: number | null) => {
+    if (newDiscountPrice === null || (newDiscountPrice !== undefined && (newDiscountPrice <= 0 || newDiscountPrice >= newPrice))) {
+      setServices(prev => prev.map(s => {
+        if (s.id !== serviceId) return s;
+        const copy = { ...s, startingPrice: newPrice };
+        delete copy.discountPrice;
+        copy.discountPercentage = 0;
+        return copy;
+      }));
+      import('../services/apiService').then(({ apiService }) => {
+        apiService.removeServiceDiscount(serviceId).catch(err => console.warn('Remove discount error:', err));
+      });
+      return;
+    }
+
     const updates: Partial<ServiceItem> = { startingPrice: newPrice };
     if (newDiscountPrice !== undefined) {
-      if (newDiscountPrice !== null && newDiscountPrice > 0 && newDiscountPrice < newPrice) {
-        updates.discountPrice = newDiscountPrice;
-        updates.discountPercentage = Math.round(((newPrice - newDiscountPrice) / newPrice) * 100);
-      } else {
-        updates.discountPrice = null as any;
-        updates.discountPercentage = 0;
-      }
+      updates.discountPrice = newDiscountPrice;
+      updates.discountPercentage = Math.round(((newPrice - newDiscountPrice) / newPrice) * 100);
     }
     updateService(serviceId, updates);
   };
@@ -1331,6 +1353,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateService,
       deleteService,
       updateServicePrice,
+      removeServiceDiscount,
       toggleServiceStatus,
       branchOffices,
       addBranchOffice,
