@@ -554,7 +554,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     const featuresList = srvFeaturesText.split(',').map(f => f.trim()).filter(Boolean);
     const parsedDiscountPrice = typeof srvDiscountPrice === 'number' && srvDiscountPrice > 0 && srvDiscountPrice < Number(srvPrice) 
       ? srvDiscountPrice 
-      : undefined;
+      : null;
     const parsedDiscountPct = parsedDiscountPrice 
       ? (typeof srvDiscountPct === 'number' && srvDiscountPct > 0 ? srvDiscountPct : Math.round(((Number(srvPrice) - parsedDiscountPrice) / Number(srvPrice)) * 100))
       : 0;
@@ -567,13 +567,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         features: featuresList,
         estimatedDuration: srvDuration,
         startingPrice: Number(srvPrice),
-        discountPrice: parsedDiscountPrice,
+        discountPrice: parsedDiscountPrice as any,
         discountPercentage: parsedDiscountPct,
         image: srvImage,
         iconName: srvIcon,
         isActive: srvIsActive
       });
-      alert('Service package updated successfully with active pricing & discount details!');
+      alert(parsedDiscountPrice ? 'Service package updated successfully with active discount!' : 'Service package updated (Standard pricing active, discount removed).');
     } else {
       addService({
         title: srvTitle,
@@ -582,7 +582,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         features: featuresList,
         estimatedDuration: srvDuration,
         startingPrice: Number(srvPrice),
-        discountPrice: parsedDiscountPrice,
+        discountPrice: parsedDiscountPrice as any,
         discountPercentage: parsedDiscountPct,
         image: srvImage,
         iconName: srvIcon,
@@ -2737,11 +2737,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                       <td className="p-4 font-mono">{s.estimatedDuration}</td>
                       <td className="p-4 font-mono">
                         {editingPriceId === s.id ? (
-                          <div className="space-y-1.5 bg-black/80 p-2 rounded-xl border border-[#D4AF37]/50 max-w-xs">
+                          <div className="space-y-1.5 bg-black/80 p-2.5 rounded-xl border border-[#D4AF37]/50 max-w-xs shadow-xl">
                             <div>
-                              <label className="text-[9px] text-neutral-400 uppercase font-mono block">Original Price (₹):</label>
+                              <label className="text-[9px] text-neutral-400 uppercase font-mono block">Original Base Price (₹):</label>
                               <input 
-                                type="number"
+                                type="number" 
                                 value={quickPriceInput}
                                 onChange={(e) => setQuickPriceInput(Number(e.target.value))}
                                 className="w-full px-2 py-1 rounded bg-black border border-white/20 text-white text-xs font-bold"
@@ -2749,13 +2749,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                               />
                             </div>
                             <div>
-                              <label className="text-[9px] text-[#D4AF37] uppercase font-mono block">Discount Offer Price (₹):</label>
+                              <div className="flex items-center justify-between">
+                                <label className="text-[9px] text-[#D4AF37] uppercase font-mono block">Discount Offer Price (₹):</label>
+                                {quickDiscountInput !== '' && (
+                                  <button 
+                                    type="button"
+                                    onClick={() => setQuickDiscountInput('')}
+                                    className="text-[9px] text-red-400 hover:text-red-300 underline"
+                                  >
+                                    Clear Discount
+                                  </button>
+                                )}
+                              </div>
                               <input 
-                                type="number"
+                                type="number" 
                                 value={quickDiscountInput}
                                 onChange={(e) => setQuickDiscountInput(e.target.value === '' ? '' : Number(e.target.value))}
                                 className="w-full px-2 py-1 rounded bg-black border border-[#D4AF37]/50 text-emerald-400 text-xs font-bold"
-                                placeholder="Discounted Price (Optional)"
+                                placeholder="Leave blank for No Discount"
                               />
                             </div>
                             <div className="flex items-center space-x-1.5 pt-1">
@@ -2780,7 +2791,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                             </div>
                           </div>
                         ) : (
-                          <div className="space-y-0.5">
+                          <div className="space-y-1">
                             {hasDiscount ? (
                               <>
                                 <div className="text-[11px] text-neutral-400 line-through">
@@ -2798,17 +2809,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                                 ₹ {(s.startingPrice / 100000).toFixed(2)} Lakhs
                               </div>
                             )}
-                            <button
-                              onClick={() => {
-                                setEditingPriceId(s.id);
-                                setQuickPriceInput(s.startingPrice);
-                                setQuickDiscountInput(s.discountPrice || '');
-                              }}
-                              className="text-[10px] text-neutral-400 hover:text-[#D4AF37] flex items-center space-x-1 cursor-pointer pt-0.5"
-                            >
-                              <Edit className="w-2.5 h-2.5" />
-                              <span>Quick Edit Price / Discount</span>
-                            </button>
+                            <div className="flex items-center space-x-2 pt-0.5">
+                              <button
+                                onClick={() => {
+                                  setEditingPriceId(s.id);
+                                  setQuickPriceInput(s.startingPrice);
+                                  setQuickDiscountInput(s.discountPrice || '');
+                                }}
+                                className="text-[10px] text-neutral-400 hover:text-[#D4AF37] flex items-center space-x-1 cursor-pointer"
+                              >
+                                <Edit className="w-2.5 h-2.5" />
+                                <span>Edit Price</span>
+                              </button>
+                              {hasDiscount && (
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Remove promotional discount for "${s.title}" and restore standard rate ₹ ${(s.startingPrice / 100000).toFixed(2)} Lakhs? (The service will remain active without discount)`)) {
+                                      updateServicePrice(s.id, s.startingPrice, null);
+                                    }
+                                  }}
+                                  className="text-[10px] text-amber-400 hover:text-amber-300 flex items-center space-x-0.5 cursor-pointer underline font-medium"
+                                  title="Remove discount without deleting the service"
+                                >
+                                  <span>Remove Discount</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )}
                       </td>
@@ -2831,13 +2857,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm(`Are you sure you want to delete service "${s.title}"?`)) {
+                            if (confirm(`WARNING: Are you sure you want to PERMANENTLY DELETE the entire "${s.title}" service package from the catalog?\n\n(Note: To only remove the discount, click "Remove Discount" in the price column instead).`)) {
                               deleteService(s.id);
                             }
                           }}
-                          className="px-2.5 py-1.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white text-xs"
+                          className="px-2.5 py-1.5 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500 hover:text-white text-xs border border-red-500/30"
+                          title="Permanently delete entire service"
                         >
-                          Delete
+                          Delete Service
                         </button>
                       </td>
                     </tr>

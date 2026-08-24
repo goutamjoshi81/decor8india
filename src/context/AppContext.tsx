@@ -1132,11 +1132,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateService = (id: string, updateData: Partial<ServiceItem>) => {
     setServices(prev => {
-      const updated = prev.map(s => s.id === id ? { ...s, ...updateData } : s);
+      const updated = prev.map(s => {
+        if (s.id !== id) return s;
+        const merged: ServiceItem = { ...s, ...updateData };
+        if (updateData.discountPrice === null || (updateData.discountPrice === undefined && 'discountPrice' in updateData)) {
+          merged.discountPrice = undefined;
+          merged.discountPercentage = 0;
+        }
+        return merged;
+      });
       const target = updated.find(s => s.id === id);
       if (target) {
+        const payload = {
+          ...target,
+          discountPrice: target.discountPrice && target.discountPrice > 0 && target.discountPrice < target.startingPrice ? target.discountPrice : null,
+          discountPercentage: target.discountPrice && target.discountPrice > 0 ? (target.discountPercentage || 0) : 0
+        };
         import('../services/apiService').then(({ apiService }) => {
-          apiService.saveService(target).catch(err => console.warn('Save service error:', err));
+          apiService.saveService(payload).catch(err => console.warn('Save service error:', err));
         });
       }
       return updated;
@@ -1153,8 +1166,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateServicePrice = (serviceId: string, newPrice: number, newDiscountPrice?: number | null) => {
     const updates: Partial<ServiceItem> = { startingPrice: newPrice };
     if (newDiscountPrice !== undefined) {
-      updates.discountPrice = newDiscountPrice !== null && newDiscountPrice > 0 && newDiscountPrice < newPrice ? newDiscountPrice : undefined;
-      updates.discountPercentage = updates.discountPrice ? Math.round(((newPrice - updates.discountPrice) / newPrice) * 100) : 0;
+      if (newDiscountPrice !== null && newDiscountPrice > 0 && newDiscountPrice < newPrice) {
+        updates.discountPrice = newDiscountPrice;
+        updates.discountPercentage = Math.round(((newPrice - newDiscountPrice) / newPrice) * 100);
+      } else {
+        updates.discountPrice = null as any;
+        updates.discountPercentage = 0;
+      }
     }
     updateService(serviceId, updates);
   };

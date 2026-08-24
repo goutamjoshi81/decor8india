@@ -95,6 +95,34 @@ try {
         array_unshift($payments, $data->payment);
     }
 
+    // Lock permanent Invoice IDs into payments array for DB persistence
+    if (!empty($payments) && is_array($payments)) {
+        foreach ($payments as &$p) {
+            if (is_array($p)) {
+                if (empty($p['invoiceUrl'])) {
+                    $pid = !empty($p['id']) ? preg_replace('/[^0-9]/', '', $p['id']) : '';
+                    if (empty($pid) || strlen($pid) < 6) {
+                        $pid = sprintf("%06d", mt_rand(100000, 999999));
+                    } else {
+                        $pid = str_pad(substr($pid, -6), 6, '0', STR_PAD_LEFT);
+                    }
+                    $p['invoiceUrl'] = 'INV-D8I-' . $pid;
+                }
+            } else if (is_object($p)) {
+                if (empty($p->invoiceUrl)) {
+                    $pid = !empty($p->id) ? preg_replace('/[^0-9]/', '', $p->id) : '';
+                    if (empty($pid) || strlen($pid) < 6) {
+                        $pid = sprintf("%06d", mt_rand(100000, 999999));
+                    } else {
+                        $pid = str_pad(substr($pid, -6), 6, '0', STR_PAD_LEFT);
+                    }
+                    $p->invoiceUrl = 'INV-D8I-' . $pid;
+                }
+            }
+        }
+        unset($p);
+    }
+
     // Full documents array overwrite OR single document push
     if (!empty($data->documents) && is_array($data->documents)) {
         $documents = $data->documents;
@@ -110,7 +138,37 @@ try {
     // Prepare fields to update
     $title = !empty($data->title) ? trim($data->title) : ($existing['title'] ?? 'Bespoke Luxury Interior Project');
     $clientName = !empty($data->clientName) ? trim($data->clientName) : ($existing['client_name'] ?? 'Client');
-    $designerName = !empty($data->designerName) ? trim($data->designerName) : ($existing['designer_name'] ?? 'Aarav Mehta');
+    $clientEmail = !empty($data->clientEmail) ? trim($data->clientEmail) : ($existing['client_email'] ?? '');
+    
+    // Resolve clientEmail from users table if not stored directly on project
+    if (empty($clientEmail) && !empty($existing['client_id'])) {
+        try {
+            $uStmt = $pdo->prepare("SELECT email, name FROM users WHERE id = ? OR email = ? LIMIT 1");
+            $uStmt->execute([$existing['client_id'], $existing['client_id']]);
+            $uRow = $uStmt->fetch();
+            if ($uRow && !empty($uRow['email'])) {
+                $clientEmail = $uRow['email'];
+                if (empty($data->clientName) && !empty($uRow['name'])) {
+                    $clientName = $uRow['name'];
+                }
+            }
+        } catch (\Throwable $e) {}
+    }
+    if (empty($clientEmail) && !empty($clientName) && $clientName !== 'Client') {
+        try {
+            $uStmt = $pdo->prepare("SELECT email FROM users WHERE LOWER(name) = LOWER(?) LIMIT 1");
+            $uStmt->execute([$clientName]);
+            $uRow = $uStmt->fetch();
+            if ($uRow && !empty($uRow['email'])) {
+                $clientEmail = $uRow['email'];
+            }
+        } catch (\Throwable $e) {}
+    }
+    if (empty($clientEmail)) {
+        $clientEmail = 'goutamjoshi462@gmail.com'; // Default client email fallback if unspecified
+    }
+
+    $designerName = !empty($data->designerName) ? trim($data->designerName) : ($existing['designer_name'] ?? 'Mr. Satish Bhat (CEO & Principal Architect)');
     $category = !empty($data->category) ? trim($data->category) : ($existing['category'] ?? 'Residential');
     $style = !empty($data->style) ? trim($data->style) : ($existing['style'] ?? 'Luxury');
     $coverImage = !empty($data->coverImage) ? trim($data->coverImage) : ($existing['cover_image'] ?? null);
@@ -168,6 +226,7 @@ try {
         $updateStmt = $pdo->prepare("UPDATE projects SET 
             title = ?,
             client_name = ?,
+            client_email = ?,
             designer_name = ?,
             category = ?,
             style = ?,
@@ -193,6 +252,7 @@ try {
         $updateStmt->execute([
             $title,
             $clientName,
+            $clientEmail,
             $designerName,
             $category,
             $style,
@@ -268,10 +328,63 @@ try {
         ]);
     }
 
+    // Trigger Automated Client Email Notifications
+    $emailNotificationsSent = [];
+    try {
+        require_once __DIR__ . '/email_service.php';
+
+        if (!empty($clientEmail)) {
+            // A. New Daily Site Feed Update Post (Photo + Notes)
+            if (!empty($data->workUpdate)) {
+                $feedRes = sendSiteUpdateFeedNotification($clientEmail, $clientName, $title, $data->workUpdate, $progressPercentage, $currentStage);
+                $emailNotificationsSent[] = ["type" => "site_feed", "result" => $feedRes];
+            } else if (!empty($data->sendProgressEmail) && !empty($data->workUpdates) && is_array($data->workUpdates)) {
+                $latestWork = reset($data->workUpdates);
+                if ($latestWork) {
+                    $feedRes = sendSiteUpdateFeedNotification($clientEmail, $clientName, $title, $latestWork, $progressPercentage, $currentStage);
+                    $emailNotificationsSent[] = ["type" => "site_feed", "result" => $feedRes];
+                }
+            }
+
+            // B. New Invoice / Payment Added
+            if (!empty($data->payment)) {
+                $invRes = sendInvoiceNotification($clientEmail, $clientName, $title, $data->payment);
+                $emailNotificationsSent[] = ["type" => "invoice", "result" => $invRes];
+            } else if (!empty($data->sendInvoiceEmail) && !empty($data->payments) && is_array($data->payments)) {
+                $latestPayment = reset($data->payments);
+                if ($latestPayment) {
+                    $invRes = sendInvoiceNotification($clientEmail, $clientName, $title, $latestPayment);
+                    $emailNotificationsSent[] = ["type" => "invoice", "result" => $invRes];
+                }
+            }
+
+            // C. Stage & Overall Completion Percentage Bar Update
+            if (!empty($data->sendProgressEmail) && empty($data->workUpdate)) {
+                $progRes = sendProgressNotification($clientEmail, $clientName, $title, $progressPercentage, $currentStage, '');
+                $emailNotificationsSent[] = ["type" => "progress", "result" => $progRes];
+            }
+
+            // D. New Document / Blueprint Uploaded
+            if (!empty($data->document)) {
+                $docRes = sendDocumentNotification($clientEmail, $clientName, $title, $data->document);
+                $emailNotificationsSent[] = ["type" => "document", "result" => $docRes];
+            } else if (!empty($data->sendDocumentEmail) && !empty($data->documents) && is_array($data->documents)) {
+                $latestDoc = reset($data->documents);
+                if ($latestDoc) {
+                    $docRes = sendDocumentNotification($clientEmail, $clientName, $title, $latestDoc);
+                    $emailNotificationsSent[] = ["type" => "document", "result" => $docRes];
+                }
+            }
+        }
+    } catch (Throwable $mailEx) {
+        $emailNotificationsSent[] = ["error" => $mailEx->getMessage()];
+    }
+
     echo json_encode([
         "success" => true,
         "message" => "Project synced successfully to GoDaddy MySQL!",
-        "projectId" => $projectId
+        "projectId" => $projectId,
+        "emailNotifications" => $emailNotificationsSent
     ]);
 
 } catch (Throwable $e) {
