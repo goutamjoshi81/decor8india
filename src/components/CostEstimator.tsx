@@ -55,6 +55,11 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return activeCategoryServices.find(s => s.id === selectedServiceId) || activeCategoryServices[0];
   }, [activeCategoryServices, selectedServiceId]);
 
+  // Sliders State (Default set to 1,500 Sq. Ft. for Construction, 1,000 for Residential/Commercial)
+  const [carpetArea, setCarpetArea] = useState<number>(1000);
+  const [commCarpetArea, setCommCarpetArea] = useState<number>(1000);
+  const [constPlotArea, setConstPlotArea] = useState<number>(1500);
+
   // Lead Submission State & EMI Option
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
@@ -92,19 +97,27 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     return 0;
   }, [selectedService, hasDbDiscount]);
 
-  // Dynamic Calculation Logic: Direct 1-to-1 match with the selected service package & tier standard
+  // Dynamic Calculation Logic: Direct alignment with selected service package & slider area
   const calculation = useMemo(() => {
     const baseStartingPrice = selectedService ? selectedService.startingPrice : 500000;
     const baseDiscountPrice = (hasDbDiscount && selectedService?.discountPrice) ? selectedService.discountPrice : baseStartingPrice;
 
-    const originalTotal = Math.round(baseStartingPrice * standardMultiplier);
-    const finalTotal = Math.round(baseDiscountPrice * standardMultiplier);
+    const nominalArea = serviceCategory === 'Construction' ? 1500 : 1000;
+    const currentArea = serviceCategory === 'Residential' 
+      ? carpetArea 
+      : serviceCategory === 'Commercial' 
+      ? commCarpetArea 
+      : constPlotArea;
+    const areaMultiplier = currentArea / nominalArea;
+
+    const originalTotal = Math.round(baseStartingPrice * standardMultiplier * areaMultiplier);
+    const finalTotal = Math.round(baseDiscountPrice * standardMultiplier * areaMultiplier);
 
     const estDays = serviceCategory === 'Construction' 
-      ? (materialStandard === 'Luxe' ? 180 : 120)
+      ? Math.max(90, Math.round(constPlotArea / 25) + (materialStandard === 'Luxe' ? 40 : 20))
       : serviceCategory === 'Commercial'
-      ? (materialStandard === 'Luxe' ? 60 : 45)
-      : (materialStandard === 'Luxe' ? 50 : 35);
+      ? Math.max(35, Math.round(commCarpetArea / 60) + (materialStandard === 'Luxe' ? 20 : 10))
+      : Math.max(30, Math.round(carpetArea / 40) + (materialStandard === 'Luxe' ? 15 : 5));
 
     return {
       originalTotal,
@@ -122,6 +135,9 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     serviceCategory, 
     materialStandard,
     standardMultiplier,
+    carpetArea,
+    commCarpetArea,
+    constPlotArea,
     hasDbDiscount,
     selectedService,
     discountPercentage
@@ -135,6 +151,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     }
 
     const serviceTitle = selectedService ? selectedService.title : `${serviceCategory} Package`;
+    const selectedArea = serviceCategory === 'Residential' ? carpetArea : serviceCategory === 'Commercial' ? commCarpetArea : constPlotArea;
 
     submitBooking({
       clientName,
@@ -143,10 +160,10 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       serviceType: serviceCategory,
       packageName: `${serviceTitle} (${materialStandard} Standard)`,
       propertyType: serviceCategory,
-      carpetArea: 1000,
+      carpetArea: selectedArea,
       budgetRange: `₹ ${(calculation.totalCost / 100000).toFixed(2)} Lakhs`,
       preferredDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      requirements: `Calculated Estimate from Live DB Services. Selected Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
+      requirements: `Calculated Estimate from Live DB Services. Selected Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard | Area: ${selectedArea.toLocaleString()} Sq. Ft.${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
       estimatedCost: calculation.totalCost,
       isEmiRequested
     });
@@ -333,6 +350,80 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Carpet Area Slider */}
+          <div className="space-y-6 pt-2">
+            {serviceCategory === 'Residential' ? (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">
+                    Residential Carpet Area (250 – 10,000 Sq. Ft.)
+                  </span>
+                  <span className="text-[#D4AF37] font-bold text-sm">{carpetArea.toLocaleString()} Sq. Ft.</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="250" 
+                  max="10000" 
+                  step="50" 
+                  value={carpetArea} 
+                  onChange={(e) => setCarpetArea(Number(e.target.value))}
+                  className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
+                />
+                <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
+                  <span>250 Sq. Ft.</span>
+                  <span>5,000 Sq. Ft.</span>
+                  <span>10,000 Sq. Ft.</span>
+                </div>
+              </div>
+            ) : serviceCategory === 'Commercial' ? (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">
+                    Commercial Carpet Area (500 – 20,000 Sq. Ft.)
+                  </span>
+                  <span className="text-[#D4AF37] font-bold text-sm">{commCarpetArea.toLocaleString()} Sq. Ft.</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="500" 
+                  max="20000" 
+                  step="250" 
+                  value={commCarpetArea} 
+                  onChange={(e) => setCommCarpetArea(Number(e.target.value))}
+                  className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
+                />
+                <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
+                  <span>500 Sq. Ft.</span>
+                  <span>10,000 Sq. Ft.</span>
+                  <span>20,000 Sq. Ft.</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-semibold text-neutral-300 uppercase tracking-wider">
+                    Construction Carpet / Built-Up Area (1,000 – 30,000 Sq. Ft.)
+                  </span>
+                  <span className="text-[#D4AF37] font-bold text-sm">{constPlotArea.toLocaleString()} Sq. Ft.</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="1000" 
+                  max="30000" 
+                  step="100" 
+                  value={constPlotArea} 
+                  onChange={(e) => setConstPlotArea(Number(e.target.value))}
+                  className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
+                />
+                <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
+                  <span>1,000 Sq. Ft.</span>
+                  <span>15,000 Sq. Ft.</span>
+                  <span>30,000 Sq. Ft.</span>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>
