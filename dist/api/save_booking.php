@@ -1,5 +1,6 @@
 <?php
 require_once 'db_config.php';
+require_once 'email_service.php';
 
 try {
     $pdo = getDbConnection();
@@ -54,29 +55,26 @@ try {
     ]);
 
     if ($success) {
-        // Send email notification to CEO Satish Bhat (optional PHP mail)
-        $to = "info@decor8india.com, satish@decor8india.com";
-        $subject = "🔥 NEW BOOKING / SITE VISIT REQUEST: $clientName ($packageName)";
-        $message = "New Booking Received on Decor8 India Web Portal:\n\n"
-                 . "Booking ID: $bookingId\n"
-                 . "Client Name: $clientName\n"
-                 . "Email: $clientEmail\n"
-                 . "Phone: $clientPhone\n"
-                 . "Package / Site: $packageName ($serviceType)\n"
-                 . "Preferred Date: $preferredDate\n"
-                 . "Estimated Budget: ₹ " . number_format($estimatedCost, 2) . "\n"
-                 . "0% EMI Interest Checkbox: " . ($isEmiRequested ? "YES" : "NO") . "\n"
-                 . "Notes & Requirements: $requirements\n\n"
-                 . "Log into Admin Dashboard to approve or contact client.\n\n"
-                 . "Decor8 India - Affordable Luxury";
-        $headers = "From: web-portal@decor8india.com\r\n" . "Reply-To: $clientEmail\r\n";
-
-        @mail($to, $subject, $message, $headers);
+        // Send automated Luxury Gold Admin Email Alert (honors admin toggle setting)
+        $emailDispatch = sendAdminNewBookingNotification([
+            'id' => $bookingId,
+            'clientName' => $clientName,
+            'clientEmail' => $clientEmail,
+            'clientPhone' => $clientPhone,
+            'serviceType' => $serviceType,
+            'packageName' => $packageName,
+            'preferredDate' => $preferredDate,
+            'requirements' => $requirements,
+            'floorPlanUrl' => $floorPlanUrl,
+            'estimatedCost' => $estimatedCost,
+            'isEmiRequested' => $isEmiRequested
+        ]);
 
         echo json_encode([
             "success" => true,
             "message" => "Booking request submitted successfully!",
-            "bookingId" => $bookingId
+            "bookingId" => $bookingId,
+            "email_status" => $emailDispatch
         ]);
     } else {
         echo json_encode(["success" => false, "message" => "Failed to save booking request to database."]);
@@ -89,3 +87,4 @@ try {
     ]);
 }
 ?>
+
