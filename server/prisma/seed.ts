@@ -92,44 +92,7 @@ async function main() {
     }
   });
 
-  // 4. Create Services
-  await prisma.service.createMany({
-    data: [
-      {
-        title: '1 BHK Interior Package',
-        type: ServiceType.RESIDENTIAL,
-        description: 'Smart, spatial optimization for compact luxury living with custom modular furniture.',
-        features: ['Modular Kitchen', 'Master Bedroom Wardrobe', 'TV Unit', 'Concealed Lighting'],
-        estimatedDuration: '30 - 45 Days',
-        startingPrice: 380000,
-        image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-        iconName: 'Home',
-        isActive: true
-      },
-      {
-        title: '2 BHK Premium Interior',
-        type: ServiceType.RESIDENTIAL,
-        description: 'Elegantly curated 2BHK design featuring bespoke woodwork and false ceiling highlights.',
-        features: ['Acrylic Modular Kitchen', '2 Wardrobe Units', 'Living Room Wall Panel', 'Designer Vanities'],
-        estimatedDuration: '45 - 60 Days',
-        startingPrice: 650000,
-        image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
-        iconName: 'Building',
-        isActive: true
-      },
-      {
-        title: 'Modern Corporate Office',
-        type: ServiceType.COMMERCIAL,
-        description: 'Ergonomic, high-productivity office environments with acoustically isolated cabins.',
-        features: ['Workstations & Cabins', 'Conference Room AV', 'Reception Feature', 'Acoustic Baffles'],
-        estimatedDuration: '40 - 60 Days',
-        startingPrice: 1200000,
-        image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
-        iconName: 'Briefcase',
-        isActive: true
-      }
-    ]
-  });
+
 
   console.log('Seeding complete! MySQL database is ready.');
 }

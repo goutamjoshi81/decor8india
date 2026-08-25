@@ -1164,38 +1164,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const removeServiceDiscount = (serviceId: string) => {
-    setServices(prev => prev.map(s => {
-      if (s.id !== serviceId) return s;
-      const copy = { ...s };
-      delete copy.discountPrice;
-      copy.discountPercentage = 0;
-      return copy;
-    }));
+    setServices(prev => {
+      const updated = prev.map(s => {
+        if (s.id !== serviceId) return s;
+        const copy = { ...s };
+        delete copy.discountPrice;
+        copy.discountPercentage = 0;
+        return copy;
+      });
+      try { localStorage.setItem('decor8_services', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     import('../services/apiService').then(({ apiService }) => {
-      apiService.removeServiceDiscount(serviceId).catch(err => console.warn('Remove discount error:', err));
+      apiService.removeServiceDiscount(serviceId).then(() => {
+        apiService.getServices().then(res => {
+          if (res.success && Array.isArray(res.services)) {
+            setServices(res.services);
+          }
+        });
+      }).catch(err => console.warn('Remove discount error:', err));
     });
   };
 
   const updateServicePrice = (serviceId: string, newPrice: number, newDiscountPrice?: number | null) => {
-    if (newDiscountPrice === null || (newDiscountPrice !== undefined && (newDiscountPrice <= 0 || newDiscountPrice >= newPrice))) {
-      setServices(prev => prev.map(s => {
-        if (s.id !== serviceId) return s;
-        const copy = { ...s, startingPrice: newPrice };
-        delete copy.discountPrice;
-        copy.discountPercentage = 0;
-        return copy;
-      }));
+    if (newDiscountPrice === null || newDiscountPrice === undefined || newDiscountPrice <= 0 || newDiscountPrice >= newPrice) {
+      setServices(prev => {
+        const updated = prev.map(s => {
+          if (s.id !== serviceId) return s;
+          const copy = { ...s, startingPrice: newPrice };
+          delete copy.discountPrice;
+          copy.discountPercentage = 0;
+          return copy;
+        });
+        try { localStorage.setItem('decor8_services', JSON.stringify(updated)); } catch (e) {}
+        return updated;
+      });
       import('../services/apiService').then(({ apiService }) => {
-        apiService.removeServiceDiscount(serviceId).catch(err => console.warn('Remove discount error:', err));
+        apiService.saveService({ id: serviceId, title: 'update_price', startingPrice: newPrice, discountPrice: null, discountPercentage: 0 })
+          .then(() => apiService.removeServiceDiscount(serviceId))
+          .then(() => {
+            apiService.getServices().then(res => {
+              if (res.success && Array.isArray(res.services)) {
+                setServices(res.services);
+              }
+            });
+          })
+          .catch(err => console.warn('Remove discount error:', err));
       });
       return;
     }
 
-    const updates: Partial<ServiceItem> = { startingPrice: newPrice };
-    if (newDiscountPrice !== undefined) {
-      updates.discountPrice = newDiscountPrice;
-      updates.discountPercentage = Math.round(((newPrice - newDiscountPrice) / newPrice) * 100);
-    }
+    const updates: Partial<ServiceItem> = { 
+      startingPrice: newPrice,
+      discountPrice: newDiscountPrice,
+      discountPercentage: Math.round(((newPrice - newDiscountPrice) / newPrice) * 100)
+    };
     updateService(serviceId, updates);
   };
 

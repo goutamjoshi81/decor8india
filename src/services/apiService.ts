@@ -331,6 +331,22 @@ export const apiService = {
 
   async removeServiceDiscount(id: string): Promise<{ success: boolean; message?: string }> {
     try {
+      // 1. Try dedicated remove_discount.php endpoint
+      const response = await fetch(`${API_BASE_URL}/remove_discount.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await response.json();
+      if (data && data.success) {
+        return data;
+      }
+    } catch (e) {
+      console.warn('Dedicated remove_discount.php attempt:', e);
+    }
+
+    try {
+      // 2. Fallback to save_service.php action
       const response = await fetch(`${API_BASE_URL}/save_service.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
