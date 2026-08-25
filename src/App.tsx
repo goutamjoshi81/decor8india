@@ -49,7 +49,7 @@ const MainAppContent: React.FC = () => {
   const isDashboardRoute = location.pathname.startsWith('/client') || location.pathname.startsWith('/admin');
 
   return (
-    <div className="min-h-screen bg-[#0B0C0E] text-[#E5E3DF] font-sans antialiased selection:bg-[#D4AF37] selection:text-black">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#0B0C0E] text-[#E5E3DF] font-sans antialiased selection:bg-[#D4AF37] selection:text-black relative">
       <LuxuryLoader />
       <CustomCursor />
       

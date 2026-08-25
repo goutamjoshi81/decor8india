@@ -1,44 +1,34 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { ShieldCheck, Award, Sparkles } from 'lucide-react';
+import { ShieldCheck, Award, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const PartnersSection: React.FC = () => {
   const { partners } = useApp();
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const itemsPerPage = 9;
 
-  // Distribute partners into 3 balanced rows
-  const row1 = partners.filter((_, idx) => idx % 3 === 0);
-  const row2 = partners.filter((_, idx) => idx % 3 === 1);
-  const row3 = partners.filter((_, idx) => idx % 3 === 2);
+  const totalPages = Math.ceil(partners.length / itemsPerPage) || 1;
 
-  // Fallback in case list is short: duplicate each row to guarantee smooth continuous loop
-  const marqueeRow1 = row1.length > 0 ? [...row1, ...row1, ...row1, ...row1] : [];
-  const marqueeRow2 = row2.length > 0 ? [...row2, ...row2, ...row2, ...row2] : [];
-  const marqueeRow3 = row3.length > 0 ? [...row3, ...row3, ...row3, ...row3] : [];
+  const currentPartners = useMemo(() => {
+    const start = currentPage * itemsPerPage;
+    return partners.slice(start, start + itemsPerPage);
+  }, [partners, currentPage]);
 
-  const renderPartnerCard = (brand: any, key: string) => (
-    <div 
-      key={key}
-      className="group p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl glass-panel border border-white/15 hover:border-[#D4AF37] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(212,175,55,0.25)] flex items-center justify-center min-w-[110px] sm:min-w-[170px] md:min-w-[210px] lg:min-w-[230px] h-14 sm:h-20 md:h-24 cursor-pointer select-none overflow-hidden shrink-0"
-    >
-      <div className="w-full h-full rounded-lg sm:rounded-xl bg-white/95 backdrop-blur-md p-1.5 sm:p-3 flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.8)] transition-transform duration-300 group-hover:bg-white">
-        <img 
-          src={brand.logoUrl} 
-          alt={brand.name || "Brand Partner"}
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-        />
-      </div>
-    </div>
-  );
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => (prev > 0 ? prev - 1 : totalPages - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => (prev < totalPages - 1 ? prev + 1 : 0));
+  };
 
   return (
-    <section id="partners" className="py-14 sm:py-20 bg-[#0D0E12] glass-section relative overflow-hidden section-gpu-optimize">
+    <section id="partners" className="py-12 sm:py-20 bg-[#0D0E12] glass-section relative overflow-hidden section-gpu-optimize w-full max-w-full">
       
       {/* GPU-Native Ambient Gold Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full pointer-events-none glow-orb-gold" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] rounded-full pointer-events-none glow-orb-gold opacity-40 max-w-full overflow-hidden" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-12 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-10 relative z-10 w-full max-w-full overflow-hidden">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-2.5 sm:space-y-3">
@@ -60,7 +50,7 @@ export const PartnersSection: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 max-w-5xl mx-auto text-center">
           <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl glass-panel border border-white/15 hover:border-[#D4AF37]/50 transition-all duration-300 space-y-0.5 sm:space-y-1">
             <div className="text-[11px] sm:text-xs font-bold text-white flex items-center justify-center space-x-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37]" />
+              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37] shrink-0" />
               <span>IS:710 Marine Ply</span>
             </div>
             <div className="text-[9px] sm:text-[10px] text-neutral-400 font-medium">Century & Greenlam Guaranteed</div>
@@ -68,7 +58,7 @@ export const PartnersSection: React.FC = () => {
 
           <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl glass-panel border border-white/15 hover:border-[#D4AF37]/50 transition-all duration-300 space-y-0.5 sm:space-y-1">
             <div className="text-[11px] sm:text-xs font-bold text-white flex items-center justify-center space-x-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37]" />
+              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37] shrink-0" />
               <span>German Fittings</span>
             </div>
             <div className="text-[9px] sm:text-[10px] text-neutral-400 font-medium">Hettich & Hafele Hardware</div>
@@ -76,7 +66,7 @@ export const PartnersSection: React.FC = () => {
 
           <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl glass-panel border border-white/15 hover:border-[#D4AF37]/50 transition-all duration-300 space-y-0.5 sm:space-y-1">
             <div className="text-[11px] sm:text-xs font-bold text-white flex items-center justify-center space-x-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37]" />
+              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37] shrink-0" />
               <span>Smart Home Tech</span>
             </div>
             <div className="text-[9px] sm:text-[10px] text-neutral-400 font-medium">Legrand, Philips & Bosch</div>
@@ -84,40 +74,88 @@ export const PartnersSection: React.FC = () => {
 
           <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl glass-panel border border-white/15 hover:border-[#D4AF37]/50 transition-all duration-300 space-y-0.5 sm:space-y-1">
             <div className="text-[11px] sm:text-xs font-bold text-white flex items-center justify-center space-x-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37]" />
+              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#D4AF37] shrink-0" />
               <span>Civil Rebars & Cement</span>
             </div>
             <div className="text-[9px] sm:text-[10px] text-neutral-400 font-medium">Tata TMT & ACC Cement</div>
           </div>
         </div>
 
-        {/* 3-Row Infinite Scrolling Logo Marquee Container */}
-        <div className="relative py-2 sm:py-4 overflow-hidden space-y-2.5 sm:space-y-4 md:space-y-5">
-          
-          {/* Left & Right Gradient Fade Masks */}
-          <div className="absolute top-0 bottom-0 left-0 w-12 sm:w-24 md:w-36 bg-gradient-to-r from-[#0D0E12] via-[#0D0E12]/80 to-transparent z-10 pointer-events-none" />
-          <div className="absolute top-0 bottom-0 right-0 w-12 sm:w-24 md:w-36 bg-gradient-to-l from-[#0D0E12] via-[#0D0E12]/80 to-transparent z-10 pointer-events-none" />
-
-          {/* Row 1: Forward Marquee (Top) */}
-          <div className="animate-marquee animate-marquee-fast space-x-2.5 sm:space-x-4 md:space-x-6 py-0.5 sm:py-1">
-            {marqueeRow1.map((brand, idx) => renderPartnerCard(brand, `row1-${brand.id || brand.name}-${idx}`))}
+        {/* 9-Logo Gallery Grid (3 Columns x 3 Rows = 9 Items) */}
+        <div className="max-w-4xl mx-auto w-full flex flex-col justify-between">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-4 md:gap-5 w-full">
+            {currentPartners.map((brand, idx) => (
+              <div 
+                key={brand.id || `partner-${currentPage}-${idx}`}
+                className="group p-1.5 sm:p-2 rounded-xl sm:rounded-2xl glass-panel border border-white/15 hover:border-[#D4AF37] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_25px_rgba(212,175,55,0.25)] flex items-center justify-center h-16 sm:h-20 md:h-24 cursor-pointer select-none overflow-hidden w-full relative"
+              >
+                {/* Clean, High-Contrast Crisp Logo Container without excess white space */}
+                <div className="w-full h-full rounded-lg sm:rounded-xl bg-white/95 backdrop-blur-md p-2 sm:p-3 flex items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.9)] transition-colors duration-300 group-hover:bg-white">
+                  <img 
+                    src={brand.logoUrl} 
+                    alt={brand.name || "Brand Partner"}
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                      const parent = (e.target as HTMLElement).parentElement;
+                      if (parent && !parent.querySelector('.logo-fallback')) {
+                        const fallback = document.createElement('span');
+                        fallback.className = 'logo-fallback font-bold text-xs sm:text-sm text-neutral-900 tracking-wider uppercase text-center px-1';
+                        fallback.innerText = brand.name || 'Partner';
+                        parent.appendChild(fallback);
+                      }
+                    }}
+                    className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Row 2: Reverse Marquee (Middle) */}
-          <div className="animate-marquee-reverse space-x-2.5 sm:space-x-4 md:space-x-6 py-0.5 sm:py-1">
-            {marqueeRow2.map((brand, idx) => renderPartnerCard(brand, `row2-${brand.id || brand.name}-${idx}`))}
-          </div>
+          {/* Pagination Controls for Next 9 / Previous 9 */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center space-x-3 pt-6 select-none">
+              <button
+                onClick={handlePrevPage}
+                className="p-2 sm:px-4 sm:py-2 rounded-xl glass-panel border border-white/15 text-white hover:border-[#D4AF37] transition-all cursor-pointer flex items-center space-x-1 hover:scale-105 active:scale-95 text-xs font-semibold"
+                aria-label="Previous 9 Logos"
+              >
+                <ChevronLeft className="w-4 h-4 text-[#D4AF37]" />
+                <span className="hidden sm:inline">Previous 9</span>
+              </button>
 
-          {/* Row 3: Forward Marquee (Bottom) */}
-          <div className="animate-marquee animate-marquee-slow space-x-2.5 sm:space-x-4 md:space-x-6 py-0.5 sm:py-1">
-            {marqueeRow3.map((brand, idx) => renderPartnerCard(brand, `row3-${brand.id || brand.name}-${idx}`))}
-          </div>
+              {/* Page Indicator Pills */}
+              <div className="flex items-center space-x-1.5 px-2 py-1 rounded-xl glass-panel border border-white/10">
+                {Array.from({ length: totalPages }).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentPage(index)}
+                    className={`h-2.5 transition-all duration-300 rounded-full cursor-pointer ${
+                      currentPage === index
+                        ? 'w-7 gold-gradient-bg shadow-sm shadow-[#D4AF37]'
+                        : 'w-2.5 bg-white/20 hover:bg-white/50'
+                    }`}
+                    title={`Page ${index + 1}`}
+                  />
+                ))}
+              </div>
 
+              <button
+                onClick={handleNextPage}
+                className="p-2 sm:px-4 sm:py-2 rounded-xl glass-panel border border-white/15 text-white hover:border-[#D4AF37] transition-all cursor-pointer flex items-center space-x-1 hover:scale-105 active:scale-95 text-xs font-semibold"
+                aria-label="Next 9 Logos"
+              >
+                <span className="hidden sm:inline">Next 9</span>
+                <ChevronRight className="w-4 h-4 text-[#D4AF37]" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Sourcing Promise note */}
-        <div className="text-center text-[11px] text-neutral-400 font-mono flex items-center justify-center space-x-2 pt-2">
-          <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+        <div className="text-center text-[10px] sm:text-[11px] text-neutral-400 font-mono flex items-center justify-center space-x-2 pt-2">
+          <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
           <span>All materials undergo 12-point batch quality testing & QR authentication upon site delivery.</span>
         </div>
 
