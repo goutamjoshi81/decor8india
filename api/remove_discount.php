@@ -12,7 +12,7 @@ try {
         exit();
     }
 
-    $stmt = $pdo->prepare("UPDATE services SET discount_price = NULL, discount_percentage = 0 WHERE id = ?");
+    $stmt = $pdo->prepare("UPDATE services SET discount_price = NULL, discount_percentage = NULL WHERE id = ?");
     $stmt->execute([$id]);
 
     echo json_encode([
@@ -20,7 +20,7 @@ try {
         "message" => "Promotional discount removed successfully from database.",
         "id" => $id,
         "discountPrice" => null,
-        "discountPercentage" => 0
+        "discountPercentage" => null
     ]);
 
 } catch (Throwable $e) {

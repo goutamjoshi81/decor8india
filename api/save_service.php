@@ -16,7 +16,7 @@ try {
       `estimated_duration` varchar(50) DEFAULT NULL,
       `starting_price` decimal(12,2) DEFAULT 0.00,
       `discount_price` decimal(12,2) DEFAULT NULL,
-      `discount_percentage` int DEFAULT 0,
+      `discount_percentage` int DEFAULT NULL,
       `image` text DEFAULT NULL,
       `icon_name` varchar(50) DEFAULT NULL,
       `is_active` tinyint(1) NOT NULL DEFAULT 1,
@@ -30,7 +30,7 @@ try {
         $pdo->exec("ALTER TABLE services ADD COLUMN discount_price decimal(12,2) DEFAULT NULL");
     } catch (\PDOException $e) {}
     try {
-        $pdo->exec("ALTER TABLE services ADD COLUMN discount_percentage int DEFAULT 0");
+        $pdo->exec("ALTER TABLE services ADD COLUMN discount_percentage int DEFAULT NULL");
     } catch (\PDOException $e) {}
 
     $data = json_decode(file_get_contents("php://input"), true);
@@ -50,14 +50,14 @@ try {
 
     // Handle direct remove discount action
     if (!empty($data['_action']) && $data['_action'] === 'remove_discount') {
-        $stmt = $pdo->prepare("UPDATE services SET discount_price = NULL, discount_percentage = 0 WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE services SET discount_price = NULL, discount_percentage = NULL WHERE id = ?");
         $stmt->execute([$data['id']]);
         echo json_encode([
             "success" => true, 
             "message" => "Discount removed from database.",
             "id" => $data['id'],
             "discountPrice" => null,
-            "discountPercentage" => 0
+            "discountPercentage" => null
         ]);
         exit();
     }
@@ -71,8 +71,8 @@ try {
             ? floatval($rawDiscountPrice) 
             : null;
         
-        $rawPct = $item['discountPercentage'] ?? $item['discount_percentage'] ?? 0;
-        $discountPct = intval($rawPct);
+        $rawPct = $item['discountPercentage'] ?? $item['discount_percentage'] ?? null;
+        $discountPct = ($rawPct !== null && $rawPct !== '') ? intval($rawPct) : null;
 
         // If discount is explicitly valid and less than starting price
         if ($discountPrice !== null && $discountPrice > 0 && $startingPrice > 0 && $discountPrice < $startingPrice) {
@@ -84,7 +84,7 @@ try {
         } else {
             // Explicitly cleared / no discount
             $discountPrice = null;
-            $discountPct = 0;
+            $discountPct = null;
         }
 
         return [$discountPrice, $discountPct];

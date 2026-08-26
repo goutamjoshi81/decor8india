@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `services` (
   `estimated_duration` varchar(50) DEFAULT NULL,
   `starting_price` decimal(12,2) DEFAULT 0.00,
   `discount_price` decimal(12,2) DEFAULT NULL,
-  `discount_percentage` int DEFAULT 0,
+  `discount_percentage` int DEFAULT NULL,
   `image` text DEFAULT NULL,
   `icon_name` varchar(50) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,

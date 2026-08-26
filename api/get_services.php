@@ -16,7 +16,7 @@ try {
       `estimated_duration` varchar(50) DEFAULT NULL,
       `starting_price` decimal(12,2) DEFAULT 0.00,
       `discount_price` decimal(12,2) DEFAULT NULL,
-      `discount_percentage` int DEFAULT 0,
+      `discount_percentage` int DEFAULT NULL,
       `image` text DEFAULT NULL,
       `icon_name` varchar(50) DEFAULT NULL,
       `is_active` tinyint(1) NOT NULL DEFAULT 1,
@@ -30,7 +30,7 @@ try {
         $pdo->exec("ALTER TABLE services ADD COLUMN discount_price decimal(12,2) DEFAULT NULL");
     } catch (\PDOException $e) {}
     try {
-        $pdo->exec("ALTER TABLE services ADD COLUMN discount_percentage int DEFAULT 0");
+        $pdo->exec("ALTER TABLE services ADD COLUMN discount_percentage int DEFAULT NULL");
     } catch (\PDOException $e) {}
 
     $id = isset($_GET['id']) ? trim($_GET['id']) : null;
@@ -46,9 +46,9 @@ try {
             $row['startingPrice'] = floatval($row['starting_price']);
             $dPrice = (isset($row['discount_price']) && $row['discount_price'] !== null && floatval($row['discount_price']) > 0) ? floatval($row['discount_price']) : null;
             $row['discountPrice'] = $dPrice;
-            $row['discountPercentage'] = (isset($row['discount_percentage']) && intval($row['discount_percentage']) > 0) 
+            $row['discountPercentage'] = (isset($row['discount_percentage']) && $row['discount_percentage'] !== null && intval($row['discount_percentage']) > 0) 
                 ? intval($row['discount_percentage']) 
-                : ($dPrice && $row['startingPrice'] > 0 ? (int)round((($row['startingPrice'] - $dPrice) / $row['startingPrice']) * 100) : 0);
+                : ($dPrice && $row['startingPrice'] > 0 ? (int)round((($row['startingPrice'] - $dPrice) / $row['startingPrice']) * 100) : null);
             $row['estimatedDuration'] = $row['estimated_duration'];
             $row['iconName'] = $row['icon_name'];
             $row['isActive'] = (bool)$row['is_active'];
@@ -73,9 +73,9 @@ try {
             $row['startingPrice'] = floatval($row['starting_price']);
             $dPrice = (isset($row['discount_price']) && $row['discount_price'] !== null && floatval($row['discount_price']) > 0) ? floatval($row['discount_price']) : null;
             $row['discountPrice'] = $dPrice;
-            $row['discountPercentage'] = (isset($row['discount_percentage']) && intval($row['discount_percentage']) > 0) 
+            $row['discountPercentage'] = (isset($row['discount_percentage']) && $row['discount_percentage'] !== null && intval($row['discount_percentage']) > 0) 
                 ? intval($row['discount_percentage']) 
-                : ($dPrice && $row['startingPrice'] > 0 ? (int)round((($row['startingPrice'] - $dPrice) / $row['startingPrice']) * 100) : 0);
+                : ($dPrice && $row['startingPrice'] > 0 ? (int)round((($row['startingPrice'] - $dPrice) / $row['startingPrice']) * 100) : null);
             $row['estimatedDuration'] = $row['estimated_duration'];
             $row['iconName'] = $row['icon_name'];
             $row['isActive'] = (bool)$row['is_active'];
