@@ -3,21 +3,25 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury_Gold.xlsx"):
+def create_white_and_gold_workbook(output_filename="DECOR8_INDIA_QUOTATION_WHITE_AND_GOLD.xlsx"):
     wb = openpyxl.Workbook()
-    wb.remove(wb.active)
+    wb.remove(wb.active)  # Remove default sheet
 
-    # Colors
-    GOLD_PRIMARY   = "FFD4AF37"   # Metallic Luxury Gold (Headers, Grand Total)
-    GOLD_DEEP      = "FFB8860B"   # Deep Gold (Title, Brand text)
+    # ==========================================
+    # --- LUXURY WHITE & GOLD COLOR PALETTE ---
+    # ==========================================
+    GOLD_PRIMARY   = "FFD4AF37"   # Metallic Luxury Gold (Headers, Banners, Grand Total)
+    GOLD_DEEP      = "FFB8860B"   # Deep Warm Gold (Title, Brand Accents)
     GOLD_TBL_HDR   = "FFF5E8C2"   # Champagne Gold (Table Headers)
-    GOLD_SUBTOTAL  = "FFEEDEA6"   # Soft Gold (Subtotals, Summary)
+    GOLD_SUBTOTAL  = "FFEEDEA6"   # Soft Gold (Subtotals, Category Summaries)
+    GOLD_DISCOUNT  = "FFFCE8E6"   # Soft Rose Tint or Warm Gold Accent for Discount
     GOLD_ZEBRA     = "FFFAF5E8"   # Subtle Warm Gold Tint (Alternating Rows)
     GOLD_META_LBL  = "FFF2E3BC"   # Gold Tint for Metadata & Bank Labels
-    WHITE          = "FFFFFFFF"   # Pure White
+    WHITE          = "FFFFFFFF"   # Pure Crisp White
     TEXT_DARK      = "FF1A1A1A"   # Crisp Jet Black
     TEXT_MUTED     = "FF555555"   # Subtitle & Note Text
     BORDER_GOLD    = "FFC9A232"   # Refined Gold Border
+    BORDER_LIGHT   = "FFE2CE96"   # Subtle Inner Grid Border
 
     thin_gold = Side(border_style="thin", color=BORDER_GOLD)
     medium_gold = Side(border_style="medium", color=BORDER_GOLD)
@@ -27,7 +31,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
     subtotal_border = Border(left=thin_gold, right=thin_gold, top=thin_gold, bottom=medium_gold)
     grand_total_border = Border(left=medium_gold, right=medium_gold, top=medium_gold, bottom=double_gold)
 
-    # Fonts
+    # ==========================================
+    # --- TYPOGRAPHY ---
+    # ==========================================
     font_quotation_title = Font(name="Segoe UI", size=16, bold=True, color=GOLD_DEEP)
     font_company_name    = Font(name="Segoe UI", size=15, bold=True, color=TEXT_DARK)
     font_company_sub     = Font(name="Segoe UI", size=9, bold=False, color=TEXT_MUTED)
@@ -36,7 +42,7 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
     font_tagline_rt      = Font(name="Segoe UI", size=8.5, italic=True, color=TEXT_MUTED)
 
     font_banner          = Font(name="Segoe UI", size=10, bold=True, color=TEXT_DARK)
-    font_sec_hdr         = Font(name="Segoe UI", size=10, bold=True, color=TEXT_DARK)
+    font_sec_hdr         = Font(name="Segoe UI", size=10.5, bold=True, color=TEXT_DARK)
     font_tbl_hdr         = Font(name="Segoe UI", size=9.5, bold=True, color=TEXT_DARK)
     
     font_cell            = Font(name="Segoe UI", size=9, bold=False, color=TEXT_DARK)
@@ -49,7 +55,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
     font_terms_text      = Font(name="Segoe UI", size=8.5, bold=False, color="FF222222")
     font_footer          = Font(name="Segoe UI", size=9.5, bold=True, color=TEXT_DARK)
 
-    # Fills
+    # ==========================================
+    # --- FILLS ---
+    # ==========================================
     fill_gold_hdr    = PatternFill(start_color=GOLD_PRIMARY, end_color=GOLD_PRIMARY, fill_type="solid")
     fill_tbl_hdr     = PatternFill(start_color=GOLD_TBL_HDR, end_color=GOLD_TBL_HDR, fill_type="solid")
     fill_subtotal    = PatternFill(start_color=GOLD_SUBTOTAL, end_color=GOLD_SUBTOTAL, fill_type="solid")
@@ -58,7 +66,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
     fill_white       = PatternFill(start_color=WHITE, end_color=WHITE, fill_type="solid")
     fill_meta_lbl    = PatternFill(start_color=GOLD_META_LBL, end_color=GOLD_META_LBL, fill_type="solid")
 
-    # Alignments
+    # ==========================================
+    # --- ALIGNMENTS ---
+    # ==========================================
     align_center    = Alignment(horizontal="center", vertical="center", wrap_text=True)
     align_left      = Alignment(horizontal="left", vertical="center", indent=1, wrap_text=True)
     align_right     = Alignment(horizontal="right", vertical="center", indent=1, wrap_text=True)
@@ -81,7 +91,7 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         if start_col != end_col or start_row != end_row:
             ws.merge_cells(start_row=start_row, start_column=start_col, end_row=end_row, end_column=end_col)
 
-    def build_sheet(sheet_title, is_template=False):
+    def build_quotation_sheet(sheet_title, client_name="MR.UDAY", quote_no="D8202602105", quote_date="16-Feb-2026", rep="Mr.Satish", contact="+91", address="Bengaluru", email=""):
         ws = wb.create_sheet(title=sheet_title)
         ws.views.sheetView[0].showGridLines = True
 
@@ -92,19 +102,23 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
             'D': 14,    # Total SQFT
             'E': 16,    # Rate / Unit Price
             'F': 18,    # Amount (₹)
-            'G': 32     # Remarks
+            'G': 40     # Remarks
         }
         for col, width in column_widths.items():
             ws.column_dimensions[col].width = width
 
         r = 1
 
+        # ----------------------------------------------------
         # 1. Top Header Title
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 28
         style_and_merge(ws, 1, r, 7, r, value="QUOTATION", font=font_quotation_title, fill=fill_white, border=cell_border, alignment=align_center)
         r += 1
 
-        # 2. Company Info (Rows 2 to 6)
+        # ----------------------------------------------------
+        # 2. Company Info (Left) & Brand Identity (Right)
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 20
         ws.row_dimensions[r+1].height = 16
         ws.row_dimensions[r+2].height = 16
@@ -127,7 +141,7 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         ws[f"A{r+3}"].font = font_company_sub
         ws[f"A{r+3}"].alignment = align_left
 
-        ws[f"A{r+4}"] = "GSTIN: 29CHPPB0944C2ZD"
+        ws[f"A{r+4}"] = "GSTIN: 29CHPPB0948C2ZD"
         ws[f"A{r+4}"].font = font_gstin
         ws[f"A{r+4}"].alignment = align_left
 
@@ -142,17 +156,19 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         style_and_merge(ws, 1, r, 7, r, fill=fill_gold_hdr, border=None)
         r += 1
 
+        # ----------------------------------------------------
         # 3. Client & Quotation Metadata
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 24
-        lbl_q_for = "QUOTATION For - [CLIENT NAME - PROJECT / UNIT]" if is_template else "QUOTATION For - MR.GOVINDA- Kolte Patil D1304"
+        lbl_q_for = f"QUOTATION For - {client_name}"
         style_and_merge(ws, 1, r, 4, r, value=lbl_q_for, font=font_banner, fill=fill_gold_hdr, border=cell_border, alignment=align_left)
-        style_and_merge(ws, 5, r, 7, r, value="Company Representative: Mr.Satish", font=font_banner, fill=fill_gold_hdr, border=cell_border, alignment=align_left)
+        style_and_merge(ws, 5, r, 7, r, value=f"Company Representative: {rep}", font=font_banner, fill=fill_gold_hdr, border=cell_border, alignment=align_left)
         r += 1
 
         meta_rows = [
-            ("Quotation No:", "D8-2026-XXXX" if is_template else "D8202607102", "Quotation Date:", "DD-MMM-YYYY" if is_template else "06-AUG-2026"),
-            ("Contact No:", "+91 XXXXXXXXXX" if is_template else "+91 ******93754", "Address:", "Bengaluru"),
-            ("Email ID :", "client@email.com" if is_template else "-", "", "")
+            ("Quotations No:", quote_no, "Quotations Date:", quote_date),
+            ("Contact No:", contact, "Address:", address),
+            ("Email ID :", email, "", "")
         ]
 
         for lbl1, val1, lbl2, val2 in meta_rows:
@@ -170,7 +186,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         ws.row_dimensions[r].height = 6
         r += 1
 
+        # ----------------------------------------------------
         # 4. Section A: Wood work & Modular Finish CENTURY PLY
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 24
         style_and_merge(ws, 1, r, 7, r, value="Section A: Wood work & Modular Finish CENTURY PLY", font=font_sec_hdr, fill=fill_gold_hdr, border=cell_border, alignment=align_left)
         r += 1
@@ -184,39 +202,59 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
 
         sec_a_start_row = r
 
-        if is_template:
-            items_a = [
-                (1, "", "", "", "", ""),
-                ("", "", "", "", "", ""),
-                ("", "", "", "", "", ""),
-                (2, "", "", "", "", ""),
-                ("", "", "", "", "", ""),
-            ]
-        else:
-            items_a = [
-                (1, "Utility storage", "Profile shutters", 26, 1100, "For tv unit and kitchen"),
-                ("", "", "Loft", 38, 950, "Frame with shutters"),
-                ("", "", "Tall Unit", 18, 1550, "-"),
-                ("", "", "Wicker Basket", "-", 12000, "2 Baskets"),
-                (2, "KBR", "Swing Wardrobe", 60, 1550, "Century MR Ply carcase & Laminate Finish"),
-                ("", "", "Loft", 36, 950, "Frame with shutters"),
-            ]
+        # Exact items from Screenshot 1 (MR.UDAY)
+        # Groups: (SlNo, ItemName, [(SubItem, SQFT, Rate, Remarks), ...])
+        sec_a_groups = [
+            (1, "Modular Kitchen", [
+                ("Base Cabinet", 43, 1600, "BWP Ply Carcases & HDHMR Shutters with Premium Acrylic finish"),
+                ("Wall Cabinet", 26, 1600, ""),
+                ("Tall Unit", 9, 1100, ""),
+                ("Loft", 43, 1100, "")
+            ]),
+            (2, "MBR", [
+                ("Swing wardrobe", 56, 1600, "MR Ply carcase with 18mm HDHMR shutters & Acrylic finish"),
+                ("Loft", 18, 1100, ""),
+                ("Study with dressing", 56, 1100, "As per old design")
+            ]),
+            (3, "KBR", [
+                ("Swing Wardrobe", 49, 1600, "MR Ply carcase with 18mm HDHMR shutters & Acrylic finish"),
+                ("Loft", 14, 1100, ""),
+                ("StudyTable", 42, 1200, "Acrylic finish")
+            ]),
+            (4, "Living & Dining Area", [
+                ("TV Unit", 96, 1950, "Acrylic and Louvers combination"),
+                ("Crockery", 21, 1900, "Profile shutters with Acrylic carcase"),
+                ("Pooja Unit", 21, 1950, "CNC design with Acrylic finish"),
+                ("Wall Panelling", 96, 550, "As per 3D")
+            ]),
+            (5, "GBR", [
+                ("Wardrobe", 35, 1600, "MR Ply carcase & 18MM HDHMR shutters with Acrylic finish"),
+                ("Loft", 10, 1100, ""),
+                ("Study", 42, 1200, "")
+            ]),
+            (6, "Foyer Area", [
+                ("Shoe Unit", 14, 1400, "Seating cushion included"),
+                ("Wall Highlight with charcoal panels", 50, 650, "Entrance wall"),
+                ("Bronze mirror", 20, 950, "")
+            ])
+        ]
 
-        for sl, item, subitem, sqft, rate, rem in items_a:
-            ws.row_dimensions[r].height = 20
-            ws[f"A{r}"] = sl
-            ws[f"B{r}"] = item
-            ws[f"C{r}"] = subitem
-            ws[f"D{r}"] = sqft
-            ws[f"E{r}"] = rate
-            if isinstance(sqft, (int, float)):
+        for sl_no, item_name, subitems in sec_a_groups:
+            group_start = r
+            for idx, (subitem, sqft, rate, rem) in enumerate(subitems):
+                ws.row_dimensions[r].height = 20
+                ws[f"A{r}"] = sl_no if idx == 0 else ""
+                ws[f"B{r}"] = item_name if idx == 0 else ""
+                ws[f"C{r}"] = subitem
+                ws[f"D{r}"] = sqft
+                ws[f"E{r}"] = rate
                 ws[f"F{r}"] = f"=D{r}*E{r}"
-            elif is_template:
-                ws[f"F{r}"] = f"=IF(AND(ISNUMBER(D{r}),ISNUMBER(E{r})),D{r}*E{r},\"\")"
-            else:
-                ws[f"F{r}"] = rate
-            ws[f"G{r}"] = rem
-            r += 1
+                ws[f"G{r}"] = rem
+                r += 1
+            group_end = r - 1
+            if group_end > group_start:
+                ws.merge_cells(f"A{group_start}:A{group_end}")
+                ws.merge_cells(f"B{group_start}:B{group_end}")
 
         sec_a_end_row = r - 1
 
@@ -243,30 +281,30 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
                 ws[f"{col_letter}{row_idx}"].border = cell_border
                 ws[f"{col_letter}{row_idx}"].fill = fill_zebra_light if is_even else fill_white
 
-            if isinstance(ws[f"D{row_idx}"].value, (int, float)):
-                ws[f"D{row_idx}"].number_format = "#,##0"
-            if isinstance(ws[f"E{row_idx}"].value, (int, float)):
-                ws[f"E{row_idx}"].number_format = "₹ #,##0.00"
+            ws[f"D{row_idx}"].number_format = "#,##0"
+            ws[f"E{row_idx}"].number_format = "₹ #,##0.00"
             ws[f"F{row_idx}"].number_format = "₹ #,##0.00"
 
-        if not is_template:
-            ws.merge_cells(f"A{sec_a_start_row}:A{sec_a_start_row+3}")
-            ws.merge_cells(f"B{sec_a_start_row}:B{sec_a_start_row+3}")
-            ws.merge_cells(f"A{sec_a_start_row+4}:A{sec_a_start_row+5}")
-            ws.merge_cells(f"B{sec_a_start_row+4}:B{sec_a_start_row+5}")
-
-        # Subtotal Row 1
+        # Sub Total Section A (excluding GST)
         ws.row_dimensions[r].height = 22
         style_and_merge(ws, 1, r, 5, r, value="Sub Total excluding GST", font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right)
         style_and_merge(ws, 6, r, 6, r, value=f"=SUM(F{sec_a_start_row}:F{sec_a_end_row})", font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right, num_format="₹ #,##0.00")
         style_and_merge(ws, 7, r, 7, r, fill=fill_subtotal, border=subtotal_border)
-        subtotal_a1_row = r
+        subtotal_a_raw_row = r
         r += 1
 
-        # Subtotal Row 2 (Final A)
+        # Discount Row (Exact from Screenshot 1: ₹ 1,00,000)
+        ws.row_dimensions[r].height = 22
+        style_and_merge(ws, 1, r, 5, r, value="Discount", font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right)
+        style_and_merge(ws, 6, r, 6, r, value=100000, font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right, num_format="₹ #,##0.00")
+        style_and_merge(ws, 7, r, 7, r, fill=fill_subtotal, border=subtotal_border)
+        discount_a_row = r
+        r += 1
+
+        # Final Sub Total Section A (A - Discount)
         ws.row_dimensions[r].height = 22
         style_and_merge(ws, 1, r, 5, r, value="Sub Total excluding GST (A)", font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right)
-        style_and_merge(ws, 6, r, 6, r, value=f"=F{subtotal_a1_row}", font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right, num_format="₹ #,##0.00")
+        style_and_merge(ws, 6, r, 6, r, value=f"=F{subtotal_a_raw_row}-F{discount_a_row}", font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right, num_format="₹ #,##0.00")
         style_and_merge(ws, 7, r, 7, r, fill=fill_subtotal, border=subtotal_border)
         subtotal_a_row = r
         r += 1
@@ -275,7 +313,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         ws.row_dimensions[r].height = 6
         r += 1
 
+        # ----------------------------------------------------
         # 5. Section B: Appliances & Accessories
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 24
         style_and_merge(ws, 1, r, 7, r, value="Section B: Appliances & Accessories", font=font_sec_hdr, fill=fill_gold_hdr, border=cell_border, alignment=align_left)
         r += 1
@@ -291,43 +331,60 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
 
         sec_b_start_row = r
 
+        # Kitchen Accessories (Sl No 1)
         kitchen_items = [
-            ("Hob and Chimney (Elica /Kutchina)", "-", "-", "-"),
-            ("Sink", "-", "-", "-"),
-            ("Inbuilt Oven and Microwave", "-", "-", "As per model selection price may vary"),
-            ("Copper pipe for Gas Cylinder connection", "-", "-", "-"),
-            ("1x cutlery with tandem drawer", "-", "-", "-"),
-            ("1x plain ss basket drawer", "-", "-", "-"),
-            ("Rolling shutter", "-", "-", "-"),
-            ("1x thali basket , Magic corner , Wicker basket", "-", "-", "-")
+            ("Hob and Chimney (Elica /Kutchina)", "-", ""),
+            ("Sink", "-", ""),
+            ("Inbuilt Oven and Microwave", "-", "As per model selection price may vary"),
+            ("Copper pipe for Gas Cylender connection", "-", ""),
+            ("1x cutlery with tandem drawer", "", ""),
+            ("1x plain ss basket drawer", "", ""),
+            ("Rolling shutter", "", ""),
+            ("1x thali basket , Magic corner , Wicker basket", "", "")
         ]
 
         kitchen_start = r
-        for idx, (item_det, price, amt, rem) in enumerate(kitchen_items):
+        for idx, (item_det, price_val, rem) in enumerate(kitchen_items):
             ws.row_dimensions[r].height = 20
             ws[f"A{r}"] = 1 if idx == 0 else ""
-            ws[f"B{r}"] = "Kitchen\nHardware(including soft\nhinges )" if idx == 0 else ""
+            ws[f"B{r}"] = "Kitchen\nHardwares(including\nsoft hinges )" if idx == 0 else ""
             ws.merge_cells(f"C{r}:D{r}")
-            ws[f"C{r}"] = item_det if not is_template else ""
-            ws[f"E{r}"] = price if not is_template else ""
-            ws[f"F{r}"] = amt if not is_template else ""
-            ws[f"G{r}"] = rem if not is_template else ""
+            ws[f"C{r}"] = item_det
+            ws[f"E{r}"] = price_val if idx < 4 else ""
+            ws[f"F{r}"] = price_val if idx < 4 else (47850 if idx == 4 else "")
+            ws[f"G{r}"] = rem
             r += 1
         kitchen_end = r - 1
 
         ws.merge_cells(f"A{kitchen_start}:A{kitchen_end}")
         ws.merge_cells(f"B{kitchen_start}:B{kitchen_end}")
+        # Merge the 47,850 amount across the 4 basket rows
+        ws.merge_cells(f"F{kitchen_start+4}:F{kitchen_end}")
+        ws.merge_cells(f"E{kitchen_start+4}:E{kitchen_end}")
 
-        wardrobe_row = r
-        ws.row_dimensions[r].height = 22
-        ws[f"A{r}"] = 2
-        ws[f"B{r}"] = "Wardrobes"
-        ws.merge_cells(f"C{r}:D{r}")
-        ws[f"C{r}"] = "Hardware-" if not is_template else ""
-        ws[f"E{r}"] = 23500 if not is_template else ""
-        ws[f"F{r}"] = 23500 if not is_template else ""
-        ws[f"G{r}"] = "handles, hinges and required hardwares added" if not is_template else ""
-        r += 1
+        # Wardrobes Accessories (Sl No 2)
+        wardrobe_start = r
+        wardrobe_items = [
+            ("Hardware ( 3 wardrobes)", 30300, "handles, hinges and required hardwares added"),
+            ("", "-", ""),
+            ("", "", ""),
+            ("", "", "")
+        ]
+
+        for idx, (item_det, price_val, rem) in enumerate(wardrobe_items):
+            ws.row_dimensions[r].height = 20
+            ws[f"A{r}"] = 2 if idx == 0 else ""
+            ws[f"B{r}"] = "Wardrobes" if idx == 0 else ""
+            ws.merge_cells(f"C{r}:D{r}")
+            ws[f"C{r}"] = item_det
+            ws[f"E{r}"] = price_val
+            ws[f"F{r}"] = price_val
+            ws[f"G{r}"] = rem
+            r += 1
+        wardrobe_end = r - 1
+
+        ws.merge_cells(f"A{wardrobe_start}:A{wardrobe_end}")
+        ws.merge_cells(f"B{wardrobe_start}:B{wardrobe_end}")
 
         sec_b_end_row = r - 1
 
@@ -335,8 +392,8 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
             ws[f"A{row_idx}"].alignment = align_center
             ws[f"B{row_idx}"].alignment = align_center
             ws[f"C{row_idx}"].alignment = align_left
-            ws[f"E{row_idx}"].alignment = align_center if ws[f"E{row_idx}"].value == "-" else align_right
-            ws[f"F{row_idx}"].alignment = align_center if ws[f"F{row_idx}"].value == "-" else align_right
+            ws[f"E{row_idx}"].alignment = align_center if str(ws[f"E{row_idx}"].value).strip() in ["-", ""] else align_right
+            ws[f"F{row_idx}"].alignment = align_center if str(ws[f"F{row_idx}"].value).strip() in ["-", ""] else align_right
             ws[f"G{row_idx}"].alignment = align_left
 
             for c in range(1, 8):
@@ -355,7 +412,7 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         # Sub Total Section B
         ws.row_dimensions[r].height = 22
         style_and_merge(ws, 1, r, 5, r, value="Sub Total excluding GST (B)", font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right)
-        style_and_merge(ws, 6, r, 6, r, value=f"=SUM(F{wardrobe_row}:F{wardrobe_row})", font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right, num_format="₹ #,##0.00")
+        style_and_merge(ws, 6, r, 6, r, value=f"=SUM(F{kitchen_start+4}, F{wardrobe_start})", font=font_subtotal, fill=fill_subtotal, border=subtotal_border, alignment=align_right, num_format="₹ #,##0.00")
         style_and_merge(ws, 7, r, 7, r, fill=fill_subtotal, border=subtotal_border)
         subtotal_b_row = r
         r += 1
@@ -364,7 +421,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         ws.row_dimensions[r].height = 6
         r += 1
 
+        # ----------------------------------------------------
         # 6. Section C: Miscellaneous & Loose Furniture
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 24
         style_and_merge(ws, 1, r, 7, r, value="Section C: Miscellaneous & Loose Furniture", font=font_sec_hdr, fill=fill_gold_hdr, border=cell_border, alignment=align_left)
         r += 1
@@ -378,30 +437,36 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         r += 1
 
         misc_items = [
-            ("King size bed Hydrolic with Headboard and side table", "-", "-", "-"),
-            ("Queen size bed Hydrolic with Headboard and side table with cushion covering", "-", "-", "-"),
-            ("Wallpapers", "-", "-", "-"),
-            ("Painting (Royal Aspira ) 1 coat primer 2coat Asian paint Aspira", "-", "-", "-"),
-            ("Quartz/Granite stone including cutting and installation", "-", "-", "-"),
-            ("Electrical work ( including pop wiring switches etc )", "-", "-", "-")
+            (1, "KBR Cot background Design", 45500, "70 sqft total x 650 Rs"),
+            (2, "Washroom Glass partition", 34000, ""),
+            (3, "King size bed Hydrolic with Headboard and side table", 58000, "Acrylic finish"),
+            (4, "Queen size bed Hydrolic with Headboard and side table with cushion", 56000, ""),
+            (5, "Wallpapers", 15000, ""),
+            (6, "Painting (Royal Aspira ) 1 coat primer 2coat Asian paint Aspira", 48850, ""),
+            (7, "Quartz/Granite stone including cutting and installation", 7500, ""),
+            (8, "MBR cot background (louvers and arch )", 55900, "86 sqft x 650"),
+            (9, "False ceiling , Wall Mouldings as per design", 62000, ""),
+            ("", "Wall Mouldings as per design", 16500, "including electrical shifting"),
+            (10, "Electrical work ( including pop wiring switches etc )", 60000, "Pop Lights, Profile lights installation with materials"),
+            (11, "GBR louvers", 29250, "65 sqft x 450")
         ]
 
         sec_c_start_row = r
-        for idx, (particulars, price, amt, rem) in enumerate(misc_items, start=1):
+        for idx_sl, particulars, amt, rem in misc_items:
             ws.row_dimensions[r].height = 20
-            ws[f"A{r}"] = idx
+            ws[f"A{r}"] = idx_sl
             ws.merge_cells(f"B{r}:D{r}")
-            ws[f"B{r}"] = particulars if not is_template else ""
-            ws[f"E{r}"] = price if not is_template else ""
-            ws[f"F{r}"] = 0 if not is_template else ""
-            ws[f"G{r}"] = rem if not is_template else ""
+            ws[f"B{r}"] = particulars
+            ws[f"E{r}"] = amt
+            ws[f"F{r}"] = amt
+            ws[f"G{r}"] = rem
             r += 1
         sec_c_end_row = r - 1
 
         for row_idx in range(sec_c_start_row, sec_c_end_row + 1):
             ws[f"A{row_idx}"].alignment = align_center
             ws[f"B{row_idx}"].alignment = align_left
-            ws[f"E{row_idx}"].alignment = align_center
+            ws[f"E{row_idx}"].alignment = align_right
             ws[f"F{row_idx}"].alignment = align_right
             ws[f"G{row_idx}"].alignment = align_left
 
@@ -411,7 +476,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
                 ws[f"{c_l}{row_idx}"].border = cell_border
                 ws[f"{c_l}{row_idx}"].fill = fill_zebra_light if row_idx % 2 == 0 else fill_white
 
-            ws[f"F{row_idx}"].number_format = "₹ #,##0.00; - ; \"-\""
+            ws[f"E{row_idx}"].number_format = "₹ #,##0.00"
+            ws[f"F{row_idx}"].number_format = "₹ #,##0.00"
+            ws[f"F{row_idx}"].font = font_cell_amount
 
         # Sub Total Section C
         ws.row_dimensions[r].height = 22
@@ -425,17 +492,19 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         ws.row_dimensions[r].height = 6
         r += 1
 
+        # ----------------------------------------------------
         # 7. Total Project Cost Summary
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 24
         style_and_merge(ws, 1, r, 5, r, value="Total Project Cost (A+B+C) excluding GST", font=font_subtotal, fill=fill_subtotal, border=cell_border, alignment=align_right)
-        style_and_merge(ws, 6, r, 6, r, value=f"=F{subtotal_a_row}+F{subtotal_b_row}+F{subtotal_c_row}", font=Font(name="Segoe UI", size=10, bold=True, color=TEXT_DARK), fill=fill_subtotal, border=cell_border, alignment=align_right, num_format="₹ #,##0.00")
+        style_and_merge(ws, 6, r, 6, r, value=f"=F{subtotal_a_row}+F{subtotal_b_row}+F{subtotal_c_row}", font=Font(name="Segoe UI", size=10.5, bold=True, color=TEXT_DARK), fill=fill_subtotal, border=cell_border, alignment=align_right, num_format="₹ #,##0.00")
         style_and_merge(ws, 7, r, 7, r, fill=fill_subtotal, border=cell_border)
         total_excl_gst_row = r
         r += 1
 
         # CGST 9%
         ws.row_dimensions[r].height = 20
-        style_and_merge(ws, 1, r, 5, r, value="CGST@ 9%", font=font_cell_bold, fill=fill_white, border=cell_border, alignment=align_right)
+        style_and_merge(ws, 1, r, 5, r, value="CGST @ 9%", font=font_cell_bold, fill=fill_white, border=cell_border, alignment=align_right)
         style_and_merge(ws, 6, r, 6, r, value=f"=ROUND(F{total_excl_gst_row}*0.09, 0)", font=font_cell_bold, fill=fill_white, border=cell_border, alignment=align_right, num_format="₹ #,##0.00")
         style_and_merge(ws, 7, r, 7, r, fill=fill_white, border=cell_border)
         cgst_row = r
@@ -443,7 +512,7 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
 
         # SGST 9%
         ws.row_dimensions[r].height = 20
-        style_and_merge(ws, 1, r, 5, r, value="SGST@ 9%", font=font_cell_bold, fill=fill_white, border=cell_border, alignment=align_right)
+        style_and_merge(ws, 1, r, 5, r, value="SGST @ 9%", font=font_cell_bold, fill=fill_white, border=cell_border, alignment=align_right)
         style_and_merge(ws, 6, r, 6, r, value=f"=ROUND(F{total_excl_gst_row}*0.09, 0)", font=font_cell_bold, fill=fill_white, border=cell_border, alignment=align_right, num_format="₹ #,##0.00")
         style_and_merge(ws, 7, r, 7, r, fill=fill_white, border=cell_border)
         sgst_row = r
@@ -461,7 +530,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         ws.row_dimensions[r].height = 6
         r += 1
 
+        # ----------------------------------------------------
         # 8. Payment Schedule
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 24
         style_and_merge(ws, 1, r, 7, r, value="Payment Schedule", font=font_sec_hdr, fill=fill_gold_hdr, border=cell_border, alignment=align_left)
         r += 1
@@ -491,7 +562,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         ws.row_dimensions[r].height = 6
         r += 1
 
+        # ----------------------------------------------------
         # 9. Company Account Information
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 24
         style_and_merge(ws, 1, r, 7, r, value="Company Account information", font=font_sec_hdr, fill=fill_gold_hdr, border=cell_border, alignment=align_left)
         r += 1
@@ -508,7 +581,7 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
             ("Bank Name:", "IDFC FIRST BANK"),
             ("Branch Name:", "BTM Layout"),
             ("A/C Name:", "DECOR8 INDIA"),
-            ("A/C Number:", "10075641203"),
+            ("A/C Number:", "10075641863"),
             ("A/C Type:", "Current"),
             ("IFSC Code:", "IDFB0080182")
         ]
@@ -524,7 +597,9 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         ws.row_dimensions[r].height = 6
         r += 1
 
+        # ----------------------------------------------------
         # 10. Terms & Conditions
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 24
         style_and_merge(ws, 1, r, 7, r, value="* Terms & Conditions", font=font_terms_hdr, fill=fill_gold_hdr, border=cell_border, alignment=align_center)
         r += 1
@@ -552,14 +627,18 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
         ws.row_dimensions[r].height = 6
         r += 1
 
+        # ----------------------------------------------------
         # 11. Footer Banner
+        # ----------------------------------------------------
         ws.row_dimensions[r].height = 24
         style_and_merge(ws, 1, r, 7, r, value="www.decor8india.com", font=font_footer, fill=fill_gold_hdr, border=cell_border, alignment=align_center)
         r += 1
 
-    build_sheet("Decor8 Luxury White & Gold", is_template=False)
-    build_sheet("Master White & Gold Template", is_template=True)
+    # Create sheets
+    build_quotation_sheet("Quotation - MR.UDAY", client_name="MR.UDAY", quote_no="D8202602105", quote_date="16-Feb-2026", rep="Mr.Satish", contact="+91", address="Bengaluru")
+    build_quotation_sheet("Decor8 Luxury White & Gold", client_name="MR.UDAY", quote_no="D8202602105", quote_date="16-Feb-2026", rep="Mr.Satish", contact="+91", address="Bengaluru")
 
+    # Save to requested destination and public folder
     try:
         wb.save(output_filename)
         print(f"Successfully saved White & Gold workbook: {output_filename}")
@@ -575,6 +654,12 @@ def create_white_and_gold_workbook(output_filename="Decor8India_Quotation_Luxury
     except Exception as e:
         print("Public save error:", e)
 
+    # Also save to luxury gold file name
+    try:
+        wb.save("Decor8India_Quotation_Luxury_Gold.xlsx")
+        print("Saved Decor8India_Quotation_Luxury_Gold.xlsx")
+    except Exception as e:
+        print("Error saving luxury gold:", e)
+
 if __name__ == "__main__":
-    create_white_and_gold_workbook("Decor8India_Quotation_Luxury_Gold.xlsx")
     create_white_and_gold_workbook("DECOR8_INDIA_QUOTATION_WHITE_AND_GOLD.xlsx")

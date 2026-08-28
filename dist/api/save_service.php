@@ -171,16 +171,9 @@ try {
         return [$dPrice, $dPct];
     };
 
-    // Handle bulk save (array of services)
-    if (isset($data['_bulk']) && is_array($data['services'])) {
-        $pdo->beginTransaction();
-        foreach ($data['services'] as $idx => $s) {
-            if (!empty($s['id']) && !empty($s['title'])) {
-                $upsertService($pdo, $s, $idx);
-            }
-        }
-        $pdo->commit();
-        echo json_encode(["success" => true, "message" => "All services saved."]);
+    // Disallow unauthenticated bulk overwrites (prevents stale client caches from overwriting database)
+    if (isset($data['_bulk'])) {
+        echo json_encode(["success" => false, "message" => "Bulk overwrite is disabled for data integrity."]);
         exit();
     }
 

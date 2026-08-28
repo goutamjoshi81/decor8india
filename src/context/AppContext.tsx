@@ -214,41 +214,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Track admin-toggled showOnLandingPage overrides that must survive background polling
   const landingPageOverrides = useRef<Map<string, boolean>>(new Map());
 
-  // Helper: sync data to GoDaddy MySQL server via dedicated endpoints (fire-and-forget)
-  const syncToServer = (key: string, value: any) => {
-    if (!isInitialFetchDone.current) return;
-    import('../services/apiService').then(({ apiService }) => {
-      // Use dedicated table endpoints instead of generic cms_data
-      switch (key) {
-        case 'services':
-          apiService.saveServicesBulk(value).catch(err => console.warn('Server sync failed for services:', err));
-          break;
-        case 'articles':
-          apiService.saveArticlesBulk(value).catch(err => console.warn('Server sync failed for articles:', err));
-          break;
-        case 'team_members':
-          apiService.saveTeamMembersBulk(value).catch(err => console.warn('Server sync failed for team_members:', err));
-          break;
-        case 'testimonials':
-          apiService.saveTestimonialsBulk(value).catch(err => console.warn('Server sync failed for testimonials:', err));
-          break;
-        case 'projects':
-          // Projects use dedicated 'projects' table (updated via saveProjectUpdate)
-          break;
-        case 'users':
-          // Users already have a dedicated table; no need to sync to cms_data
-          break;
-        case 'branch_offices':
-          // Branch offices already have dedicated endpoints
-          break;
-        default:
-          // CMS data disabled - all entities use dedicated tables
-          break;
-      }
-    });
-  };
-
-  // Sync to BOTH localStorage (fast cache) AND GoDaddy MySQL server
+  // Persistent LocalStorage caching (fast local cache for instant paint)
   useEffect(() => {
     try {
       if (currentUser) localStorage.setItem('decor8_user', JSON.stringify(currentUser));
@@ -260,20 +226,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     try { localStorage.setItem('decor8_projects', JSON.stringify(projects)); } catch (e) {}
-    syncToServer('projects', projects);
   }, [projects]);
 
   useEffect(() => {
     try { localStorage.setItem('decor8_team_members_v2', JSON.stringify(teamMembers)); } catch (e) {}
-    // Only sync team members to server AFTER initial DB fetch is done (so we never overwrite DB with stale local data)
-    syncToServer('team_members', teamMembers);
   }, [teamMembers]);
 
   useEffect(() => {
     try { localStorage.setItem('decor8_branch_offices', JSON.stringify(branchOffices)); } catch (e) {}
-    syncToServer('branch_offices', branchOffices);
   }, [branchOffices]);
-
 
   useEffect(() => {
     try { localStorage.setItem('decor8_bookings', JSON.stringify(bookings)); } catch (e) {}
@@ -281,17 +242,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     try { localStorage.setItem('decor8_users', JSON.stringify(users)); } catch (e) {}
-    syncToServer('users', users);
   }, [users]);
 
   useEffect(() => {
     try { localStorage.setItem('decor8_articles', JSON.stringify(articles)); } catch (e) {}
-    syncToServer('articles', articles);
   }, [articles]);
 
   useEffect(() => {
     try { localStorage.setItem('decor8_services', JSON.stringify(services)); } catch (e) {}
-    syncToServer('services', services);
   }, [services]);
 
   const sanitizeUrls = (projList: Project[]): Project[] => {
@@ -373,6 +331,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiService.getServices().then(res => {
           if (res.success && Array.isArray(res.services)) {
             setServices(res.services);
+            try { localStorage.setItem('decor8_services', JSON.stringify(res.services)); } catch (e) {}
           }
         }).catch(err => console.warn('Could not fetch services:', err));
 
@@ -380,13 +339,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiService.getArticles().then(res => {
           if (res.success && Array.isArray(res.articles)) {
             setArticles(res.articles);
+            try { localStorage.setItem('decor8_articles', JSON.stringify(res.articles)); } catch (e) {}
           }
         }).catch(err => console.warn('Could not fetch articles:', err));
 
         // Fetch team members from dedicated table
         apiService.getTeamMembers().then(res => {
           if (res.success && Array.isArray(res.team_members)) {
-            setTeamMembers(sanitizeTeamMembers(res.team_members));
+            const sanitized = sanitizeTeamMembers(res.team_members);
+            setTeamMembers(sanitized);
+            try { localStorage.setItem('decor8_team_members_v2', JSON.stringify(sanitized)); } catch (e) {}
           }
         }).catch(err => console.warn('Could not fetch team members:', err));
 
@@ -394,6 +356,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiService.getTestimonials().then(res => {
           if (res.success && Array.isArray(res.testimonials)) {
             setTestimonials(res.testimonials);
+            try { localStorage.setItem('decor8_testimonials', JSON.stringify(res.testimonials)); } catch (e) {}
           }
         }).catch(err => console.warn('Could not fetch testimonials:', err));
 
@@ -401,6 +364,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiService.getBranchOffices().then(res => {
           if (res.success && Array.isArray(res.branchOffices)) {
             setBranchOffices(res.branchOffices);
+            try { localStorage.setItem('decor8_branch_offices', JSON.stringify(res.branchOffices)); } catch (e) {}
           }
         }).catch(err => console.warn('Could not fetch branch offices:', err));
 
@@ -408,10 +372,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiService.getPartners().then(res => {
           if (res.success && Array.isArray(res.partners) && res.partners.length > 0) {
             setPartners(res.partners);
+            try { localStorage.setItem('decor8_partners', JSON.stringify(res.partners)); } catch (e) {}
           }
         }).catch(err => console.warn('Could not fetch brand partners:', err));
 
-        // Set initial fetch done flag after requests complete
         isInitialFetchDone.current = true;
       });
     };
@@ -559,7 +523,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSiteVisits(prev => {
       const updated = [newVisit, ...prev];
       try { localStorage.setItem('decor8_site_visits', JSON.stringify(updated)); } catch (e) {}
-      syncToServer('site_visits', updated);
       return updated;
     });
 
@@ -608,7 +571,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSiteVisits(prev => {
       const updated = prev.map(sv => sv.id === visitId ? { ...sv, status: 'Confirmed' as const } : sv);
       try { localStorage.setItem('decor8_site_visits', JSON.stringify(updated)); } catch (e) {}
-      syncToServer('site_visits', updated);
       return updated;
     });
   };
@@ -617,7 +579,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSiteVisits(prev => {
       const updated = prev.map(sv => sv.id === visitId ? { ...sv, status: 'Rejected' as const } : sv);
       try { localStorage.setItem('decor8_site_visits', JSON.stringify(updated)); } catch (e) {}
-      syncToServer('site_visits', updated);
       return updated;
     });
   };
@@ -1270,7 +1231,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBranchOffices(prev => {
       const updated = [newBranch, ...prev];
       try { localStorage.setItem('decor8_branch_offices', JSON.stringify(updated)); } catch (e) {}
-      syncToServer('branch_offices', updated);
       return updated;
     });
     import('../services/apiService').then(({ apiService }) => {
@@ -1282,7 +1242,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBranchOffices(prev => {
       const newList = prev.map(b => b.id === id ? { ...b, ...updateData } : b);
       try { localStorage.setItem('decor8_branch_offices', JSON.stringify(newList)); } catch (e) {}
-      syncToServer('branch_offices', newList);
       const target = newList.find(b => b.id === id);
       if (target) {
         import('../services/apiService').then(({ apiService }) => {
@@ -1297,7 +1256,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBranchOffices(prev => {
       const updated = prev.filter(b => b.id !== id);
       try { localStorage.setItem('decor8_branch_offices', JSON.stringify(updated)); } catch (e) {}
-      syncToServer('branch_offices', updated);
       return updated;
     });
     import('../services/apiService').then(({ apiService }) => {

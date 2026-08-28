@@ -305,28 +305,9 @@ export const apiService = {
     }
   },
 
-  async saveServicesBulk(services: any[]): Promise<{ success: boolean; message?: string }> {
-    try {
-      const sanitizedServices = (services || []).map(s => ({
-        ...s,
-        discountPrice: (s.discountPrice !== undefined && s.discountPrice !== null && s.discountPrice !== '' && Number(s.discountPrice) > 0 && Number(s.discountPrice) < Number(s.startingPrice))
-          ? Number(s.discountPrice)
-          : null,
-        discountPercentage: (s.discountPrice && Number(s.discountPrice) > 0)
-          ? (Number(s.discountPercentage) || 0)
-          : 0
-      }));
-      const response = await fetch(`${API_BASE_URL}/save_service.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ _bulk: true, services: sanitizedServices, id: 'bulk', title: 'bulk' })
-      });
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.warn('Backend API saveServicesBulk error:', error);
-      return { success: false, message: 'Server connection error.' };
-    }
+  async saveServicesBulk(_services: any[]): Promise<{ success: boolean; message?: string }> {
+    // Disabled to protect database integrity against stale client cache overwrites
+    return { success: true, message: 'Bulk save disabled for database safety.' };
   },
 
   async removeServiceDiscount(id: string): Promise<{ success: boolean; message?: string }> {
