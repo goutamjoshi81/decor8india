@@ -1046,7 +1046,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteProject = (id: string) => {
-    setProjects(prev => prev.filter(p => p.id !== id));
+    landingPageOverrides.current.delete(id);
+    setProjects(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      try { localStorage.setItem('decor8_projects', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
+    import('../services/apiService').then(({ apiService }) => {
+      apiService.deleteProject(id).catch(err => console.warn('GoDaddy deleteProject error:', err));
+    });
   };
 
   const addArticle = (artData: Omit<Article, 'id'>) => {
@@ -1074,7 +1082,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteArticle = (id: string) => {
-    setArticles(prev => prev.filter(a => a.id !== id));
+    setArticles(prev => {
+      const updated = prev.filter(a => a.id !== id);
+      try { localStorage.setItem('decor8_articles', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     import('../services/apiService').then(({ apiService }) => {
       apiService.deleteArticle(id).catch(err => console.warn('Delete article error:', err));
     });
@@ -1085,7 +1097,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...serviceData,
       id: `srv-${Date.now()}`
     };
-    setServices(prev => [...prev, newService]);
+    setServices(prev => {
+      const updated = [...prev, newService];
+      try { localStorage.setItem('decor8_services', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveService(newService).catch(err => console.warn('Save service error:', err));
     });
@@ -1102,6 +1118,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         return merged;
       });
+      try { localStorage.setItem('decor8_services', JSON.stringify(updated)); } catch (e) {}
       const target = updated.find(s => s.id === id);
       if (target) {
         const payload = {
@@ -1118,7 +1135,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteService = (id: string) => {
-    setServices(prev => prev.filter(s => s.id !== id));
+    setServices(prev => {
+      const updated = prev.filter(s => s.id !== id);
+      try { localStorage.setItem('decor8_services', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     import('../services/apiService').then(({ apiService }) => {
       apiService.deleteService(id).catch(err => console.warn('Delete service error:', err));
     });
@@ -1141,6 +1162,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         apiService.getServices().then(res => {
           if (res.success && Array.isArray(res.services)) {
             setServices(res.services);
+            try { localStorage.setItem('decor8_services', JSON.stringify(res.services)); } catch (e) {}
           }
         });
       }).catch(err => console.warn('Remove discount error:', err));
@@ -1167,6 +1189,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             apiService.getServices().then(res => {
               if (res.success && Array.isArray(res.services)) {
                 setServices(res.services);
+                try { localStorage.setItem('decor8_services', JSON.stringify(res.services)); } catch (e) {}
               }
             });
           })
@@ -1197,7 +1220,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...memberData,
       id: `team-${Date.now()}`
     };
-    setTeamMembers(prev => [...prev, newMember]);
+    setTeamMembers(prev => {
+      const updated = [...prev, newMember];
+      try { localStorage.setItem('decor8_team_members_v2', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     import('../services/apiService').then(({ apiService }) => {
       apiService.saveTeamMember(newMember).catch(err => console.warn('Save team member error:', err));
     });
@@ -1206,6 +1233,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateTeamMember = (id: string, updateData: Partial<TeamMember>) => {
     setTeamMembers(prev => {
       const updated = prev.map(m => m.id === id ? { ...m, ...updateData } : m);
+      try { localStorage.setItem('decor8_team_members_v2', JSON.stringify(updated)); } catch (e) {}
       const target = updated.find(m => m.id === id);
       if (target) {
         import('../services/apiService').then(({ apiService }) => {
@@ -1217,7 +1245,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteTeamMember = (id: string) => {
-    setTeamMembers(prev => prev.filter(m => m.id !== id));
+    setTeamMembers(prev => {
+      const updated = prev.filter(m => m.id !== id);
+      try { localStorage.setItem('decor8_team_members_v2', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     import('../services/apiService').then(({ apiService }) => {
       apiService.deleteTeamMember(id).catch(err => console.warn('Delete team member error:', err));
     });
@@ -1268,14 +1300,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...partnerData,
       id: `partner-${Date.now()}`
     };
-    setPartners(prev => [...prev, newPartner]);
+    setPartners(prev => {
+      const updated = [...prev, newPartner];
+      try { localStorage.setItem('decor8_partners', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     import('../services/apiService').then(({ apiService }) => {
       apiService.savePartner(newPartner).catch(err => console.warn('Save partner error:', err));
     });
   };
 
   const deletePartner = (id: string) => {
-    setPartners(prev => prev.filter(p => p.id !== id));
+    setPartners(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      try { localStorage.setItem('decor8_partners', JSON.stringify(updated)); } catch (e) {}
+      return updated;
+    });
     import('../services/apiService').then(({ apiService }) => {
       apiService.deletePartner(id).catch(err => console.warn('Delete partner error:', err));
     });

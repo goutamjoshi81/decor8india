@@ -7,11 +7,15 @@ try {
     $data = json_decode(file_get_contents("php://input"));
 
     if (empty($data->projectId)) {
-        echo json_encode(["success" => false, "message" => "Project ID is required."]);
+    $projectId = trim($data->projectId);
+
+    // Handle delete action
+    if (!empty($data->_action) && $data->_action === 'delete') {
+        $delStmt = $pdo->prepare("DELETE FROM projects WHERE id = ?");
+        $delStmt->execute([$projectId]);
+        echo json_encode(["success" => true, "message" => "Project deleted successfully from database."]);
         exit();
     }
-
-    $projectId = trim($data->projectId);
 
     // Auto-create projects table if not exists
     $pdo->exec("CREATE TABLE IF NOT EXISTS `projects` (

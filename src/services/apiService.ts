@@ -200,6 +200,22 @@ export const apiService = {
     }
   },
 
+  // Delete Project from GoDaddy MySQL
+  async deleteProject(projectId: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/save_project_update.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectId, _action: 'delete' })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API deleteProject error:', error);
+      return { success: false, message: 'Server connection error.' };
+    }
+  },
+
   // Generic CMS Data Save (DEPRECATED - All entities now use dedicated MySQL tables)
   async saveCmsData(_key: string, _value: any): Promise<{ success: boolean; message?: string }> {
     return { success: true, message: 'Legacy CMS data save bypassed.' };
