@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { MATERIAL_STANDARDS, STANDARD_PRICING } from '../data/initialData';
+import type { ServiceItem } from '../types';
 
 export const BookingModal: React.FC = () => {
   const { 
@@ -28,6 +29,7 @@ export const BookingModal: React.FC = () => {
   const [serviceType, setServiceType] = useState<'Residential' | 'Commercial' | 'Construction'>('Residential');
   const [selectedStandard, setSelectedStandard] = useState<'Eco' | 'Urban' | 'Luxe'>('Urban');
   const [selectedPackage, setSelectedPackage] = useState<string>('');
+  const [carpetArea, setCarpetArea] = useState<number>(1000);
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -38,19 +40,36 @@ export const BookingModal: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedBookingId, setGeneratedBookingId] = useState('');
 
+  const isCustomArchitectureService = (srv?: ServiceItem | null) => {
+    if (!srv) return false;
+    const title = (srv.title || '').toLowerCase();
+    const id = (srv.id || '').toLowerCase();
+    return id === 'res-custom' || 
+           title.includes('custom residential architecture') || 
+           (title.includes('custom') && title.includes('architecture')) ||
+           title === 'residential architecture';
+  };
+
+  const handleServiceTypeChange = (type: 'Residential' | 'Commercial' | 'Construction') => {
+    setServiceType(type);
+    if (type === 'Construction') setCarpetArea(1500);
+    else setCarpetArea(1000);
+  };
+
   useEffect(() => {
     if (selectedServiceForBooking) {
       setServiceType(selectedServiceForBooking.type as any);
       setSelectedPackage(selectedServiceForBooking.title);
+      setCarpetArea(selectedServiceForBooking.type === 'Construction' ? 1500 : 1000);
     }
   }, [selectedServiceForBooking]);
 
   if (!isBookingOpen) return null;
 
-  const currentRate = STANDARD_PRICING[serviceType][selectedStandard];
-  const standardMultiplier = currentRate / STANDARD_PRICING[serviceType]['Urban'];
-
+  const currentRate = STANDARD_PRICING[serviceType]?.[selectedStandard] || 1450;
   const filteredServices = services.filter(s => s.type === serviceType && s.isActive);
+  const selectedSrv = services.find(s => s.title === selectedPackage) || filteredServices[0];
+  const isCustomSelected = isCustomArchitectureService(selectedSrv);
 
   const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,20 +81,26 @@ export const BookingModal: React.FC = () => {
     const bookingId = `D8I-${Math.floor(100000 + Math.random() * 900000)}`;
     setGeneratedBookingId(bookingId);
 
-    const selectedSrv = services.find(s => s.title === selectedPackage);
-    const basePrice = selectedSrv ? selectedSrv.startingPrice : 650000;
-    const finalEstCost = Math.round(basePrice * standardMultiplier);
+    const finalEstCost = isCustomSelected ? 0 : Math.round(carpetArea * currentRate);
+    const budgetRange = isCustomSelected 
+      ? 'Custom Architecture Consultation / Bespoke Proposal'
+      : `₹ ${(finalEstCost / 100000).toFixed(2)} Lakhs (${carpetArea.toLocaleString()} sq.ft @ ₹${currentRate}/sq.ft)`;
 
     submitBooking({
       clientName,
       clientEmail,
       clientPhone,
       serviceType,
-      packageName: `${selectedPackage} (${selectedStandard} Standard)`,
+      packageName: isCustomSelected 
+        ? `${selectedPackage || 'Custom Residential Architecture'} (Bespoke Scope)` 
+        : `${selectedPackage || `${serviceType} Package`} (${selectedStandard} Standard)`,
       preferredDate,
       floorPlanUrl: uploadedFileName ? `https://decor8india.com/uploads/${uploadedFileName}` : undefined,
-      requirements: `${requirements} | Material Standard: ${selectedStandard} Standard (₹ ${currentRate}/sq.ft)${isEmiRequested ? ' | 0% EMI Plan Requested' : ''}`,
-      carpetArea: 1500,
+      requirements: isCustomSelected
+        ? `Custom Architecture Consultation Request. Package: ${selectedPackage} | Material Tier: ${selectedStandard} Standard | Target Area: ${carpetArea.toLocaleString()} Sq. Ft.${requirements ? ` | Notes: ${requirements}` : ''}${isEmiRequested ? ' | Stage-Wise Financing Requested' : ''}`
+        : `${requirements ? `${requirements} | ` : ''}Material Standard: ${selectedStandard} Standard (₹ ${currentRate}/sq.ft) | Carpet Area: ${carpetArea.toLocaleString()} Sq. Ft. | Calculated Estimate: ₹ ${(finalEstCost / 100000).toFixed(2)} Lakhs${isEmiRequested ? ' | 0% EMI Plan Requested' : ''}`,
+      carpetArea: carpetArea,
+      budgetRange,
       estimatedCost: finalEstCost,
       isEmiRequested
     });
@@ -96,6 +121,7 @@ export const BookingModal: React.FC = () => {
     setSelectedServiceForBooking(null);
     setIsSuccess(false);
     setStep(1);
+    setCarpetArea(serviceType === 'Construction' ? 1500 : 1000);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,7 +132,7 @@ export const BookingModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-[#0D0E12] border border-[#D4AF37]/40 rounded-2xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto space-y-6 shadow-2xl animate-in zoom-in-95">
+      <div className="relative w-full max-w-2xl bg-[#0D0E12] border border-[#D4AF37]/40 rounded-2xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto space-y-5 shadow-2xl animate-in zoom-in-95">
         
         <button 
           onClick={handleClose}
@@ -117,15 +143,15 @@ export const BookingModal: React.FC = () => {
 
         {!isSuccess ? (
           <>
-            <div className="space-y-2 text-center">
+            <div className="space-y-1.5 text-center">
               <div className="flex items-center justify-center space-x-2.5 mx-auto mb-1">
-                <img src="/logo_icon.png" alt="Decor8 India" className="h-9 w-auto object-contain filter drop-shadow-[0_2px_10px_rgba(212,175,55,0.3)]" />
-                <span className="text-xl font-serif tracking-wider text-white font-bold">
+                <img src="/logo_icon.png" alt="Decor8 India" className="h-8 w-auto object-contain filter drop-shadow-[0_2px_10px_rgba(212,175,55,0.3)]" />
+                <span className="text-lg font-serif tracking-wider text-white font-bold">
                   DECOR8<span className="text-[#D4AF37]">INDIA</span>
                 </span>
               </div>
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full glass-panel border border-[#D4AF37]/30 text-xs font-semibold uppercase tracking-widest text-[#D4AF37] block w-max mx-auto">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center space-x-2 px-3 py-0.5 rounded-full glass-panel border border-[#D4AF37]/30 text-[11px] font-semibold uppercase tracking-widest text-[#D4AF37] block w-max mx-auto">
+                <Sparkles className="w-3 h-3" />
                 <span>Consultation & Project Booking</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
@@ -149,92 +175,156 @@ export const BookingModal: React.FC = () => {
             </div>
 
             {step === 1 && (
-              <div className="space-y-5 pt-2">
+              <div className="space-y-4 pt-1">
+                {/* Service Type Selector */}
                 <div className="flex rounded-xl bg-black/60 p-1 border border-white/10">
                   <button
                     type="button"
-                    onClick={() => setServiceType('Residential')}
-                    className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
+                    onClick={() => handleServiceTypeChange('Residential')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
                       serviceType === 'Residential' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
                     }`}
                   >
-                    <Home className="w-4 h-4" />
+                    <Home className="w-3.5 h-3.5" />
                     <span>Residential</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setServiceType('Commercial')}
-                    className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
+                    onClick={() => handleServiceTypeChange('Commercial')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
                       serviceType === 'Commercial' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
                     }`}
                   >
-                    <Building2 className="w-4 h-4" />
+                    <Building2 className="w-3.5 h-3.5" />
                     <span>Commercial</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setServiceType('Construction')}
-                    className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
+                    onClick={() => handleServiceTypeChange('Construction')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all ${
                       serviceType === 'Construction' ? 'gold-gradient-bg text-black shadow-md' : 'text-neutral-400 hover:text-white'
                     }`}
                   >
-                    <HardHat className="w-4 h-4" />
+                    <HardHat className="w-3.5 h-3.5" />
                     <span>Construction</span>
                   </button>
                 </div>
 
+                {/* Carpet Area Slider */}
+                <div className="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-semibold text-neutral-300 uppercase tracking-wider flex items-center space-x-1.5">
+                      <Home className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>Property Carpet / Built-Up Area</span>
+                    </span>
+                    <span className="text-[#D4AF37] font-bold text-sm font-mono bg-white/5 px-2.5 py-0.5 rounded border border-[#D4AF37]/30">
+                      {carpetArea.toLocaleString()} Sq. Ft.
+                    </span>
+                  </div>
+
+                  <input 
+                    type="range"
+                    min={serviceType === 'Construction' ? 1000 : serviceType === 'Commercial' ? 500 : 300}
+                    max={serviceType === 'Construction' ? 30000 : serviceType === 'Commercial' ? 20000 : 5000}
+                    step={serviceType === 'Construction' ? 100 : serviceType === 'Commercial' ? 100 : 50}
+                    value={carpetArea}
+                    onChange={(e) => setCarpetArea(Number(e.target.value))}
+                    className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
+                  />
+
+                  <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
+                    <span>{serviceType === 'Construction' ? '1,000' : serviceType === 'Commercial' ? '500' : '300'} Sq. Ft.</span>
+                    <span>{serviceType === 'Construction' ? '15,000' : serviceType === 'Commercial' ? '10,000' : '2,500'} Sq. Ft.</span>
+                    <span>{serviceType === 'Construction' ? '30,000' : serviceType === 'Commercial' ? '20,000' : '5,000'} Sq. Ft.</span>
+                  </div>
+                </div>
+
+                {/* Material & Hardware Standards with per sq ft rate and total price for selected carpet area */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-[#D4AF37] uppercase tracking-wider block">
-                    Material & Hardware Standard
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-[#D4AF37] uppercase tracking-wider block">
+                      Material & Hardware Standard
+                    </label>
+                    <span className="text-[10px] text-neutral-400 font-mono">
+                      Calculated for {carpetArea.toLocaleString()} Sq. Ft.
+                    </span>
+                  </div>
+                  
                   <div className="grid grid-cols-3 gap-2">
                     {MATERIAL_STANDARDS.map((std) => {
                       const rate = STANDARD_PRICING[serviceType][std.id];
+                      const stdTotal = rate * carpetArea;
+                      const isSelected = selectedStandard === std.id;
+
                       return (
                         <div
                           key={std.id}
                           onClick={() => setSelectedStandard(std.id as any)}
-                          className={`p-2.5 rounded-xl border cursor-pointer text-center transition-all ${
-                            selectedStandard === std.id 
+                          className={`p-2.5 rounded-xl border cursor-pointer text-center transition-all flex flex-col justify-between ${
+                            isSelected 
                               ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-md ring-1 ring-[#D4AF37]/50'
                               : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
                           }`}
                         >
                           <div className="text-xs font-bold text-white">{std.badge}</div>
-                          <div className="text-[10px] text-[#D4AF37] font-mono mt-0.5 font-bold">₹ {rate}/sq.ft</div>
+                          <div className="mt-1 pt-1 border-t border-white/10 space-y-0.5">
+                            <div className="text-[10px] text-neutral-300 font-mono">₹ {rate}/sq.ft</div>
+                            <div className="text-xs text-[#D4AF37] font-serif font-bold">
+                              ₹ {(stdTotal / 100000).toFixed(2)} Lakhs
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
                   </div>
                 </div>
 
+                {/* Service Package Selector */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">
                       Choose Desired Package
                     </label>
                     <span className="text-[10px] text-[#D4AF37] font-mono font-bold">
-                      Calculated for {selectedStandard} Standard (₹ {currentRate}/sq.ft)
+                      {selectedStandard} Standard (₹ {currentRate}/sq.ft for {carpetArea.toLocaleString()} sq.ft)
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-52 overflow-y-auto pr-1">
                     {filteredServices.map(srv => {
-                      const packagePrice = Math.round(srv.startingPrice * standardMultiplier);
+                      const isCustomArch = isCustomArchitectureService(srv);
+                      const isSelected = (selectedPackage === srv.title);
+                      const packagePrice = Math.round(carpetArea * currentRate);
+
                       return (
                         <div
                           key={srv.id}
                           onClick={() => setSelectedPackage(srv.title)}
-                          className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                            selectedPackage === srv.title
+                          className={`p-2.5 rounded-xl border cursor-pointer transition-all ${
+                            isSelected
                               ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg ring-1 ring-[#D4AF37]/50'
                               : 'bg-white/5 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'
                           }`}
                         >
-                          <div className="text-xs font-bold text-white">{srv.title}</div>
-                          <div className="text-[10px] text-[#D4AF37] font-mono mt-1 font-bold flex items-center justify-between">
-                            <span>Starting ₹ {(packagePrice / 100000).toFixed(2)} Lakhs</span>
-                            <span className="text-[9px] text-neutral-400 font-normal">({selectedStandard} Standard)</span>
-                          </div>
+                          <div className="text-xs font-bold text-white leading-snug">{srv.title}</div>
+                          {isCustomArch ? (
+                            <div className="text-[10px] text-amber-400 font-mono mt-1 font-bold flex items-center justify-between pt-1 border-t border-white/10">
+                              <span className="flex items-center space-x-1">
+                                <Sparkles className="w-2.5 h-2.5 text-[#D4AF37]" />
+                                <span>Bespoke Scope</span>
+                              </span>
+                              <span className="text-[#D4AF37]">Custom Quote</span>
+                            </div>
+                          ) : (
+                            <div className="text-[10px] text-[#D4AF37] font-mono mt-1 font-bold flex items-center justify-between pt-1 border-t border-white/10">
+                              <span className="text-xs text-[#D4AF37] font-serif font-bold">
+                                ₹ {(packagePrice / 100000).toFixed(2)} Lakhs
+                              </span>
+                              <span className="text-[9px] text-neutral-400 font-normal font-mono">
+                                {carpetArea.toLocaleString()} sq.ft @ ₹{currentRate}/sq.ft
+                              </span>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -245,7 +335,7 @@ export const BookingModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="w-full py-3.5 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2"
+                  className="w-full py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-md"
                 >
                   <span>Proceed to Contact & Schedule</span>
                   <ArrowRight className="w-4 h-4" />
@@ -256,8 +346,25 @@ export const BookingModal: React.FC = () => {
 
             {/* Step 2: Contact, Date & Floor Plan */}
             {step === 2 && (
-              <form onSubmit={handleFinalSubmit} className="space-y-4 pt-2">
+              <form onSubmit={handleFinalSubmit} className="space-y-3.5 pt-1">
                 
+                {/* Configured Package & Budget Summary Badge */}
+                <div className="p-3 rounded-xl bg-gradient-to-r from-[#201D13] via-[#2D2411] to-[#201D13] border border-[#D4AF37]/40 flex items-center justify-between text-xs shadow-md">
+                  <div>
+                    <div className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">Configured Package</div>
+                    <div className="font-bold text-white text-xs">{selectedPackage || `${serviceType} Package`}</div>
+                    <div className="text-[10px] text-[#D4AF37] font-mono">
+                      {selectedStandard} Standard • {carpetArea.toLocaleString()} Sq. Ft.
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">Estimated Budget</div>
+                    <div className="font-serif font-bold text-sm text-emerald-400">
+                      {isCustomSelected ? 'Bespoke Quote' : `₹ ${((carpetArea * currentRate) / 100000).toFixed(2)} Lakhs`}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="text-xs text-neutral-300 font-medium">Your Full Name *</label>
@@ -267,7 +374,7 @@ export const BookingModal: React.FC = () => {
                       placeholder="e.g. Smita & Kabir Verma"
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
+                      className="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#D4AF37]"
                     />
                   </div>
 

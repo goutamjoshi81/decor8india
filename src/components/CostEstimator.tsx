@@ -25,6 +25,16 @@ interface CostEstimatorProps {
   onCloseModal?: () => void;
 }
 
+export const isCustomArchitectureService = (service?: ServiceItem | null) => {
+  if (!service) return false;
+  const title = (service.title || '').toLowerCase();
+  const id = (service.id || '').toLowerCase();
+  return id === 'res-custom' || 
+         title.includes('custom residential architecture') || 
+         (title.includes('custom') && title.includes('architecture')) ||
+         title === 'residential architecture';
+};
+
 export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, onCloseModal }) => {
   const { services, submitBooking } = useApp();
 
@@ -54,6 +64,10 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
   const selectedService: ServiceItem | undefined = useMemo(() => {
     return activeCategoryServices.find(s => s.id === selectedServiceId) || activeCategoryServices[0];
   }, [activeCategoryServices, selectedServiceId]);
+
+  const isCustomArchitecture = useMemo(() => {
+    return isCustomArchitectureService(selectedService);
+  }, [selectedService]);
 
   // Sliders State (Default set to 1,500 Sq. Ft. for Construction, 1,000 for Residential/Commercial)
   const [carpetArea, setCarpetArea] = useState<number>(1000);
@@ -163,18 +177,26 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     const serviceTitle = selectedService ? selectedService.title : `${serviceCategory} Package`;
     const selectedArea = serviceCategory === 'Residential' ? carpetArea : serviceCategory === 'Commercial' ? commCarpetArea : constPlotArea;
 
+    const budgetRange = isCustomArchitecture
+      ? 'Bespoke / Custom Architecture Quote'
+      : `₹ ${(calculation.totalCost / 100000).toFixed(2)} Lakhs`;
+
+    const requirements = isCustomArchitecture
+      ? `Custom Residential Architecture Consultation Request. Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard | Target Area: ${selectedArea.toLocaleString()} Sq. Ft. | Client requested bespoke architectural design & elevation consultation.${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`
+      : `Calculated Estimate from Live DB Services. Selected Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard | Area: ${selectedArea.toLocaleString()} Sq. Ft.${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`;
+
     submitBooking({
       clientName,
       clientEmail,
       clientPhone,
       serviceType: serviceCategory,
-      packageName: `${serviceTitle} (${materialStandard} Standard)`,
+      packageName: isCustomArchitecture ? `${serviceTitle} (Bespoke Architectural Consultation)` : `${serviceTitle} (${materialStandard} Standard)`,
       propertyType: serviceCategory,
       carpetArea: selectedArea,
-      budgetRange: `₹ ${(calculation.totalCost / 100000).toFixed(2)} Lakhs`,
+      budgetRange,
       preferredDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      requirements: `Calculated Estimate from Live DB Services. Selected Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard | Area: ${selectedArea.toLocaleString()} Sq. Ft.${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`,
-      estimatedCost: calculation.totalCost,
+      requirements,
+      estimatedCost: isCustomArchitecture ? 0 : calculation.totalCost,
       isEmiRequested
     });
 
@@ -282,19 +304,31 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                         )}
                       </div>
 
-                      <div className="flex items-baseline justify-between mt-2 pt-1.5 border-t border-white/10">
-                        <span className="text-[9px] text-neutral-400 font-mono">From ({standardLabel}):</span>
-                        <div className="flex items-baseline space-x-1.5">
-                          {hasDiscount && (
-                            <span className="text-[9px] text-neutral-500 line-through font-mono">
-                              ₹ {(effectiveOriginalPrice / 100000).toFixed(2)}L
-                            </span>
-                          )}
-                          <span className="text-xs font-bold font-serif text-[#D4AF37]">
-                            ₹ {(effectiveDiscountedPrice / 100000).toFixed(2)} Lakhs
+                      {isCustomArchitectureService(srv) ? (
+                        <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-white/10">
+                          <span className="text-[9px] text-[#D4AF37] font-mono font-semibold flex items-center space-x-1">
+                            <Sparkles className="w-2.5 h-2.5" />
+                            <span>Bespoke Scope</span>
+                          </span>
+                          <span className="text-[11px] font-bold text-amber-400 font-sans">
+                            Custom Quote on Consultation
                           </span>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="flex items-baseline justify-between mt-2 pt-1.5 border-t border-white/10">
+                          <span className="text-[9px] text-neutral-400 font-mono">From ({standardLabel}):</span>
+                          <div className="flex items-baseline space-x-1.5">
+                            {hasDiscount && (
+                              <span className="text-[9px] text-neutral-500 line-through font-mono">
+                                ₹ {(effectiveOriginalPrice / 100000).toFixed(2)}L
+                              </span>
+                            )}
+                            <span className="text-xs font-bold font-serif text-[#D4AF37]">
+                              ₹ {(effectiveDiscountedPrice / 100000).toFixed(2)} Lakhs
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </button>
                   );
                 })}
@@ -447,34 +481,64 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] uppercase tracking-widest text-[#D4AF37] font-semibold">
-                  Instant Estimate Summary
+                  {isCustomArchitecture ? 'Bespoke Architecture Scope' : 'Instant Estimate Summary'}
                 </span>
-                {hasDbDiscount && (
+                {!isCustomArchitecture && hasDbDiscount && (
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[10px] border border-emerald-500/40 flex items-center space-x-1">
                     <Tag className="w-3 h-3" />
                     <span>{discountPercentage}% OFF APPLIED</span>
                   </span>
                 )}
+                {isCustomArchitecture && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-[10px] border border-amber-500/40 flex items-center space-x-1">
+                    <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                    <span>CONSULTATION BASED</span>
+                  </span>
+                )}
               </div>
 
-              <div className="space-y-0.5">
-                <div className="flex items-baseline space-x-3">
-                  <div className="text-4xl sm:text-5xl font-serif font-bold text-emerald-400">
-                    ₹ {(calculation.totalCost / 100000).toFixed(2)}* <span className="text-2xl font-serif text-[#D4AF37]">Lakhs</span>
+              {isCustomArchitecture ? (
+                <div className="space-y-2 pt-1">
+                  <div className="space-y-1">
+                    <div className="text-2xl sm:text-3xl font-serif font-bold text-[#D4AF37] leading-tight">
+                      Custom Architectural Design
+                    </div>
+                    <div className="text-xs sm:text-sm font-semibold text-emerald-400 flex items-center space-x-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+                      <span>Bespoke Proposal Based on Site & Elevation Scope</span>
+                    </div>
                   </div>
-                  {hasDbDiscount && (
-                    <div className="text-base sm:text-lg text-neutral-500 line-through font-mono font-bold">
-                      ₹ {(calculation.originalTotal / 100000).toFixed(2)} L
+
+                  <p className="text-xs text-neutral-300 leading-relaxed bg-black/40 p-3 rounded-xl border border-white/10">
+                    Every bespoke residence is unique. Architectural layouts, 3D elevations, structural engineering blueprints, and MEP drawings are tailored to your specific plot dimensions, soil contours, Vasthu preferences, and design vision.
+                  </p>
+
+                  {selectedService && (
+                    <div className="text-[11px] text-[#D4AF37] font-medium truncate pt-0.5">
+                      Selected Service: <strong className="text-white">{selectedService.title}</strong> ({materialStandard} Standard)
                     </div>
                   )}
                 </div>
-
-                {selectedService && (
-                  <div className="text-[11px] text-[#D4AF37] font-medium truncate pt-1">
-                    Selected Package: <strong className="text-white">{selectedService.title}</strong> ({materialStandard} Standard)
+              ) : (
+                <div className="space-y-0.5">
+                  <div className="flex items-baseline space-x-3">
+                    <div className="text-4xl sm:text-5xl font-serif font-bold text-emerald-400">
+                      ₹ {(calculation.totalCost / 100000).toFixed(2)}* <span className="text-2xl font-serif text-[#D4AF37]">Lakhs</span>
+                    </div>
+                    {hasDbDiscount && (
+                      <div className="text-base sm:text-lg text-neutral-500 line-through font-mono font-bold">
+                        ₹ {(calculation.originalTotal / 100000).toFixed(2)} L
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+
+                  {selectedService && (
+                    <div className="text-[11px] text-[#D4AF37] font-medium truncate pt-1">
+                      Selected Package: <strong className="text-white">{selectedService.title}</strong> ({materialStandard} Standard)
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="text-xs text-neutral-400 font-mono pt-1 flex items-center space-x-1.5">
                 <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -485,7 +549,11 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
 
               {/* Terms & Conditions Applied Footnote */}
               <div className="text-[10px] text-neutral-400 italic pt-1.5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <span>* This is just a primary estimation. After consultation and site inspection, prices may vary.</span>
+                <span>
+                  {isCustomArchitecture
+                    ? '* Architectural scope and turnkey deliverables are finalized following primary site survey.'
+                    : '* This is just a primary estimation. After consultation and site inspection, prices may vary.'}
+                </span>
                 <a 
                   href="/terms-and-conditions" 
                   target="_blank" 
@@ -505,11 +573,15 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
               </div>
               <div className="space-y-0.5">
                 <div className="font-bold text-white flex items-center space-x-2">
-                  <span>Easy EMI Financing Available</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#D4AF37] text-black font-extrabold uppercase font-mono">Up to 60 Months</span>
+                  <span>{isCustomArchitecture ? 'Stage-Wise Architectural Payment Milestones' : 'Easy EMI Financing Available'}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#D4AF37] text-black font-extrabold uppercase font-mono">
+                    {isCustomArchitecture ? 'Stage Wise' : 'Up to 60 Months'}
+                  </span>
                 </div>
                 <div className="text-neutral-300 text-[11px]">
-                  Pay in flexible monthly installments up to 60 months through partner banking networks with minimal documentation.
+                  {isCustomArchitecture 
+                    ? 'Transparent payments aligned with 2D concepts, 3D structural drawings, sanction assistance, and civil milestones.' 
+                    : 'Pay in flexible monthly installments up to 60 months through partner banking networks with minimal documentation.'}
                 </div>
               </div>
             </div>
@@ -518,69 +590,121 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
             <div className="space-y-2.5 pt-2 border-t border-[#D4AF37]/20">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-white uppercase tracking-wider">
-                  Turnkey Package Inclusions:
+                  {isCustomArchitecture ? 'Architectural Inclusions:' : 'Turnkey Package Inclusions:'}
                 </span>
                 <span className="text-[10px] text-[#D4AF37] font-mono font-semibold">
                   {materialStandard} Standard
                 </span>
               </div>
               
-              <div className="grid grid-cols-1 gap-1.5 text-xs text-neutral-300">
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
-                  <span className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Free Technical Site Visit & Consultation</span>
-                  </span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
-                </div>
+              {isCustomArchitecture ? (
+                <div className="grid grid-cols-1 gap-1.5 text-xs text-neutral-300">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Free In-Person Site Inspection & Plot Contour Analysis</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
+                  </div>
 
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
-                  <span className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>3D Architectural Design & Virtual Walkthrough</span>
-                  </span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
-                </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Custom 3D Elevation Modeling & VR Walkthrough</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
+                  </div>
 
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
-                  <span className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Factory-Crafted Modular Woodwork & Hardware</span>
-                  </span>
-                  <span className="text-[10px] text-[#D4AF37] font-mono font-semibold">Included</span>
-                </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Comprehensive Structural, Civil & MEP Drawings</span>
+                    </span>
+                    <span className="text-[10px] text-[#D4AF37] font-mono font-semibold">Included</span>
+                  </div>
 
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
-                  <span className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>Dedicated Project Manager & On-Site Audits</span>
-                  </span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-semibold">Included</span>
-                </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Vasthu-Compliant & Climate-Responsive Space Planning</span>
+                    </span>
+                    <span className="text-[10px] text-[#D4AF37] font-mono font-semibold">Included</span>
+                  </div>
 
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
-                  <span className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>1 Year Free Service & Maintenance Support</span>
-                  </span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
-                </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Dedicated Principal Architect & Senior Project Lead</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-semibold">Assigned</span>
+                  </div>
 
-                <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
-                  <span className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>15-Year Warranty & Zero Hidden Cost Guarantee</span>
-                  </span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">15 Years Assured</span>
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>End-to-End Turnkey Execution & 15-Year Structural Warranty</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">15 Years Assured</span>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-1.5 text-xs text-neutral-300">
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Free Technical Site Visit & Consultation</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>3D Architectural Design & Virtual Walkthrough</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Factory-Crafted Modular Woodwork & Hardware</span>
+                    </span>
+                    <span className="text-[10px] text-[#D4AF37] font-mono font-semibold">Included</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Dedicated Project Manager & On-Site Audits</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-semibold">Included</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>1 Year Free Service & Maintenance Support</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">100% Free</span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-black/40 border border-white/5">
+                    <span className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>15-Year Warranty & Zero Hidden Cost Guarantee</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-bold">15 Years Assured</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Submit Request Form */}
             {!isSubmitted ? (
               <form onSubmit={handleSubmitEstimate} className="space-y-3 pt-4 border-t border-[#D4AF37]/20">
                 <div className="text-xs font-semibold text-[#D4AF37] uppercase tracking-wider">
-                  Save Estimate & Get Official Quotation
+                  {isCustomArchitecture ? 'Request Architectural Consultation & BOQ' : 'Save Estimate & Get Official Quotation'}
                 </div>
 
                 <input 
@@ -644,7 +768,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   className="w-full py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-lg shadow-[#D4AF37]/10"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>Submit Estimate Request</span>
+                  <span>{isCustomArchitecture ? 'Request Architectural Consultation & BOQ' : 'Submit Estimate Request'}</span>
                 </button>
               </form>
             ) : (

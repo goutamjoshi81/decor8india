@@ -200,6 +200,23 @@ export const ServicesSection: React.FC = () => {
                     <div className="p-6 pt-0 space-y-4">
                       <div className="pt-4 border-t border-white/10 flex items-baseline justify-between">
                         {(() => {
+                          const isCustomArch = service.id === 'res-custom' || (service.title || '').toLowerCase().includes('custom residential architecture');
+                          if (isCustomArch) {
+                            return (
+                              <div>
+                                <div className="flex items-center space-x-1.5">
+                                  <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">Pricing Model</span>
+                                  <span className="px-1.5 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37] text-[9px] font-bold border border-[#D4AF37]/40">
+                                    Bespoke Scope
+                                  </span>
+                                </div>
+                                <div className="text-base sm:text-lg font-bold font-serif text-[#D4AF37]">
+                                  Custom Quote on Consultation
+                                </div>
+                              </div>
+                            );
+                          }
+
                           const hasDiscount = Boolean(service.discountPrice && service.discountPrice > 0 && service.discountPrice < service.startingPrice);
                           const ecoMultiplier = STANDARD_PRICING[service.type]?.Eco / STANDARD_PRICING[service.type]?.Urban || 0.85;
                           const originalEco = (service.startingPrice * ecoMultiplier) / 100000;
