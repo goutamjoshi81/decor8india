@@ -7,6 +7,10 @@ try {
     $data = json_decode(file_get_contents("php://input"));
 
     if (empty($data->projectId)) {
+        echo json_encode(["success" => false, "message" => "Project ID is required."]);
+        exit();
+    }
+
     $projectId = trim($data->projectId);
 
     // Handle delete action
