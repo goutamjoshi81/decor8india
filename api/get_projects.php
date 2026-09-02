@@ -24,6 +24,7 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN payments_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN milestones_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN contract_price DECIMAL(12,2) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN is_portfolio TINYINT(1) DEFAULT 0"); } catch (\PDOException $ex) {}
     try { $pdo->exec("UPDATE projects SET contract_price = estimated_cost WHERE (contract_price IS NULL OR contract_price = 0) AND estimated_cost > 0"); } catch (\PDOException $ex) {}
 
     // 1. Delete duplicate project rows where client_id has '@' while another clean row exists for the same client and title
@@ -87,6 +88,7 @@ try {
             "completionTime" => $row['completion_time'] ?? '75 Days',
             "status" => $row['status'] ?? 'Ongoing',
             "showOnLandingPage" => isset($row['show_on_landing_page']) ? (bool)$row['show_on_landing_page'] : true,
+            "isPortfolio" => !empty($row['is_portfolio']) || ($row['client_id'] === 'portfolio-showcase' || $row['client_id'] === 'client-guest' || (empty($row['client_email']) && ($row['client_name'] === 'Private Residence' || empty($row['client_name'])))),
             "progressPercentage" => (int)($row['progress_percentage'] ?? 0),
             "currentStage" => $row['current_stage'] ?? 'Civil Work',
             "expectedCompletion" => $row['expected_completion'] ?? '2026-10-30',

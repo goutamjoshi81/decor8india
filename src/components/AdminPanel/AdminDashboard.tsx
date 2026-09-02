@@ -445,7 +445,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     if (editingProject) {
       updateProject(editingProject.id, {
         title: portTitle,
-        clientName: portClientName,
+        clientName: portClientName || 'Private Residence',
         designerName: portDesignerName,
         category: portCategory,
         style: portStyle,
@@ -458,14 +458,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         budget: portBudget,
         completionTime: portCompletionTime,
         status: portStatus,
-        description: portDescription
+        description: portDescription,
+        isPortfolio: true
       });
       alert('Portfolio project updated successfully!');
     } else {
       addProject({
         title: portTitle,
-        clientId: 'client-guest',
-        clientName: portClientName,
+        clientId: 'portfolio-showcase',
+        clientName: portClientName || 'Private Residence',
         designerName: portDesignerName,
         category: portCategory,
         style: portStyle,
@@ -482,6 +483,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         currentStage: portStatus === 'Completed' ? 'Handover Completed' : 'Civil Work',
         expectedCompletion: new Date(Date.now() + 60*24*60*60*1000).toISOString().split('T')[0],
         description: portDescription,
+        isPortfolio: true,
         milestones: [],
         workUpdates: [],
         documents: [],
@@ -929,14 +931,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     );
   }
 
-  const selectedProject = projects.find(p => p.id === selectedProjectId) || projects[0];
+  const isPortfolioProject = (p: Project) => 
+    p.isPortfolio === true || 
+    p.clientId === 'portfolio-showcase' || 
+    p.clientId === 'client-guest' || 
+    (!p.clientEmail && (p.clientName === 'Private Residence' || !p.clientName));
 
-  // Auto-select first project when projects load or change
+  const clientProjects = projects.filter(p => !isPortfolioProject(p) && !p.title.toLowerCase().includes('site visit') && !p.title.toLowerCase().includes('in-person'));
+  const selectedProject = clientProjects.find(p => p.id === selectedProjectId) || clientProjects[0];
+
+  // Auto-select first client project when projects load or change
   React.useEffect(() => {
-    if (projects.length > 0 && (!selectedProjectId || !projects.some(p => p.id === selectedProjectId))) {
-      setSelectedProjectId(projects[0].id);
+    if (clientProjects.length > 0 && (!selectedProjectId || !clientProjects.some(p => p.id === selectedProjectId))) {
+      setSelectedProjectId(clientProjects[0].id);
     }
-  }, [projects, selectedProjectId]);
+  }, [clientProjects, selectedProjectId]);
 
   const handleUpdateProgressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1133,8 +1142,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   };
 
   const totalClients = bookings.length;
-  const activeProjectsCount = projects.filter(p => p.status === 'Ongoing').length;
-  const completedProjectsCount = projects.filter(p => p.status === 'Completed').length;
+  const activeProjectsCount = clientProjects.filter(p => p.status === 'Ongoing').length;
+  const completedProjectsCount = projects.filter(p => p.status === 'Completed' || p.isPortfolio).length;
   const pendingApprovalsCount = bookings.filter(b => b.status === 'Pending Approval').length;
 
   const existingSiteVisitEmails = new Set(siteVisits.map(sv => sv.clientEmail.toLowerCase()));
@@ -1703,28 +1712,43 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             
             {/* Project Selection list */}
             <div className="lg:col-span-4 p-6 rounded-2xl glass-panel border border-white/10 space-y-4">
-              <h3 className="font-serif text-xl font-bold text-white">Select Client Project</h3>
-              <div className="space-y-2">
-                {projects.filter(p => !p.title.toLowerCase().includes('site visit') && !p.title.toLowerCase().includes('in-person')).map(p => (
-                  <div
-                    key={p.id}
-                    onClick={() => setSelectedProjectId(p.id)}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                      selectedProjectId === p.id 
-                        ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg' 
-                        : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    <div className="font-bold text-sm text-white">{p.title}</div>
-                    <div className="text-xs text-[#D4AF37] pt-1 font-semibold">Stage: {p.currentStage} ({p.progressPercentage}%)</div>
-                    <div className="text-[10px] text-neutral-400 font-mono">Client: {p.clientName}</div>
+              <div className="flex items-center justify-between">
+                <h3 className="font-serif text-xl font-bold text-white">Select Client Project</h3>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] font-mono font-bold">
+                  {clientProjects.length} Active
+                </span>
+              </div>
+              <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+                {clientProjects.length === 0 ? (
+                  <div className="p-6 rounded-xl bg-white/5 border border-white/10 text-center space-y-2">
+                    <Building2 className="w-8 h-8 text-neutral-500 mx-auto" />
+                    <p className="text-xs text-neutral-300 font-semibold">No active client execution projects</p>
+                    <p className="text-[10px] text-neutral-500">
+                      Approved client bookings will automatically appear here. Manually added portfolio projects are stored under the Portfolio CMS tab.
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  clientProjects.map(p => (
+                    <div
+                      key={p.id}
+                      onClick={() => setSelectedProjectId(p.id)}
+                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                        selectedProject?.id === p.id 
+                          ? 'bg-[#D4AF37]/20 border-[#D4AF37] text-white shadow-lg ring-1 ring-[#D4AF37]/50' 
+                          : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
+                      }`}
+                    >
+                      <div className="font-bold text-sm text-white">{p.title}</div>
+                      <div className="text-xs text-[#D4AF37] pt-1 font-semibold">Stage: {p.currentStage} ({p.progressPercentage}%)</div>
+                      <div className="text-[10px] text-neutral-400 font-mono">Client: {p.clientName}</div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
             {/* Selected Project Control Workstation */}
-            {selectedProject && (
+            {selectedProject ? (
               <div className="lg:col-span-8 space-y-6">
                 
                 {/* Project Header Info */}
@@ -2299,6 +2323,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   </div>
                 )}
               </div>
+            ) : (
+              <div className="lg:col-span-8 p-12 rounded-2xl glass-panel border border-white/10 text-center space-y-3">
+                <Building2 className="w-12 h-12 text-[#D4AF37] mx-auto opacity-60" />
+                <h3 className="font-serif text-xl font-bold text-white">No Client Execution Project Selected</h3>
+                <p className="text-xs text-neutral-400 max-w-md mx-auto">
+                  Approved client consultation bookings will automatically appear here for milestone updates and live feeds. Manually added portfolio gallery items are managed under the Portfolio CMS tab.
+                </p>
+              </div>
             )}
           </div>
         )}
@@ -2466,14 +2498,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   <h3 className="font-serif text-xl font-bold text-white">Active Client Project Email Directory</h3>
                   <p className="text-xs text-neutral-400">Trigger manual email resends for active clients below.</p>
                 </div>
-                <span className="text-xs font-mono text-[#D4AF37] font-bold">{projects.length} Active Client Projects</span>
+                <span className="text-xs font-mono text-[#D4AF37] font-bold">{clientProjects.length} Active Client Projects</span>
               </div>
 
               <div className="space-y-4">
-                {projects.length === 0 ? (
-                  <p className="text-xs text-neutral-400 italic">No project clients found.</p>
+                {clientProjects.length === 0 ? (
+                  <p className="text-xs text-neutral-400 italic">No client projects found.</p>
                 ) : (
-                  projects.map(proj => {
+                  clientProjects.map(proj => {
                     const clientEmail = proj.clientEmail || `${proj.clientName.toLowerCase().replace(/[^a-z0-9]/g, '')}@gmail.com`;
                     return (
                       <div key={proj.id} className="p-4 sm:p-5 rounded-xl glass-card border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

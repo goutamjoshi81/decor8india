@@ -25,7 +25,7 @@ export const PortfolioGallery: React.FC = () => {
   const [beforeAfterPos, setBeforeAfterPos] = useState<number>(50);
 
   const completedProjects = projects.filter(p => 
-    (p.status === 'Completed' || p.progressPercentage === 100 || p.currentStage === 'Handover Completed') &&
+    (p.isPortfolio || p.status === 'Completed' || p.progressPercentage === 100 || p.currentStage === 'Handover Completed') &&
     p.showOnLandingPage !== false
   );
 

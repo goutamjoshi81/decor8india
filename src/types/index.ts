@@ -153,6 +153,7 @@ export interface Project {
   completionTime: string;
   status: 'Ongoing' | 'Completed';
   showOnLandingPage?: boolean;
+  isPortfolio?: boolean;
   progressPercentage: number;
   currentStage: ProjectStage;
   expectedCompletion: string;

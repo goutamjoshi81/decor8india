@@ -15,8 +15,15 @@ export const OngoingProjects: React.FC = () => {
   const { projects, setIsSiteVisitOpen, setSelectedProjectForSiteVisit } = useApp();
   const navigate = useNavigate();
   
-  // Exclude completed projects (status === 'Completed', progress >= 100, or stage === 'Handover Completed')
+  const isPortfolioProject = (p: any) => 
+    p.isPortfolio === true || 
+    p.clientId === 'portfolio-showcase' || 
+    p.clientId === 'client-guest' || 
+    (!p.clientEmail && (p.clientName === 'Private Residence' || !p.clientName));
+
+  // Exclude completed projects and manually added portfolio showcase projects
   const activeOngoingProjects = projects.filter(p => 
+    !isPortfolioProject(p) &&
     p.status !== 'Completed' && 
     (p.progressPercentage === undefined || p.progressPercentage < 100) && 
     p.currentStage !== 'Handover Completed'

@@ -74,6 +74,7 @@ try {
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN payments_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN milestones_json LONGTEXT DEFAULT NULL"); } catch (\PDOException $ex) {}
     try { $pdo->exec("ALTER TABLE projects ADD COLUMN contract_price DECIMAL(12,2) DEFAULT NULL"); } catch (\PDOException $ex) {}
+    try { $pdo->exec("ALTER TABLE projects ADD COLUMN is_portfolio TINYINT(1) DEFAULT 0"); } catch (\PDOException $ex) {}
 
     // Auto-repair existing database records where client_id was incorrectly stored as an email address
     try {
@@ -219,6 +220,13 @@ try {
         $showOnLandingPage = (int)$existing['show_on_landing_page'];
     }
 
+    $isPortfolio = 0;
+    if (isset($data->isPortfolio)) {
+        $isPortfolio = $data->isPortfolio ? 1 : 0;
+    } else if (isset($existing['is_portfolio'])) {
+        $isPortfolio = (int)$existing['is_portfolio'];
+    }
+
     $milestones = isset($data->milestones) && is_array($data->milestones) 
         ? $data->milestones 
         : (!empty($existing['milestones_json']) ? json_decode($existing['milestones_json'], true) : []);
@@ -252,6 +260,7 @@ try {
             current_stage = ?, 
             status = ?, 
             show_on_landing_page = ?,
+            is_portfolio = ?,
             work_updates_json = ?, 
             documents_json = ?, 
             payments_json = ?,
@@ -278,6 +287,7 @@ try {
             $currentStage,
             $status,
             $showOnLandingPage,
+            $isPortfolio,
             $workUpdatesJson,
             $documentsJson,
             $paymentsJson,
@@ -302,8 +312,8 @@ try {
         $serviceType = !empty($data->serviceType) ? trim($data->serviceType) : 'Residential';
         $estimatedCost = !empty($data->estimatedCost) ? (float)$data->estimatedCost : 500000.00;
 
-        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, client_name, designer_name, category, style, cover_image, gallery_images_json, before_image, after_image, location, area, budget, contract_price, completion_time, description, service_type, estimated_cost, progress_percentage, current_stage, status, show_on_landing_page, work_updates_json, documents_json, payments_json, milestones_json) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $insertStmt = $pdo->prepare("INSERT INTO projects (id, title, client_id, client_email, client_name, designer_name, category, style, cover_image, gallery_images_json, before_image, after_image, location, area, budget, contract_price, completion_time, description, service_type, estimated_cost, progress_percentage, current_stage, status, show_on_landing_page, is_portfolio, work_updates_json, documents_json, payments_json, milestones_json) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $insertStmt->execute([
             $projectId,
             $title,
@@ -329,6 +339,7 @@ try {
             $currentStage,
             $status,
             $showOnLandingPage,
+            $isPortfolio,
             $workUpdatesJson,
             $documentsJson,
             $paymentsJson,
