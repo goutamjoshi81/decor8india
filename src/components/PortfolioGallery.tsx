@@ -8,7 +8,6 @@ import {
   Ruler, 
   Calendar, 
   Star, 
-  X, 
   Quote 
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -133,9 +132,10 @@ export const PortfolioGallery: React.FC = () => {
                     </span>
                   </div>
 
-                  {project.beforeImage && (
-                    <div className="absolute bottom-4 right-4 px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[10px] font-bold text-[#D4AF37]">
-                      Before / After Available
+                  {(project.beforeImage || project.afterImage) && (
+                    <div className="absolute bottom-4 right-4 px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md border border-[#D4AF37]/40 text-[10px] font-bold text-[#D4AF37] flex items-center space-x-1 shadow-lg">
+                      <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                      <span>Before / After Available</span>
                     </div>
                   )}
                 </div>
@@ -208,62 +208,58 @@ export const PortfolioGallery: React.FC = () => {
 
       {/* Case Study Modal */}
       {selectedProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl overflow-y-auto">
-          <div className="relative w-full max-w-5xl bg-[#0D0E12] border border-white/10 rounded-2xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto space-y-8 animate-in zoom-in-95">
-            
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-4xl bg-[#121316] border border-white/10 rounded-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
             <button 
-              onClick={() => setSelectedProject(null)} 
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-neutral-400 hover:text-white z-20"
+              onClick={() => setSelectedProject(null)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition-colors z-10"
             >
-              <X className="w-6 h-6" />
+              ✕
             </button>
 
             {/* Modal Header */}
-            <div className="space-y-2 pr-12">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center space-x-2 text-xs text-[#D4AF37] font-semibold uppercase tracking-wider">
-                  <span>{selectedProject.category}</span>
-                  <span>•</span>
-                  <span>{selectedProject.style} Style</span>
-                </div>
-                <button
-                  onClick={() => {
-                    const projId = selectedProject.id;
-                    setSelectedProject(null);
-                    navigate(`/portfolio/${projId}`);
-                  }}
-                  className="px-3.5 py-1.5 rounded-lg bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity"
-                >
-                  Open Full Project Page →
-                </button>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <span className="px-3 py-1 rounded-full bg-black/70 border border-white/10 text-xs font-semibold text-[#D4AF37] uppercase">
+                  {selectedProject.category}
+                </span>
+                <span className="px-3 py-1 rounded-full bg-black/70 border border-white/10 text-xs font-semibold text-neutral-300 uppercase">
+                  {selectedProject.style}
+                </span>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white">
-                {selectedProject.title}
-              </h2>
-              <div className="flex flex-wrap items-center gap-6 text-xs text-neutral-400 font-mono">
-                <span className="flex items-center space-x-1"><MapPin className="w-4 h-4 text-[#D4AF37]" /><span>{selectedProject.location}</span></span>
-                <span className="flex items-center space-x-1"><Ruler className="w-4 h-4 text-[#D4AF37]" /><span>{selectedProject.area}</span></span>
-                <span className="flex items-center space-x-1"><Calendar className="w-4 h-4 text-[#D4AF37]" /><span>{selectedProject.completionTime}</span></span>
-                <span className="text-[#D4AF37] font-bold text-sm">Budget: {selectedProject.budget}</span>
+              <h2 className="font-serif text-3xl font-bold text-white">{selectedProject.title}</h2>
+              <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-400 font-mono">
+                <div className="flex items-center space-x-1">
+                  <MapPin className="w-4 h-4 text-[#D4AF37]" />
+                  <span>{selectedProject.location}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Ruler className="w-4 h-4 text-[#D4AF37]" />
+                  <span>{selectedProject.area}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Calendar className="w-4 h-4 text-[#D4AF37]" />
+                  <span>{selectedProject.completionTime}</span>
+                </div>
               </div>
             </div>
 
             {/* Interactive Before / After Slider (If Available) */}
-            {selectedProject.beforeImage && selectedProject.afterImage && (
+            {(selectedProject.beforeImage || selectedProject.afterImage) && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs text-neutral-300 font-semibold uppercase tracking-wider">
                   <span>Interactive Before / After Transformation</span>
                   <span className="text-[#D4AF37]">Drag slider to compare</span>
                 </div>
-                <div className="relative h-80 sm:h-96 rounded-xl overflow-hidden select-none border border-white/10">
+                <div className="relative h-80 sm:h-96 rounded-xl overflow-hidden select-none border border-white/10 shadow-xl">
                   {/* After Image (Full Background) */}
                   <img 
-                    src={selectedProject.afterImage} 
+                    src={selectedProject.afterImage || selectedProject.coverImage} 
                     alt="After Transformation" 
                     className="absolute inset-0 w-full h-full object-cover"
                   />
-                  <div className="absolute top-4 right-4 bg-black/80 px-3 py-1 rounded text-xs font-bold text-[#D4AF37]">
+                  <div className="absolute top-4 right-4 bg-emerald-500/90 backdrop-blur-md px-3 py-1 rounded text-xs font-bold text-black uppercase">
                     AFTER
                   </div>
 
@@ -273,12 +269,12 @@ export const PortfolioGallery: React.FC = () => {
                     style={{ width: `${beforeAfterPos}%` }}
                   >
                     <img 
-                      src={selectedProject.beforeImage} 
+                      src={selectedProject.beforeImage || selectedProject.coverImage} 
                       alt="Before Transformation" 
                       className="absolute inset-0 w-full h-full object-cover max-w-none"
                       style={{ width: '100%', minWidth: '100%' }}
                     />
-                    <div className="absolute top-4 left-4 bg-black/80 px-3 py-1 rounded text-xs font-bold text-white">
+                    <div className="absolute top-4 left-4 bg-red-500/90 backdrop-blur-md px-3 py-1 rounded text-xs font-bold text-white uppercase">
                       BEFORE
                     </div>
                   </div>
@@ -288,7 +284,7 @@ export const PortfolioGallery: React.FC = () => {
                     className="absolute top-0 bottom-0 w-1 bg-[#D4AF37] cursor-ew-resize z-10"
                     style={{ left: `${beforeAfterPos}%` }}
                   >
-                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full gold-gradient-bg flex items-center justify-center text-black shadow-xl">
+                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full gold-gradient-bg flex items-center justify-center text-black shadow-xl font-bold">
                       ↔
                     </div>
                   </div>

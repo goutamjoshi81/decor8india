@@ -94,6 +94,8 @@ export interface WorkUpdate {
   title: string;
   description: string;
   mediaUrls: string[];
+  beforeImage?: string;
+  afterImage?: string;
   mediaType: 'image' | 'video' | 'mixed';
   stage: ProjectStage;
 }

@@ -180,8 +180,12 @@ try {
     $category = !empty($data->category) ? trim($data->category) : ($existing['category'] ?? 'Residential');
     $style = !empty($data->style) ? trim($data->style) : ($existing['style'] ?? 'Luxury');
     $coverImage = !empty($data->coverImage) ? trim($data->coverImage) : ($existing['cover_image'] ?? null);
-    $beforeImage = isset($data->beforeImage) ? trim($data->beforeImage) : ($existing['before_image'] ?? null);
-    $afterImage = isset($data->afterImage) ? trim($data->afterImage) : ($existing['after_image'] ?? null);
+    $beforeImage = isset($data->beforeImage) 
+        ? (!empty(trim($data->beforeImage)) ? trim($data->beforeImage) : null) 
+        : ($existing['before_image'] ?? null);
+    $afterImage = isset($data->afterImage) 
+        ? (!empty(trim($data->afterImage)) ? trim($data->afterImage) : null) 
+        : ($existing['after_image'] ?? null);
     $location = !empty($data->location) ? trim($data->location) : ($existing['location'] ?? null);
     $area = !empty($data->area) ? trim($data->area) : ($existing['area'] ?? null);
     $budget = !empty($data->budget) ? trim($data->budget) : ($existing['budget'] ?? null);

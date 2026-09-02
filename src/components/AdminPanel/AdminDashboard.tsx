@@ -355,7 +355,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   // Site Update Feed State
   const [feedTitle, setFeedTitle] = useState('');
   const [feedDescription, setFeedDescription] = useState('');
-  const [feedImageUrl, setFeedImageUrl] = useState('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80');
+  const [feedImageUrl, setFeedImageUrl] = useState('');
+  const [feedBeforeImage, setFeedBeforeImage] = useState('');
+  const [feedAfterImage, setFeedAfterImage] = useState('');
   const [feedStage, setFeedStage] = useState<ProjectStage>('Carpentry');
 
   // Document / Invoice State
@@ -996,20 +998,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
       return;
     }
 
+    const media: string[] = [];
+    if (feedImageUrl) media.push(feedImageUrl);
+    if (feedBeforeImage) media.push(feedBeforeImage);
+    if (feedAfterImage) media.push(feedAfterImage);
+    if (media.length === 0) {
+      media.push('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80');
+    }
+
     addWorkUpdate(targetProjId, {
       date: new Date().toISOString().split('T')[0],
       title: feedTitle,
       description: feedDescription,
-      mediaUrls: [feedImageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'],
+      mediaUrls: media,
+      beforeImage: feedBeforeImage || undefined,
+      afterImage: feedAfterImage || undefined,
       mediaType: 'image',
       stage: feedStage
     }, notifyClientByEmail);
 
     setFeedTitle('');
     setFeedDescription('');
+    setFeedImageUrl('');
+    setFeedBeforeImage('');
+    setFeedAfterImage('');
     const clientMail = selectedProject?.clientEmail || '';
     const emailNotice = notifyClientByEmail && clientMail ? `\n\n📧 Automated Site Update Email sent to: ${clientMail}` : '';
-    alert(`Site update feed post added! Visible instantly to client.${emailNotice}`);
+    alert(`Site update feed post added with Before & After capture! Visible instantly to client.${emailNotice}`);
   };
 
   const handleUploadDocument = (e: React.FormEvent) => {
@@ -2038,29 +2053,111 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <label className="text-xs text-neutral-300 font-medium">Site Photo *</label>
-                        <label className="flex items-center justify-center w-full px-3.5 py-4 rounded-xl bg-black/60 border-2 border-dashed border-white/20 hover:border-[#D4AF37]/60 transition-colors cursor-pointer group">
-                          <input 
-                            type="file" 
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleFileUpload(file, setFeedImageUrl);
-                            }}
-                          />
-                          <div className="flex flex-col items-center space-y-1">
-                            <Upload className="w-5 h-5 text-neutral-400 group-hover:text-[#D4AF37] transition-colors" />
-                            <span className="text-xs text-neutral-400 group-hover:text-neutral-200 transition-colors">Click to upload image</span>
+                      {/* Photo Uploaders: Progress Photo + Before Image + After Image */}
+                      <div className="space-y-3">
+                        <label className="text-xs text-neutral-300 font-medium block">Site Media & Before / After Photos</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          {/* Main / Progress Photo */}
+                          <div className="space-y-1.5">
+                            <span className="text-[11px] text-neutral-400 font-medium block">1. Progress Photo (Main)</span>
+                            <label className="flex flex-col items-center justify-center w-full h-28 px-3 py-2 rounded-xl bg-black/60 border-2 border-dashed border-white/20 hover:border-[#D4AF37]/60 transition-colors cursor-pointer group relative overflow-hidden">
+                              <input 
+                                type="file" 
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleFileUpload(file, setFeedImageUrl);
+                                }}
+                              />
+                              {feedImageUrl ? (
+                                <div className="relative w-full h-full">
+                                  <img src={feedImageUrl} alt="Progress Preview" className="w-full h-full object-cover rounded-lg" />
+                                  <button 
+                                    type="button" 
+                                    onClick={(e) => { e.stopPropagation(); setFeedImageUrl(''); }} 
+                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/90 text-white flex items-center justify-center text-xs hover:bg-red-400 transition-colors"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center space-y-1 text-center">
+                                  <Upload className="w-4 h-4 text-neutral-400 group-hover:text-[#D4AF37] transition-colors" />
+                                  <span className="text-[10px] text-neutral-400 group-hover:text-neutral-200">Upload Main Photo</span>
+                                </div>
+                              )}
+                            </label>
                           </div>
-                        </label>
-                        {feedImageUrl && (
-                          <div className="relative inline-block">
-                            <img src={feedImageUrl} alt="Preview" className="w-24 h-20 rounded-lg object-cover border border-white/10" />
-                            <button type="button" onClick={() => setFeedImageUrl('')} className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500/90 text-white flex items-center justify-center text-xs hover:bg-red-400 transition-colors"><X className="w-3 h-3" /></button>
+
+                          {/* Before Transformation Photo */}
+                          <div className="space-y-1.5">
+                            <span className="text-[11px] text-red-400 font-medium block">2. Before Photo (Optional)</span>
+                            <label className="flex flex-col items-center justify-center w-full h-28 px-3 py-2 rounded-xl bg-black/60 border-2 border-dashed border-red-500/30 hover:border-red-400 transition-colors cursor-pointer group relative overflow-hidden">
+                              <input 
+                                type="file" 
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleFileUpload(file, setFeedBeforeImage);
+                                }}
+                              />
+                              {feedBeforeImage ? (
+                                <div className="relative w-full h-full">
+                                  <img src={feedBeforeImage} alt="Before Preview" className="w-full h-full object-cover rounded-lg" />
+                                  <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-bold text-red-400">BEFORE</span>
+                                  <button 
+                                    type="button" 
+                                    onClick={(e) => { e.stopPropagation(); setFeedBeforeImage(''); }} 
+                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/90 text-white flex items-center justify-center text-xs hover:bg-red-400 transition-colors"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center space-y-1 text-center">
+                                  <Upload className="w-4 h-4 text-red-400/70 group-hover:text-red-400 transition-colors" />
+                                  <span className="text-[10px] text-red-400/80 group-hover:text-red-300">Upload Before Photo</span>
+                                </div>
+                              )}
+                            </label>
                           </div>
-                        )}
+
+                          {/* After Transformation Photo */}
+                          <div className="space-y-1.5">
+                            <span className="text-[11px] text-emerald-400 font-medium block">3. After Photo (Optional)</span>
+                            <label className="flex flex-col items-center justify-center w-full h-28 px-3 py-2 rounded-xl bg-black/60 border-2 border-dashed border-emerald-500/30 hover:border-emerald-400 transition-colors cursor-pointer group relative overflow-hidden">
+                              <input 
+                                type="file" 
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleFileUpload(file, setFeedAfterImage);
+                                }}
+                              />
+                              {feedAfterImage ? (
+                                <div className="relative w-full h-full">
+                                  <img src={feedAfterImage} alt="After Preview" className="w-full h-full object-cover rounded-lg" />
+                                  <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/80 text-[9px] font-bold text-emerald-400">AFTER</span>
+                                  <button 
+                                    type="button" 
+                                    onClick={(e) => { e.stopPropagation(); setFeedAfterImage(''); }} 
+                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/90 text-white flex items-center justify-center text-xs hover:bg-red-400 transition-colors"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col items-center space-y-1 text-center">
+                                  <Upload className="w-4 h-4 text-emerald-400/70 group-hover:text-emerald-400 transition-colors" />
+                                  <span className="text-[10px] text-emerald-400/80 group-hover:text-emerald-300">Upload After Photo</span>
+                                </div>
+                              )}
+                            </label>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="space-y-1">
@@ -2098,19 +2195,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     <div className="space-y-3 pt-4 border-t border-white/10">
                       <h5 className="text-xs font-bold text-white uppercase tracking-wider">Previous Site Updates ({(selectedProject.workUpdates || []).length})</h5>
                       <div className="space-y-3">
-                        {(selectedProject.workUpdates || []).map(update => (
-                          <div key={update.id} className="p-4 rounded-xl glass-card border border-white/10 flex items-start space-x-4">
-                            <img src={(update.mediaUrls || [])[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'} alt={update.title} className="w-16 h-16 rounded-lg object-cover" />
-                            <div className="space-y-1 flex-1">
-                              <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                                <span className="text-[#D4AF37] font-semibold">{update.stage}</span>
-                                <span>{update.date}</span>
+                        {(selectedProject.workUpdates || []).map(update => {
+                          const hasBeforeAfter = update.beforeImage || update.afterImage;
+                          return (
+                            <div key={update.id} className="p-4 rounded-xl glass-card border border-white/10 space-y-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="space-y-1 flex-1">
+                                  <div className="flex items-center space-x-2 text-[10px] text-neutral-400">
+                                    <span className="px-2 py-0.5 rounded bg-[#D4AF37]/20 text-[#D4AF37] font-semibold">{update.stage}</span>
+                                    <span>•</span>
+                                    <span>{update.date}</span>
+                                    {hasBeforeAfter && (
+                                      <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
+                                        ✨ Before/After Logged
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs font-bold text-white">{update.title}</div>
+                                  <p className="text-xs text-neutral-300">{update.description}</p>
+                                </div>
                               </div>
-                              <div className="text-xs font-bold text-white">{update.title}</div>
-                              <p className="text-xs text-neutral-300 line-clamp-2">{update.description}</p>
+
+                              {/* Media / Before-After Display */}
+                              <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-white/5">
+                                {update.beforeImage && (
+                                  <div className="space-y-1">
+                                    <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider block">Before</span>
+                                    <img src={update.beforeImage} alt="Before" className="w-24 h-20 rounded-lg object-cover border border-red-500/40" />
+                                  </div>
+                                )}
+                                {update.afterImage && (
+                                  <div className="space-y-1">
+                                    <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider block">After</span>
+                                    <img src={update.afterImage} alt="After" className="w-24 h-20 rounded-lg object-cover border border-emerald-500/40" />
+                                  </div>
+                                )}
+                                {(!hasBeforeAfter && update.mediaUrls && update.mediaUrls[0]) && (
+                                  <div className="space-y-1">
+                                    <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider block">Site Photo</span>
+                                    <img src={update.mediaUrls[0]} alt={update.title} className="w-24 h-20 rounded-lg object-cover border border-white/10" />
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

@@ -349,25 +349,50 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ onReturnToPubl
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(clientProject.workUpdates || []).map((update) => (
-                <div key={update.id} className="p-6 rounded-2xl glass-card border border-white/10 space-y-4">
-                  <div className="flex items-center justify-between text-xs text-neutral-400 font-mono">
-                    <span className="text-[#D4AF37] font-bold">{update.stage}</span>
-                    <span>{update.date}</span>
-                  </div>
+              {(clientProject.workUpdates || []).map((update) => {
+                const hasBeforeAfter = update.beforeImage || update.afterImage;
+                return (
+                  <div key={update.id} className="p-6 rounded-2xl glass-card border border-white/10 space-y-4">
+                    <div className="flex items-center justify-between text-xs text-neutral-400 font-mono">
+                      <span className="text-[#D4AF37] font-bold px-2.5 py-0.5 rounded bg-[#D4AF37]/20 border border-[#D4AF37]/30">{update.stage}</span>
+                      <span>{update.date}</span>
+                    </div>
 
-                  <div className="h-64 rounded-xl overflow-hidden border border-white/10">
-                    <img 
-                      src={update.mediaUrls?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'} 
-                      alt={update.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                    {/* Before & After comparison in Client Site Feed */}
+                    {hasBeforeAfter ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        {update.beforeImage && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider block font-mono">Before Renovation</span>
+                            <div className="h-48 rounded-xl overflow-hidden border border-red-500/40">
+                              <img src={update.beforeImage} alt="Before" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                        )}
+                        {update.afterImage && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block font-mono">After Transformation</span>
+                            <div className="h-48 rounded-xl overflow-hidden border border-emerald-500/40">
+                              <img src={update.afterImage} alt="After" className="w-full h-full object-cover" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="h-64 rounded-xl overflow-hidden border border-white/10">
+                        <img 
+                          src={update.mediaUrls?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'} 
+                          alt={update.title} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
 
-                  <h3 className="font-serif text-xl font-bold text-white">{update.title}</h3>
-                  <p className="text-xs text-neutral-300 leading-relaxed font-light">{update.description}</p>
-                </div>
-              ))}
+                    <h3 className="font-serif text-xl font-bold text-white">{update.title}</h3>
+                    <p className="text-xs text-neutral-300 leading-relaxed font-light">{update.description}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
