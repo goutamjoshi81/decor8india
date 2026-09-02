@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LuxuryPhotoGallery } from './LuxuryPhotoGallery';
+import { BeforeAfterShowcase } from './BeforeAfterShowcase';
 
 export const PortfolioGallery: React.FC = () => {
   const { projects } = useApp();
@@ -19,9 +20,6 @@ export const PortfolioGallery: React.FC = () => {
   
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  
-  // Before / After Slider Position (0 - 100%)
-  const [beforeAfterPos, setBeforeAfterPos] = useState<number>(50);
 
   const completedProjects = projects.filter(p => 
     (p.isPortfolio || p.status === 'Completed' || p.progressPercentage === 100 || p.currentStage === 'Handover Completed') &&
@@ -191,7 +189,6 @@ export const PortfolioGallery: React.FC = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedProject(project);
-                      setBeforeAfterPos(50);
                     }}
                     className="w-1/2 py-2.5 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-300 font-bold text-xs uppercase tracking-wider text-center transition-all"
                   >
@@ -245,61 +242,16 @@ export const PortfolioGallery: React.FC = () => {
               </div>
             </div>
 
-            {/* Interactive Before / After Slider (If Available) */}
+            {/* Interactive Animated Before / After Showcase */}
             {(selectedProject.beforeImage || selectedProject.afterImage) && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs text-neutral-300 font-semibold uppercase tracking-wider">
-                  <span>Interactive Before / After Transformation</span>
-                  <span className="text-[#D4AF37]">Drag slider to compare</span>
-                </div>
-                <div className="relative h-80 sm:h-96 rounded-xl overflow-hidden select-none border border-white/10 shadow-xl">
-                  {/* After Image (Full Background) */}
-                  <img 
-                    src={selectedProject.afterImage || selectedProject.coverImage} 
-                    alt="After Transformation" 
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 right-4 bg-emerald-500/90 backdrop-blur-md px-3 py-1 rounded text-xs font-bold text-black uppercase">
-                    AFTER
-                  </div>
-
-                  {/* Before Image (Clipped) */}
-                  <div 
-                    className="absolute inset-0 overflow-hidden" 
-                    style={{ width: `${beforeAfterPos}%` }}
-                  >
-                    <img 
-                      src={selectedProject.beforeImage || selectedProject.coverImage} 
-                      alt="Before Transformation" 
-                      className="absolute inset-0 w-full h-full object-cover max-w-none"
-                      style={{ width: '100%', minWidth: '100%' }}
-                    />
-                    <div className="absolute top-4 left-4 bg-red-500/90 backdrop-blur-md px-3 py-1 rounded text-xs font-bold text-white uppercase">
-                      BEFORE
-                    </div>
-                  </div>
-
-                  {/* Slider Control Line */}
-                  <div 
-                    className="absolute top-0 bottom-0 w-1 bg-[#D4AF37] cursor-ew-resize z-10"
-                    style={{ left: `${beforeAfterPos}%` }}
-                  >
-                    <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full gold-gradient-bg flex items-center justify-center text-black shadow-xl font-bold">
-                      ↔
-                    </div>
-                  </div>
-
-                  {/* Invisible Range Input Overlay */}
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="100" 
-                    value={beforeAfterPos} 
-                    onChange={(e) => setBeforeAfterPos(Number(e.target.value))}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20"
-                  />
-                </div>
-              </div>
+              <BeforeAfterShowcase
+                beforeImage={selectedProject.beforeImage}
+                afterImage={selectedProject.afterImage}
+                fallbackImage={selectedProject.coverImage}
+                projectTitle={selectedProject.title}
+                projectCategory={selectedProject.category}
+                projectStyle={selectedProject.style}
+              />
             )}
 
             {/* Gallery Image Viewer */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { 
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { ContactSection } from '../components/ContactSection';
 import { LuxuryPhotoGallery } from '../components/LuxuryPhotoGallery';
+import { BeforeAfterShowcase } from '../components/BeforeAfterShowcase';
 
 export const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,7 +39,6 @@ export const ProjectDetailPage: React.FC = () => {
     );
   });
 
-  const [beforeAfterPos, setBeforeAfterPos] = useState<number>(50);
 
   if (!project) {
     return (
@@ -154,104 +154,6 @@ export const ProjectDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Interactive Before / After Architectural Transformation Section */}
-        {(project.beforeImage || project.afterImage) && (
-          <div className="p-6 sm:p-8 rounded-2xl glass-panel border border-[#D4AF37]/30 space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2 text-xs font-mono font-bold text-[#D4AF37]">
-                  <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-                  <span>ARCHITECTURAL MAKEOVER TRANSFORMATION</span>
-                </div>
-                <h3 className="font-serif text-2xl font-bold text-white">Before & After Renovation Comparison</h3>
-              </div>
-              <span className="text-xs text-[#D4AF37] font-medium bg-[#D4AF37]/10 px-3 py-1 rounded-full border border-[#D4AF37]/20">
-                ↔ Drag slider to inspect transformation
-              </span>
-            </div>
-
-            {/* Interactive Split Slider */}
-            <div className="relative h-80 sm:h-[480px] rounded-2xl overflow-hidden select-none border border-white/10 shadow-2xl">
-              {/* After Image (Full Background) */}
-              <img 
-                src={project.afterImage || project.coverImage} 
-                alt="After Transformation" 
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute top-4 right-4 bg-emerald-500/90 backdrop-blur-md px-3.5 py-1.5 rounded-lg text-xs font-extrabold text-black uppercase tracking-wider shadow-lg">
-                ✓ AFTER MAKEOVER
-              </div>
-
-              {/* Before Image (Clipped) */}
-              <div 
-                className="absolute inset-0 overflow-hidden" 
-                style={{ width: `${beforeAfterPos}%` }}
-              >
-                <img 
-                  src={project.beforeImage || project.coverImage} 
-                  alt="Before Renovation" 
-                  className="absolute inset-0 w-full h-full object-cover max-w-none"
-                  style={{ width: '100%', minWidth: '100%' }}
-                />
-                <div className="absolute top-4 left-4 bg-red-500/90 backdrop-blur-md px-3.5 py-1.5 rounded-lg text-xs font-extrabold text-white uppercase tracking-wider shadow-lg">
-                  ⚠ BEFORE RENOVATION
-                </div>
-              </div>
-
-              {/* Slider Control Line */}
-              <div 
-                className="absolute top-0 bottom-0 w-1 bg-[#D4AF37] cursor-ew-resize z-10 shadow-[0_0_15px_#D4AF37]"
-                style={{ left: `${beforeAfterPos}%` }}
-              >
-                <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full gold-gradient-bg flex items-center justify-center text-black font-bold shadow-2xl ring-2 ring-black">
-                  ↔
-                </div>
-              </div>
-
-              {/* Invisible Range Input Overlay */}
-              <input 
-                type="range" 
-                min="0" 
-                max="100" 
-                value={beforeAfterPos} 
-                onChange={(e) => setBeforeAfterPos(Number(e.target.value))}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20"
-              />
-            </div>
-
-            {/* Side-by-Side Dual Preview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div className="p-4 rounded-xl glass-card border border-red-500/20 space-y-2">
-                <div className="flex items-center justify-between text-xs font-mono font-bold text-red-400">
-                  <span>BEFORE RENOVATION</span>
-                  <span className="text-neutral-500 text-[10px]">Original Site Condition</span>
-                </div>
-                <div className="h-60 rounded-xl overflow-hidden border border-red-500/30">
-                  <img 
-                    src={project.beforeImage || project.coverImage} 
-                    alt="Before condition" 
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl glass-card border border-emerald-500/20 space-y-2">
-                <div className="flex items-center justify-between text-xs font-mono font-bold text-emerald-400">
-                  <span>AFTER TRANSFORMATION</span>
-                  <span className="text-[#D4AF37] text-[10px]">Completed Masterpiece</span>
-                </div>
-                <div className="h-60 rounded-xl overflow-hidden border border-emerald-500/30">
-                  <img 
-                    src={project.afterImage || project.coverImage} 
-                    alt="After completion" 
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Main Media Gallery */}
         <div className="space-y-4">
           <LuxuryPhotoGallery
@@ -326,6 +228,20 @@ export const ProjectDetailPage: React.FC = () => {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* BOTTOM SHOWCASE: Animated Before & After Transformation Section */}
+        {(project.beforeImage || project.afterImage) && (
+          <div className="pt-4">
+            <BeforeAfterShowcase
+              beforeImage={project.beforeImage}
+              afterImage={project.afterImage}
+              fallbackImage={project.coverImage}
+              projectTitle={project.title}
+              projectCategory={project.category}
+              projectStyle={project.style}
+            />
           </div>
         )}
 
