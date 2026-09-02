@@ -4135,13 +4135,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-neutral-300">Location</label>
                   <input 
                     type="text" 
                     value={portLocation}
                     onChange={(e) => setPortLocation(e.target.value)}
+                    placeholder="e.g. Worli, South Mumbai"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>
@@ -4152,6 +4153,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     type="text" 
                     value={portArea}
                     onChange={(e) => setPortArea(e.target.value)}
+                    placeholder="e.g. 2,500 Sq. Ft."
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                   />
                 </div>
@@ -4162,8 +4164,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     type="text" 
                     value={portBudget}
                     onChange={(e) => setPortBudget(e.target.value)}
+                    placeholder="e.g. ₹ 1.20 Cr"
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white focus:outline-none focus:border-[#D4AF37]"
                   />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-neutral-300 flex items-center justify-between">
+                    <span>Days Required *</span>
+                    <span className="text-[10px] text-[#D4AF37] font-mono">Execution</span>
+                  </label>
+                  <div className="space-y-1.5">
+                    <input 
+                      type="text" 
+                      required
+                      value={portCompletionTime}
+                      onChange={(e) => setPortCompletionTime(e.target.value)}
+                      placeholder="e.g. 75 Days / 90 Days"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-white/15 text-xs text-white font-mono focus:outline-none focus:border-[#D4AF37]"
+                    />
+                    <div className="flex flex-wrap gap-1">
+                      {['30 Days', '45 Days', '60 Days', '75 Days', '90 Days', '120 Days'].map(d => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setPortCompletionTime(d)}
+                          className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold transition-all ${
+                            portCompletionTime === d 
+                              ? 'bg-[#D4AF37] text-black shadow' 
+                              : 'bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10'
+                          }`}
+                        >
+                          {d}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
