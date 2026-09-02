@@ -38,7 +38,9 @@ import {
   CheckCircle2,
   Bell,
   BellOff,
-  Check
+  Check,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import type { BranchOffice } from '../../types';
 
@@ -342,6 +344,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   
   // Project Management Sub-Tab State
   const [selectedProjectId, setSelectedProjectId] = useState<string>(projects[0]?.id || '');
+  const [clientProjectPage, setClientProjectPage] = useState<number>(1);
+  const CLIENT_PROJECTS_PER_PAGE = 5;
   const [projectSubTab, setProjectSubTab] = useState<'stage' | 'updates' | 'documents' | 'payments'>('stage');
 
   // Stage progress state (starts at 0 by default)
@@ -940,12 +944,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
   const clientProjects = projects.filter(p => !isPortfolioProject(p) && !p.title.toLowerCase().includes('site visit') && !p.title.toLowerCase().includes('in-person'));
   const selectedProject = clientProjects.find(p => p.id === selectedProjectId) || clientProjects[0];
 
+  const totalProjectPages = Math.max(1, Math.ceil(clientProjects.length / CLIENT_PROJECTS_PER_PAGE));
+  const paginatedClientProjects = clientProjects.slice(
+    (clientProjectPage - 1) * CLIENT_PROJECTS_PER_PAGE,
+    clientProjectPage * CLIENT_PROJECTS_PER_PAGE
+  );
+
   // Auto-select first client project when projects load or change
   React.useEffect(() => {
     if (clientProjects.length > 0 && (!selectedProjectId || !clientProjects.some(p => p.id === selectedProjectId))) {
       setSelectedProjectId(clientProjects[0].id);
     }
   }, [clientProjects, selectedProjectId]);
+
+  // Adjust page if out of bounds
+  React.useEffect(() => {
+    if (clientProjectPage > totalProjectPages) {
+      setClientProjectPage(totalProjectPages);
+    }
+  }, [clientProjectPage, totalProjectPages]);
 
   const handleUpdateProgressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1713,11 +1730,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             {/* Project Selection list */}
             <div className="lg:col-span-4 p-6 rounded-2xl glass-panel border border-white/10 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-serif text-xl font-bold text-white">Select Client Project</h3>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] font-mono font-bold">
+                <div>
+                  <h3 className="font-serif text-xl font-bold text-white">Select Client Project</h3>
+                  <p className="text-[11px] text-neutral-400 font-mono">
+                    Page {clientProjectPage} of {totalProjectPages} ({clientProjects.length} total)
+                  </p>
+                </div>
+                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] font-mono font-bold border border-[#D4AF37]/30">
                   {clientProjects.length} Active
                 </span>
               </div>
+
               <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
                 {clientProjects.length === 0 ? (
                   <div className="p-6 rounded-xl bg-white/5 border border-white/10 text-center space-y-2">
@@ -1728,7 +1751,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                     </p>
                   </div>
                 ) : (
-                  clientProjects.map(p => (
+                  paginatedClientProjects.map(p => (
                     <div
                       key={p.id}
                       onClick={() => setSelectedProjectId(p.id)}
@@ -1745,6 +1768,48 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   ))
                 )}
               </div>
+
+              {/* Pagination Controls (5 per page) */}
+              {totalProjectPages > 1 && (
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setClientProjectPage(prev => Math.max(1, prev - 1))}
+                    disabled={clientProjectPage === 1}
+                    className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-neutral-300 disabled:opacity-30 disabled:hover:bg-white/5 flex items-center space-x-1 transition-all border border-white/10 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Prev</span>
+                  </button>
+
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalProjectPages }, (_, i) => i + 1).map(pageNum => (
+                      <button
+                        key={pageNum}
+                        type="button"
+                        onClick={() => setClientProjectPage(pageNum)}
+                        className={`w-7 h-7 rounded-lg text-xs font-mono font-bold transition-all flex items-center justify-center cursor-pointer ${
+                          clientProjectPage === pageNum
+                            ? 'gold-gradient-bg text-black shadow-md'
+                            : 'bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setClientProjectPage(prev => Math.min(totalProjectPages, prev + 1))}
+                    disabled={clientProjectPage === totalProjectPages}
+                    className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-neutral-300 disabled:opacity-30 disabled:hover:bg-white/5 flex items-center space-x-1 transition-all border border-white/10 cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Selected Project Control Workstation */}
