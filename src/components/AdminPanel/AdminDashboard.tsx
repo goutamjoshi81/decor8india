@@ -4117,6 +4117,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                   >
                     <option value="Residential">Residential</option>
                     <option value="Commercial">Commercial</option>
+                    <option value="Construction">Construction</option>
                   </select>
                 </div>
 
