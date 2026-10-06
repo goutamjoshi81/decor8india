@@ -591,8 +591,8 @@ export const apiService = {
     }
   },
 
-  // System & Admin Notification Settings
-  async getSettings(): Promise<{ success: boolean; settings?: { admin_email_enquiry_notifications: boolean; admin_notification_email: string }; message?: string }> {
+  // System & Admin Notification Settings & GA4 Configuration
+  async getSettings(): Promise<{ success: boolean; settings?: { admin_email_enquiry_notifications: boolean; admin_notification_email: string; ga_measurement_id?: string }; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/get_settings.php`);
       const data = await response.json();
@@ -603,14 +603,15 @@ export const apiService = {
         success: false, 
         settings: { 
           admin_email_enquiry_notifications: true, 
-          admin_notification_email: 'support@decor8india.com' 
+          admin_notification_email: 'support@decor8india.com',
+          ga_measurement_id: ''
         }, 
         message: 'Server connection error.' 
       };
     }
   },
 
-  async saveSettings(settingsData: { admin_email_enquiry_notifications?: boolean; admin_notification_email?: string }): Promise<{ success: boolean; settings?: any; message?: string }> {
+  async saveSettings(settingsData: { admin_email_enquiry_notifications?: boolean; admin_notification_email?: string; ga_measurement_id?: string }): Promise<{ success: boolean; settings?: any; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/save_settings.php`, {
         method: 'POST',

@@ -3,7 +3,6 @@ import { useApp } from '../../context/AppContext';
 import { apiService } from '../../services/apiService';
 import type { Project, ServiceItem, ProjectStage, TeamMember, PaymentItem } from '../../types';
 import { 
-  LayoutDashboard, 
   Users, 
   Building2, 
   Plus, 
@@ -40,12 +39,14 @@ import {
   BellOff,
   Check,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BarChart3
 } from 'lucide-react';
 import type { BranchOffice } from '../../types';
 
 import { InvoiceModal } from '../InvoiceModal';
 import { AnimatedTabs } from '../AnimatedTabs';
+import { AnalyticsDashboardSection } from './AnalyticsDashboardSection';
 
 interface AdminDashboardProps {
   onReturnToPublic: () => void;
@@ -1241,7 +1242,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
         {/* Navigation Tabs with React Bits Physics & Spring Animations */}
         <AnimatedTabs
           tabs={[
-            { id: 'analytics', label: 'Overview & KPIs', icon: LayoutDashboard },
+            { id: 'analytics', label: 'Analytics & KPIs', icon: BarChart3 },
             { id: 'clients', label: 'Client Approvals', icon: Users, badge: pendingApprovalsCount },
             { id: 'projects', label: 'Project Process & Live Feeds', icon: Building2 },
             { id: 'portfolio', label: 'Portfolio CMS', icon: ImageIcon },
@@ -1258,54 +1259,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
           className="border-b border-white/10 pb-2"
         />
 
-        {/* TAB 1: ANALYTICS & KPIS */}
+        {/* TAB 1: GOOGLE ANALYTICS 4, KPIS & PERFORMANCE CONSOLE */}
         {activeTab === 'analytics' && (
-          <div className="space-y-8 animate-in fade-in">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-1">
-                <div className="text-[11px] text-neutral-400 uppercase tracking-wider font-mono">Total Inquiries / Bookings</div>
-                <div className="text-3xl font-bold font-serif text-white">{totalClients}</div>
-                <div className="text-xs text-neutral-400 pt-1">All time lead conversions</div>
-              </div>
-
-              <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-1">
-                <div className="text-[11px] text-neutral-400 uppercase tracking-wider font-mono">Pending Approvals</div>
-                <div className="text-3xl font-bold font-serif text-amber-400">{pendingApprovalsCount}</div>
-                <div className="text-xs text-amber-300 pt-1 font-semibold">Requires admin action</div>
-              </div>
-
-              <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-1">
-                <div className="text-[11px] text-neutral-400 uppercase tracking-wider font-mono">Active Ongoing Sites</div>
-                <div className="text-3xl font-bold font-serif text-[#D4AF37]">{activeProjectsCount}</div>
-                <div className="text-xs text-emerald-400 pt-1">Live tracking active</div>
-              </div>
-
-              <div className="p-6 rounded-2xl glass-card border border-white/10 space-y-1">
-                <div className="text-[11px] text-neutral-400 uppercase tracking-wider font-mono">Completed Projects</div>
-                <div className="text-3xl font-bold font-serif text-emerald-400">{completedProjectsCount}</div>
-                <div className="text-xs text-neutral-400 pt-1">Published to portfolio</div>
-              </div>
-            </div>
-
-            {/* Recent Activity Log */}
-            <div className="p-6 rounded-2xl glass-panel border border-white/10 space-y-4">
-              <h3 className="font-serif text-xl font-bold text-white">Recent System Activity</h3>
-              <div className="space-y-2 text-xs font-mono">
-                <div className="p-3 rounded-lg bg-white/5 flex justify-between">
-                  <span>Booking Request #bk-1002 submitted by Kabir Verma (Pending)</span>
-                  <span className="text-neutral-500">Today, 02:15 PM</span>
-                </div>
-                <div className="p-3 rounded-lg bg-white/5 flex justify-between">
-                  <span>Project "Villa Serenity" updated stage progress to 68% (Carpentry)</span>
-                  <span className="text-neutral-500">Yesterday, 04:30 PM</span>
-                </div>
-                <div className="p-3 rounded-lg bg-white/5 flex justify-between">
-                  <span>Article "10 Luxury Interior Trends Dominating High-End Homes" published</span>
-                  <span className="text-neutral-500">2 days ago</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <AnalyticsDashboardSection
+            totalClients={totalClients}
+            pendingApprovalsCount={pendingApprovalsCount}
+            activeProjectsCount={activeProjectsCount}
+            completedProjectsCount={completedProjectsCount}
+          />
         )}
 
         {/* TAB 2: CLIENT MANAGEMENT & APPROVALS */}

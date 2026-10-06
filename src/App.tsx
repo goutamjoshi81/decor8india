@@ -29,6 +29,11 @@ import { CareersPage } from './pages/CareersPage';
 import { ArticleDetailPage } from './pages/ArticleDetailPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { ServiceDetailPage } from './pages/ServiceDetailPage';
+import { ChecklistPage } from './pages/ChecklistPage';
+
+// Google Analytics 4 & Performance Tracking
+import { initGA4, trackPageView } from './utils/analytics';
+import { apiService } from './services/apiService';
 
 const MainAppContent: React.FC = () => {
   const { 
@@ -42,9 +47,30 @@ const MainAppContent: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Initialize Google Analytics 4 on app boot
+  React.useEffect(() => {
+    const initAnalytics = async () => {
+      try {
+        const envId = (import.meta as any).env?.VITE_GA_MEASUREMENT_ID;
+        if (envId) {
+          initGA4(envId);
+        }
+        const res = await apiService.getSettings();
+        if (res.success && res.settings?.ga_measurement_id) {
+          initGA4(res.settings.ga_measurement_id);
+        }
+      } catch (err) {
+        console.warn('Could not initialize Google Analytics:', err);
+      }
+    };
+    initAnalytics();
+  }, []);
+
+  // Track page views on route changes
   React.useEffect(() => {
     window.scrollTo(0, 0);
-  }, [location.pathname]);
+    trackPageView(location.pathname + location.search, document.title);
+  }, [location.pathname, location.search]);
 
   const isDashboardRoute = location.pathname.startsWith('/client') || location.pathname.startsWith('/admin');
 
@@ -65,8 +91,9 @@ const MainAppContent: React.FC = () => {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/services/:id" element={<ServiceDetailPage />} />
         
-        {/* Estimator */}
+        {/* Estimator & Selection Checklist */}
         <Route path="/estimator" element={<EstimatorPage />} />
+        <Route path="/checklist" element={<ChecklistPage />} />
         
         {/* Portfolio & Ongoing Works */}
         <Route path="/portfolio" element={<PortfolioPage />} />

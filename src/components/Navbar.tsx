@@ -51,6 +51,7 @@ export const Navbar: React.FC = () => {
     { label: 'About Us', path: '/about' },
     { label: 'Services', path: '/services' },
     { label: 'Cost Estimator', path: '/estimator' },
+    { label: 'Selection Checklist', path: '/checklist' },
     { label: 'Portfolio', path: '/portfolio' },
     { label: 'Ongoing Works', path: '/projects' },
     { label: 'Magazine', path: '/blogs' },
