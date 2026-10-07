@@ -13,7 +13,11 @@ import {
 } from 'lucide-react';
 import { TiltContainer } from './TiltContainer';
 
-export const AboutUs: React.FC = () => {
+interface AboutUsProps {
+  hideTeam?: boolean;
+}
+
+export const AboutUs: React.FC<AboutUsProps> = ({ hideTeam = false }) => {
   const { teamMembers } = useApp();
 
   const whyChooseUs = [
@@ -158,47 +162,49 @@ export const AboutUs: React.FC = () => {
         </div>
 
         {/* Meet the Team */}
-        <div className="space-y-10 pt-8 border-t border-white/10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <span className="text-xs text-[#D4AF37] uppercase tracking-widest font-semibold">Leadership & Talent</span>
-              <h3 className="text-3xl font-serif text-white">Meet Our Master Architects</h3>
+        {!hideTeam && (
+          <div className="space-y-10 pt-8 border-t border-white/10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+              <div className="space-y-2">
+                <span className="text-xs text-[#D4AF37] uppercase tracking-widest font-semibold">Leadership & Talent</span>
+                <h3 className="text-3xl font-serif text-white">Meet Our Master Architects</h3>
+              </div>
+              <p className="text-xs text-neutral-400 max-w-md">
+                A collective of seasoned architects, interior designers, and visualization engineers dedicated to crafting world-class spaces.
+              </p>
             </div>
-            <p className="text-xs text-neutral-400 max-w-md">
-              A collective of seasoned architects, interior designers, and visualization engineers dedicated to crafting world-class spaces.
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {teamMembers.map((member, index) => (
-              <TiltContainer key={index}>
-                <div className="group glass-card rounded-2xl overflow-hidden border border-white/10 h-full">
-                  <div className="relative h-64 overflow-hidden">
-                    <img 
-                      src={member.image || '/logo_transparent.png'} 
-                      alt={member.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        if (!target.dataset.failed) {
-                          target.dataset.failed = 'true';
-                          target.src = '/logo_transparent.png';
-                        }
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-transparent" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {teamMembers.map((member, index) => (
+                <TiltContainer key={index}>
+                  <div className="group glass-card rounded-2xl overflow-hidden border border-white/10 h-full">
+                    <div className="relative h-64 overflow-hidden">
+                      <img 
+                        src={member.image || '/logo_transparent.png'} 
+                        alt={member.name} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (!target.dataset.failed) {
+                            target.dataset.failed = 'true';
+                            target.src = '/logo_transparent.png';
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-transparent" />
+                    </div>
+                    <div className="p-5 space-y-2">
+                      <h4 className="font-serif font-bold text-xl text-white group-hover:text-[#D4AF37] transition-colors">{member.name}</h4>
+                      <div className="text-xs text-[#D4AF37] font-medium">{member.role}</div>
+                      <div className="text-[11px] text-neutral-400">{member.experience}</div>
+                      <p className="text-xs text-neutral-300 pt-2 border-t border-white/10 line-clamp-3">{member.bio}</p>
+                    </div>
                   </div>
-                  <div className="p-5 space-y-2">
-                    <h4 className="font-serif font-bold text-xl text-white group-hover:text-[#D4AF37] transition-colors">{member.name}</h4>
-                    <div className="text-xs text-[#D4AF37] font-medium">{member.role}</div>
-                    <div className="text-[11px] text-neutral-400">{member.experience}</div>
-                    <p className="text-xs text-neutral-300 pt-2 border-t border-white/10 line-clamp-3">{member.bio}</p>
-                  </div>
-                </div>
-              </TiltContainer>
-            ))}
+                </TiltContainer>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Awards & Certifications */}
         <div className="p-8 rounded-2xl glass-panel-gold border border-[#D4AF37]/30 space-y-6">
