@@ -5,7 +5,8 @@ require_once 'db_config.php';
 $defaultSettings = [
     'admin_email_enquiry_notifications' => true,
     'admin_notification_email' => 'support@decor8india.com',
-    'ga_measurement_id' => ''
+    'ga_measurement_id' => 'G-E7KJ76JHFP',
+    'ga_property_id' => ''
 ];
 
 try {
@@ -33,12 +34,16 @@ try {
         if (isset($rows['ga_measurement_id'])) {
             $settings['ga_measurement_id'] = trim($rows['ga_measurement_id']);
         }
+        if (isset($rows['ga_property_id'])) {
+            $settings['ga_property_id'] = trim($rows['ga_property_id']);
+        }
     } else {
         // Seed defaults
         $insertStmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
         $insertStmt->execute(['admin_email_enquiry_notifications', '1']);
         $insertStmt->execute(['admin_notification_email', 'support@decor8india.com']);
-        $insertStmt->execute(['ga_measurement_id', '']);
+        $insertStmt->execute(['ga_measurement_id', 'G-E7KJ76JHFP']);
+        $insertStmt->execute(['ga_property_id', '']);
     }
 
     echo json_encode([

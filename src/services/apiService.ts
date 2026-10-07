@@ -592,7 +592,7 @@ export const apiService = {
   },
 
   // System & Admin Notification Settings & GA4 Configuration
-  async getSettings(): Promise<{ success: boolean; settings?: { admin_email_enquiry_notifications: boolean; admin_notification_email: string; ga_measurement_id?: string }; message?: string }> {
+  async getSettings(): Promise<{ success: boolean; settings?: { admin_email_enquiry_notifications: boolean; admin_notification_email: string; ga_measurement_id?: string; ga_property_id?: string }; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/get_settings.php`);
       const data = await response.json();
@@ -604,14 +604,15 @@ export const apiService = {
         settings: { 
           admin_email_enquiry_notifications: true, 
           admin_notification_email: 'support@decor8india.com',
-          ga_measurement_id: ''
+          ga_measurement_id: 'G-E7KJ76JHFP',
+          ga_property_id: ''
         }, 
         message: 'Server connection error.' 
       };
     }
   },
 
-  async saveSettings(settingsData: { admin_email_enquiry_notifications?: boolean; admin_notification_email?: string; ga_measurement_id?: string }): Promise<{ success: boolean; settings?: any; message?: string }> {
+  async saveSettings(settingsData: { admin_email_enquiry_notifications?: boolean; admin_notification_email?: string; ga_measurement_id?: string; ga_property_id?: string }): Promise<{ success: boolean; settings?: any; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/save_settings.php`, {
         method: 'POST',
@@ -623,6 +624,65 @@ export const apiService = {
     } catch (error) {
       console.warn('Backend API saveSettings error:', error);
       return { success: false, message: 'Server connection error.' };
+    }
+  },
+
+  // Live Real-Time Analytics Telemetry
+  async getAnalytics(range: '7d' | '14d' | '30d' | '90d' = '14d'): Promise<{
+    success: boolean;
+    range: string;
+    days: number;
+    activeNow: number;
+    activePages: string[];
+    totalVisitors: number;
+    totalPageviews: number;
+    avgDuration: string;
+    bounceRate: string;
+    conversionCount: number;
+    chartData: { day: string; date: string; visitors: number; pageviews: number }[];
+    topPages: { path: string; title: string; views: number; share: number }[];
+    channels: { name: string; visitors: number; pct: number; color: string }[];
+    devices: { mobile: number; desktop: number; tablet: number };
+    recentEvents: { id: string; eventName: string; path: string; timestamp: string; device?: string; channel?: string }[];
+    settings?: { ga_measurement_id?: string; ga_property_id?: string };
+  }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/get_analytics.php?range=${range}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.warn('Backend API getAnalytics error:', error);
+      return {
+        success: false,
+        range,
+        days: 14,
+        activeNow: 0,
+        activePages: [],
+        totalVisitors: 0,
+        totalPageviews: 0,
+        avgDuration: '0m 0s',
+        bounceRate: '0.0%',
+        conversionCount: 0,
+        chartData: [],
+        topPages: [],
+        channels: [],
+        devices: { mobile: 0, desktop: 100, tablet: 0 },
+        recentEvents: []
+      };
+    }
+  },
+
+  async recordHit(payload: { path: string; title?: string; referrer?: string; eventType?: string; sessionId?: string; device?: string }): Promise<any> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/record_hit.php`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true
+      });
+      return await response.json();
+    } catch (error) {
+      return null;
     }
   }
 };

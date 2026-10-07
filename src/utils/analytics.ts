@@ -7,6 +7,8 @@ declare global {
   }
 }
 
+import { apiService } from '../services/apiService';
+
 export interface AnalyticsEventRecord {
   id: string;
   eventName: string;
@@ -18,6 +20,18 @@ const LOCAL_EVENTS_KEY = 'decor8_recent_analytics_events';
 let isGA4Initialized = typeof window !== 'undefined' && typeof (window as any).gtag === 'function';
 let activeMeasurementId: string | null = 'G-E7KJ76JHFP';
 let lastTrackedPath: string = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+
+export const getSessionId = (): string => {
+  if (typeof window === 'undefined') return 'server_session';
+  let sid = sessionStorage.getItem('decor8_analytics_sid');
+  if (!sid) {
+    sid = 'sid_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+    try {
+      sessionStorage.setItem('decor8_analytics_sid', sid);
+    } catch {}
+  }
+  return sid;
+};
 
 // Helper: Record event locally for Admin Dashboard Live Stream
 export const recordLocalAnalyticsEvent = (eventName: string, params: Record<string, any> = {}) => {
@@ -120,6 +134,16 @@ export const trackPageView = (path: string, pageTitle?: string) => {
   }
 
   recordLocalAnalyticsEvent('page_view', { path, title });
+
+  try {
+    apiService.recordHit({
+      path,
+      title,
+      referrer: typeof document !== 'undefined' ? document.referrer : '',
+      eventType: 'page_view',
+      sessionId: getSessionId()
+    });
+  } catch {}
 };
 
 /**
@@ -131,6 +155,16 @@ export const trackEvent = (eventName: string, params: Record<string, any> = {}) 
   }
 
   recordLocalAnalyticsEvent(eventName, params);
+
+  try {
+    apiService.recordHit({
+      path: typeof window !== 'undefined' ? window.location.pathname : '/',
+      title: typeof document !== 'undefined' ? document.title : '',
+      referrer: typeof document !== 'undefined' ? document.referrer : '',
+      eventType: eventName,
+      sessionId: getSessionId()
+    });
+  } catch {}
 };
 
 export const getActiveMeasurementId = (): string | null => activeMeasurementId;

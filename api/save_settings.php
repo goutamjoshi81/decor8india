@@ -45,6 +45,13 @@ try {
         $savedSettings['ga_measurement_id'] = $gaId;
     }
 
+    if (isset($data['ga_property_id'])) {
+        $propId = trim($data['ga_property_id']);
+        $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES ('ga_property_id', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+        $stmt->execute([$propId]);
+        $savedSettings['ga_property_id'] = $propId;
+    }
+
     // Also update fallback JSON file for redundancy
     $jsonFile = __DIR__ . '/settings.json';
     $currentJson = file_exists($jsonFile) ? (json_decode(file_get_contents($jsonFile), true) ?: []) : [];
@@ -69,6 +76,9 @@ try {
     }
     if (isset($data['ga_measurement_id'])) {
         $currentJson['ga_measurement_id'] = trim(strtoupper($data['ga_measurement_id']));
+    }
+    if (isset($data['ga_property_id'])) {
+        $currentJson['ga_property_id'] = trim($data['ga_property_id']);
     }
     @file_put_contents($jsonFile, json_encode($currentJson, JSON_PRETTY_PRINT));
 
