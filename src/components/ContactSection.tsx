@@ -63,7 +63,7 @@ export const ContactSection: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
           {/* Contact Form */}
-          <div className="lg:col-span-7 p-8 rounded-2xl glass-panel border border-white/10 space-y-6">
+          <div className="lg:col-span-7 p-5 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-6">
             <h3 className="font-serif text-2xl font-bold text-white">Send Us a Direct Message</h3>
 
             {!submitted ? (

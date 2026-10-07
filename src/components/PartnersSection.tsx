@@ -23,12 +23,12 @@ export const PartnersSection: React.FC = () => {
   };
 
   return (
-    <section id="partners" className="py-12 sm:py-20 bg-[#0D0E12] glass-section relative overflow-hidden section-gpu-optimize w-full max-w-full">
+    <section id="partners" className="py-12 sm:py-20 bg-[#0D0E12] glass-section relative overflow-hidden section-gpu-optimize">
       
       {/* GPU-Native Ambient Gold Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] rounded-full pointer-events-none glow-orb-gold opacity-40 max-w-full overflow-hidden" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] rounded-full pointer-events-none glow-orb-gold opacity-40" />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-10 relative z-10 w-full max-w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-10 relative z-10">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-2.5 sm:space-y-3">

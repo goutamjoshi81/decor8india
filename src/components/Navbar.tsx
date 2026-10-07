@@ -210,7 +210,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#0D0E12]/95 backdrop-blur-2xl border-b border-white/10 px-6 py-6 space-y-4 animate-in slide-in-from-top duration-300">
+        <div className="xl:hidden bg-[#0D0E12]/95 backdrop-blur-2xl border-b border-white/10 px-6 py-6 space-y-4 animate-in slide-in-from-top duration-300">
           <div className="flex flex-col space-y-3 font-medium text-base text-neutral-300">
             <Link to="/" className="text-left py-2 border-b border-white/5 flex items-center justify-between">
               <span>Home</span>

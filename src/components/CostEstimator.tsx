@@ -226,7 +226,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Controls Column */}
-        <div className="lg:col-span-7 p-6 sm:p-8 rounded-2xl glass-panel border border-white/10 space-y-6">
+        <div className="lg:col-span-7 p-4 sm:p-6 lg:p-8 rounded-2xl glass-panel border border-white/10 space-y-6">
           
           {/* Category Selector */}
           <div className="grid grid-cols-3 gap-1 rounded-xl bg-black/60 p-1 border border-white/10">
@@ -475,7 +475,7 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
         {/* Calculation Output & Lead Form Column */}
         <div className="lg:col-span-5 space-y-6">
           
-          <div className="p-6 sm:p-8 rounded-2xl glass-panel-gold border border-[#D4AF37]/40 space-y-6 shadow-2xl relative overflow-hidden">
+          <div className="p-4 sm:p-6 lg:p-8 rounded-2xl glass-panel-gold border border-[#D4AF37]/40 space-y-6 shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-2xl pointer-events-none" />
 
             <div className="space-y-2">
@@ -521,12 +521,12 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                 </div>
               ) : (
                 <div className="space-y-0.5">
-                  <div className="flex items-baseline space-x-3">
-                    <div className="text-4xl sm:text-5xl font-serif font-bold text-emerald-400">
-                      ₹ {(calculation.totalCost / 100000).toFixed(2)}* <span className="text-2xl font-serif text-[#D4AF37]">Lakhs</span>
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <div className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-emerald-400">
+                      ₹ {(calculation.totalCost / 100000).toFixed(2)}* <span className="text-xl sm:text-2xl font-serif text-[#D4AF37]">Lakhs</span>
                     </div>
                     {hasDbDiscount && (
-                      <div className="text-base sm:text-lg text-neutral-500 line-through font-mono font-bold">
+                      <div className="text-sm sm:text-base lg:text-lg text-neutral-500 line-through font-mono font-bold">
                         ₹ {(calculation.originalTotal / 100000).toFixed(2)} L
                       </div>
                     )}

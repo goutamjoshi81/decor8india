@@ -42,19 +42,19 @@ export const FAQ: React.FC = () => {
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full p-6 text-left flex items-center justify-between space-x-4 focus:outline-none"
+                  className="w-full p-4 sm:p-6 text-left flex items-center justify-between space-x-4 focus:outline-none cursor-pointer"
                 >
-                  <span className="font-serif font-bold text-lg sm:text-xl text-white">
+                  <span className="font-serif font-bold text-base sm:text-xl text-white">
                     {faq.question}
                   </span>
-                  <div className={`p-1.5 rounded-full bg-white/5 text-[#D4AF37] transition-transform duration-300 ${isOpen ? 'rotate-180 bg-[#D4AF37] text-black' : ''}`}>
-                    <ChevronDown className="w-5 h-5" />
+                  <div className={`p-1.5 rounded-full bg-white/5 text-[#D4AF37] transition-transform duration-300 shrink-0 ${isOpen ? 'rotate-180 bg-[#D4AF37] text-black' : ''}`}>
+                    <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 pt-0 text-xs sm:text-sm text-neutral-300 leading-relaxed border-t border-white/10 font-light animate-in fade-in">
-                    <p className="pt-4">{faq.answer}</p>
+                  <div className="px-4 pb-4 sm:px-6 sm:pb-6 pt-0 text-xs sm:text-sm text-neutral-300 leading-relaxed border-t border-white/10 font-light animate-in fade-in">
+                    <p className="pt-3 sm:pt-4">{faq.answer}</p>
                   </div>
                 )}
               </div>

@@ -83,13 +83,13 @@ export const Hero: React.FC = () => {
           <div className="lg:col-span-8 space-y-8">
             
             {/* Top Badge */}
-            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full glass-panel border border-[#D4AF37]/40 text-xs font-semibold uppercase tracking-widest text-[#D4AF37] animate-border-pulse shadow-lg">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-              <span>India's Premier Luxury Interior, Construction & Architectural Studio</span>
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full glass-panel border border-[#D4AF37]/40 text-[10px] sm:text-xs font-semibold uppercase tracking-wider sm:tracking-widest text-[#D4AF37] animate-border-pulse shadow-lg text-center max-w-full">
+              <Sparkles className="w-3.5 h-3.5 animate-pulse shrink-0" />
+              <span className="leading-tight">India's Premier Luxury Interior, Construction & Architectural Studio</span>
             </div>
 
             {/* Headline */}
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-serif font-normal text-white leading-[1.1] tracking-tight">
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-serif font-normal text-white leading-[1.12] sm:leading-[1.1] tracking-tight">
               Crafting Timeless <br />
               <span className="shimmer-gold-text italic font-normal">Sanctuaries of Luxury</span> & Precision.
             </h1>
@@ -127,7 +127,7 @@ export const Hero: React.FC = () => {
             </div>
 
             {/* Trust Badges */}
-            <div className="pt-4 flex flex-wrap items-center gap-6 text-xs text-neutral-400 font-medium">
+            <div className="pt-4 flex flex-wrap items-center gap-3 sm:gap-6 text-xs text-neutral-400 font-medium">
               <div className="flex items-center space-x-2">
                 <CheckCircle2 className="w-4 h-4 text-[#D4AF37]" />
                 <span>100% On-Time Turnkey Execution</span>
@@ -146,7 +146,7 @@ export const Hero: React.FC = () => {
 
           {/* Floating Stats Panel */}
           <div className="lg:col-span-4 space-y-4">
-            <div className="glass-panel p-6 rounded-2xl border border-white/10 shadow-2xl relative">
+            <div className="glass-panel p-6 rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-12 h-12 bg-[#D4AF37]/20 rounded-full blur-xl pointer-events-none"></div>
 
               <h3 className="text-xs uppercase tracking-widest text-[#D4AF37] font-semibold mb-6 flex items-center justify-between">

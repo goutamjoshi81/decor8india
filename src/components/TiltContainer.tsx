@@ -23,7 +23,6 @@ export const TiltContainer: React.FC<TiltContainerProps> = ({
   const currentY = useRef<number>(0);
   const isInteracting = useRef<boolean>(false);
   const isRunning = useRef<boolean>(false);
-  const rectRef = useRef<DOMRect | null>(null);
 
   const startLoop = () => {
     if (isRunning.current) return;
@@ -64,8 +63,9 @@ export const TiltContainer: React.FC<TiltContainerProps> = ({
     };
   }, []);
 
-  // Desktop mouse handlers
+  // Desktop mouse handlers (only active on devices supporting fine pointer hover)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
     if (!containerRef.current) return;
     isInteracting.current = true;
     const rect = containerRef.current.getBoundingClientRect();
@@ -78,44 +78,8 @@ export const TiltContainer: React.FC<TiltContainerProps> = ({
   };
 
   const handleMouseLeave = () => {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
     isInteracting.current = false;
-    targetX.current = 0;
-    targetY.current = 0;
-    startLoop();
-  };
-
-  // Mobile Touch handlers (Lightweight, passive cached bounds, zero jank)
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!containerRef.current || !e.touches[0]) return;
-    isInteracting.current = true;
-    rectRef.current = containerRef.current.getBoundingClientRect();
-    const touch = e.touches[0];
-    const rect = rectRef.current;
-    const x = (touch.clientX - rect.left) / rect.width - 0.5;
-    const y = (touch.clientY - rect.top) / rect.height - 0.5;
-
-    const mobileTilt = Math.min(maxTilt, 6);
-    targetX.current = -y * mobileTilt;
-    targetY.current = x * mobileTilt;
-    startLoop();
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!rectRef.current || !e.touches[0]) return;
-    const touch = e.touches[0];
-    const rect = rectRef.current;
-    const x = (touch.clientX - rect.left) / rect.width - 0.5;
-    const y = (touch.clientY - rect.top) / rect.height - 0.5;
-
-    const mobileTilt = Math.min(maxTilt, 6);
-    targetX.current = -y * mobileTilt;
-    targetY.current = x * mobileTilt;
-    startLoop();
-  };
-
-  const handleTouchEnd = () => {
-    isInteracting.current = false;
-    rectRef.current = null;
     targetX.current = 0;
     targetY.current = 0;
     startLoop();
@@ -127,10 +91,6 @@ export const TiltContainer: React.FC<TiltContainerProps> = ({
       onClick={onClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
       className={`transition-shadow duration-300 ${className}`}
       style={{
         transformStyle: 'preserve-3d',

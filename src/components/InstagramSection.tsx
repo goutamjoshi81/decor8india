@@ -36,11 +36,11 @@ export const InstagramSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Clean Instagram Profile Banner */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-neutral-900/90 via-[#0D0E12]/95 to-neutral-900/90 border border-white/10 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-neutral-900/90 via-[#0D0E12]/95 to-neutral-900/90 border border-white/10 shadow-2xl backdrop-blur-xl">
           
-          <div className="flex items-center space-x-5">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5 w-full lg:w-auto">
             {/* Profile Avatar */}
-            <div className="relative group cursor-pointer" onClick={() => window.open('https://www.instagram.com/decor8_india_official/', '_blank')}>
+            <div className="relative group cursor-pointer shrink-0" onClick={() => window.open('https://www.instagram.com/decor8_india_official/', '_blank')}>
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full p-[3px] bg-gradient-to-tr from-amber-500 via-pink-500 to-purple-600 animate-spin-slow">
                 <div className="w-full h-full bg-[#0B0C0E] rounded-full p-1">
                   <img 
@@ -56,8 +56,8 @@ export const InstagramSection: React.FC = () => {
             </div>
 
             {/* Profile Info */}
-            <div className="space-y-1 text-left">
-              <div className="flex items-center space-x-2">
+            <div className="space-y-1 text-center sm:text-left flex flex-col items-center sm:items-start">
+              <div className="flex items-center justify-center sm:justify-start space-x-2">
                 <h3 className="text-xl sm:text-2xl font-bold font-serif text-white tracking-wide">
                   decor8_india_official
                 </h3>
@@ -66,11 +66,11 @@ export const InstagramSection: React.FC = () => {
               <p className="text-xs sm:text-sm text-[#D4AF37] font-medium">
                 Decor8India Architecture & Turnkey Interior Studio
               </p>
-              <div className="flex items-center space-x-4 text-xs text-neutral-400 font-mono pt-0.5">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 sm:gap-x-4 gap-y-1 text-xs text-neutral-400 font-mono pt-1">
                 <span><strong className="text-white">{postsCount}</strong> Posts</span>
                 <span>•</span>
                 <span><strong className="text-white">{followersCount}</strong> Followers</span>
-                <span>•</span>
+                <span className="hidden xs:inline">•</span>
                 <span><strong className="text-white">Bengaluru & Mumbai</strong></span>
               </div>
             </div>

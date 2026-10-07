@@ -60,17 +60,17 @@ export const Testimonials: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
         
         {/* Google Reviews Header Card */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 p-8 rounded-3xl bg-gradient-to-r from-neutral-900/90 via-[#0D0E12]/95 to-neutral-900/90 border border-[#D4AF37]/30 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-neutral-900/90 via-[#0D0E12]/95 to-neutral-900/90 border border-[#D4AF37]/30 shadow-2xl backdrop-blur-xl">
           
-          <div className="flex items-center space-x-5">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5 w-full lg:w-auto">
             {/* Google Icon Badge */}
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl p-4 bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
               <GoogleIcon className="w-10 h-10 sm:w-12 sm:h-12" />
             </div>
 
             {/* Google Rating Info */}
-            <div className="space-y-1.5 text-left">
-              <div className="flex items-center space-x-2">
+            <div className="space-y-1.5 text-center sm:text-left flex flex-col items-center sm:items-start">
+              <div className="flex items-center justify-center sm:justify-start space-x-2">
                 <span className="text-2xl sm:text-3xl font-bold text-white font-serif">4.9 / 5.0</span>
                 <div className="flex text-amber-400 space-x-0.5">
                   {[...Array(5)].map((_, i) => (
@@ -134,13 +134,13 @@ export const Testimonials: React.FC = () => {
           
           {/* Main Showcase Card */}
           <TiltContainer className="lg:col-span-8">
-            <div className="p-8 sm:p-10 rounded-2xl glass-panel-gold border border-[#D4AF37]/40 space-y-6 relative h-full">
-            <Quote className="w-12 h-12 text-[#D4AF37]/30 absolute top-6 right-6" />
+            <div className="p-5 sm:p-8 md:p-10 rounded-2xl glass-panel-gold border border-[#D4AF37]/40 space-y-6 relative h-full">
+            <Quote className="w-10 h-10 sm:w-12 sm:h-12 text-[#D4AF37]/30 absolute top-4 sm:top-6 right-4 sm:right-6" />
 
             <div className="flex items-center justify-between">
               <div className="flex text-amber-400 space-x-1">
                 {[...Array(testimonials[currentIdx]?.rating || 5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-current" />
+                  <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
                 ))}
               </div>
 
@@ -156,36 +156,38 @@ export const Testimonials: React.FC = () => {
               </a>
             </div>
 
-            <p className="text-lg sm:text-2xl font-serif italic text-white leading-relaxed">
+            <p className="text-base sm:text-2xl font-serif italic text-white leading-relaxed">
               "{testimonials[currentIdx].comment}"
             </p>
 
-            <div className="pt-6 border-t border-[#D4AF37]/20 flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+            <div className="pt-6 border-t border-[#D4AF37]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center space-x-3 sm:space-x-4">
                 <img 
                   src={testimonials[currentIdx].avatar} 
                   alt={testimonials[currentIdx].clientName} 
-                  className="w-14 h-14 rounded-full object-cover border-2 border-[#D4AF37]"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-[#D4AF37] shrink-0"
                 />
                 <div>
-                  <h4 className="font-serif font-bold text-xl text-white">{testimonials[currentIdx].clientName}</h4>
+                  <h4 className="font-serif font-bold text-lg sm:text-xl text-white">{testimonials[currentIdx].clientName}</h4>
                   <div className="text-xs text-[#D4AF37]">{testimonials[currentIdx].location} • {testimonials[currentIdx].projectType}</div>
                 </div>
               </div>
 
               {/* Slider Arrows */}
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 self-end sm:self-auto">
                 <button 
                   onClick={prevTestimonial}
-                  className="p-2.5 rounded-full bg-black/60 text-white hover:text-[#D4AF37] border border-white/10"
+                  className="p-2 sm:p-2.5 rounded-full bg-black/60 text-white hover:text-[#D4AF37] border border-white/10"
+                  aria-label="Previous Testimonial"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button 
                   onClick={nextTestimonial}
-                  className="p-2.5 rounded-full bg-black/60 text-white hover:text-[#D4AF37] border border-white/10"
+                  className="p-2 sm:p-2.5 rounded-full bg-black/60 text-white hover:text-[#D4AF37] border border-white/10"
+                  aria-label="Next Testimonial"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>

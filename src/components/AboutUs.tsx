@@ -55,7 +55,7 @@ export const AboutUs: React.FC<AboutUsProps> = ({ hideTeam = false }) => {
       {/* Background Ambient Glow Orb (GPU Composited) */}
       <div className="absolute top-1/3 right-10 w-96 h-96 rounded-full pointer-events-none glow-orb-gold animate-orb" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-16 sm:space-y-24">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -82,16 +82,16 @@ export const AboutUs: React.FC<AboutUsProps> = ({ hideTeam = false }) => {
                 alt="Decor8India Studio & Workshop" 
                 loading="lazy"
                 decoding="async"
-                className="w-full h-[450px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                className="w-full h-[320px] sm:h-[450px] object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
-              <div className="absolute bottom-6 left-6 right-6 p-4 glass-panel rounded-xl border border-white/10 group-hover:border-[#D4AF37]/40 transition-colors">
-                <div className="text-[#D4AF37] font-serif text-lg font-semibold">Craftsmanship & Precision</div>
+              <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 p-3.5 sm:p-4 glass-panel rounded-xl border border-white/10 group-hover:border-[#D4AF37]/40 transition-colors">
+                <div className="text-[#D4AF37] font-serif text-base sm:text-lg font-semibold">Craftsmanship & Precision</div>
                 <div className="text-xs text-neutral-300">Over 450+ bespoke luxury residences and corporate offices brought to life.</div>
               </div>
             </div>
             {/* Background Glow Frame */}
-            <div className="absolute -bottom-6 -right-6 w-full h-full border-2 border-[#D4AF37]/30 rounded-2xl -z-0 pointer-events-none hidden sm:block animate-pulse-glow" />
+            <div className="absolute bottom-0 right-0 translate-x-3 translate-y-3 w-full h-full border-2 border-[#D4AF37]/30 rounded-2xl -z-0 pointer-events-none hidden md:block animate-pulse-glow" />
           </div>
 
           {/* Story Copy */}
@@ -207,7 +207,7 @@ export const AboutUs: React.FC<AboutUsProps> = ({ hideTeam = false }) => {
         )}
 
         {/* Awards & Certifications */}
-        <div className="p-8 rounded-2xl glass-panel-gold border border-[#D4AF37]/30 space-y-6">
+        <div className="p-5 sm:p-8 rounded-2xl glass-panel-gold border border-[#D4AF37]/30 space-y-6">
           <div className="flex items-center space-x-3 text-[#D4AF37]">
             <Award className="w-6 h-6" />
             <h4 className="font-serif text-2xl font-bold text-white">Awards & Industry Accreditations</h4>
