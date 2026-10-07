@@ -4,7 +4,8 @@ require_once 'db_config.php';
 
 $defaultSettings = [
     'admin_email_enquiry_notifications' => true,
-    'admin_notification_email' => 'support@decor8india.com'
+    'admin_notification_email' => 'support@decor8india.com',
+    'ga_measurement_id' => ''
 ];
 
 try {
@@ -29,11 +30,15 @@ try {
         if (!empty($rows['admin_notification_email'])) {
             $settings['admin_notification_email'] = trim($rows['admin_notification_email']);
         }
+        if (isset($rows['ga_measurement_id'])) {
+            $settings['ga_measurement_id'] = trim($rows['ga_measurement_id']);
+        }
     } else {
         // Seed defaults
         $insertStmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
         $insertStmt->execute(['admin_email_enquiry_notifications', '1']);
         $insertStmt->execute(['admin_notification_email', 'support@decor8india.com']);
+        $insertStmt->execute(['ga_measurement_id', '']);
     }
 
     echo json_encode([

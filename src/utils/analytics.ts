@@ -15,8 +15,9 @@ export interface AnalyticsEventRecord {
 }
 
 const LOCAL_EVENTS_KEY = 'decor8_recent_analytics_events';
-let isGA4Initialized = false;
-let activeMeasurementId: string | null = null;
+let isGA4Initialized = typeof window !== 'undefined' && typeof (window as any).gtag === 'function';
+let activeMeasurementId: string | null = 'G-E7KJ76JHFP';
+let lastTrackedPath: string = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
 
 // Helper: Record event locally for Admin Dashboard Live Stream
 export const recordLocalAnalyticsEvent = (eventName: string, params: Record<string, any> = {}) => {
@@ -68,10 +69,14 @@ export const initGA4 = (measurementId: string): boolean => {
     return false;
   }
 
+  if (isGA4Initialized && activeMeasurementId === cleanId && typeof window.gtag === 'function') {
+    return true;
+  }
+
   activeMeasurementId = cleanId;
 
   // Avoid duplicate script tag injection
-  if (!document.getElementById('ga4-tag-manager-script')) {
+  if (!document.getElementById('ga4-tag-manager-script') && !document.querySelector(`script[src*="${cleanId}"]`)) {
     const script = document.createElement('script');
     script.id = 'ga4-tag-manager-script';
     script.async = true;
@@ -80,14 +85,16 @@ export const initGA4 = (measurementId: string): boolean => {
   }
 
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function () {
-    window.dataLayer.push(arguments);
-  };
+  if (!window.gtag) {
+    window.gtag = function () {
+      window.dataLayer.push(arguments);
+    };
+  }
 
   window.gtag('js', new Date());
   window.gtag('config', cleanId, {
-    send_page_view: false, // Page views sent manually via React Router
-    cookie_flags: 'SameSite=None;Secure',
+    page_path: window.location.pathname + window.location.search,
+    page_title: document.title || 'Decor8 India',
   });
 
   isGA4Initialized = true;
@@ -99,9 +106,12 @@ export const initGA4 = (measurementId: string): boolean => {
  * Track Page Views in Single Page Application (SPA) on Route Change
  */
 export const trackPageView = (path: string, pageTitle?: string) => {
+  if (path === lastTrackedPath) return; // Deduplicate rapid repeated calls
+  lastTrackedPath = path;
+
   const title = pageTitle || document.title || 'Decor8 India';
   
-  if (isGA4Initialized && window.gtag && activeMeasurementId) {
+  if (window.gtag && (isGA4Initialized || activeMeasurementId)) {
     window.gtag('event', 'page_view', {
       page_path: path,
       page_title: title,
@@ -116,7 +126,7 @@ export const trackPageView = (path: string, pageTitle?: string) => {
  * Track Custom Business Conversion Events
  */
 export const trackEvent = (eventName: string, params: Record<string, any> = {}) => {
-  if (isGA4Initialized && window.gtag) {
+  if (window.gtag) {
     window.gtag('event', eventName, params);
   }
 
