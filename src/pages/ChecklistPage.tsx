@@ -134,7 +134,11 @@ const SAMPLE_DATA: Record<string, any> = {
   barDesign: 'Lacquered Glass Shelves + Marble Counter with Wine Chiller',
 };
 
-export const ChecklistPage: React.FC = () => {
+interface ChecklistPageProps {
+  isEmbedded?: boolean;
+}
+
+export const ChecklistPage: React.FC<ChecklistPageProps> = ({ isEmbedded = false }) => {
   const [activeTab, setActiveTab] = useState<number>(1);
   const [viewAllPages, setViewAllPages] = useState<boolean>(false);
   const [formData, setFormData] = useState<Record<string, any>>(() => {
@@ -179,7 +183,7 @@ export const ChecklistPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#07080A] text-[#E5E3DF] pt-24 pb-16 px-3 sm:px-6 lg:px-8">
+    <div className={`w-full text-[#E5E3DF] ${isEmbedded ? 'p-0' : 'min-h-screen bg-[#07080A] pt-24 pb-16 px-3 sm:px-6 lg:px-8'}`}>
       {/* Print Specific Styles */}
       <style>{`
         @media print {
@@ -215,19 +219,26 @@ export const ChecklistPage: React.FC = () => {
       <div className="max-w-7xl mx-auto mb-6 no-print">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
           <div>
-            <div className="flex items-center space-x-2 text-xs text-neutral-400 font-mono mb-1">
-              <Link to="/" className="hover:text-[#D4AF37] transition-colors">Home</Link>
-              <span>/</span>
-              <span className="text-[#D4AF37]">Interior Selection Checklist</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-wide text-white flex items-center space-x-3">
+            {!isEmbedded ? (
+              <div className="flex items-center space-x-2 text-xs text-neutral-400 font-mono mb-1">
+                <Link to="/" className="hover:text-[#D4AF37] transition-colors">Home</Link>
+                <span>/</span>
+                <span className="text-[#D4AF37]">Interior Selection Checklist</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2 text-xs text-[#D4AF37] font-mono mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>ADMIN ARCHITECTURAL SPECIFICATION DESK</span>
+              </div>
+            )}
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif font-black tracking-wide text-white flex flex-wrap items-center gap-2">
               <span>DECOR8 INDIA INTERIOR SELECTION CHECKLIST</span>
               <span className="px-2.5 py-0.5 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/50 text-[#D4AF37] text-xs font-mono font-bold">
-                1 Page = 1 Category
+                10 Categories
               </span>
             </h1>
             <p className="text-xs text-neutral-400 mt-1 max-w-3xl">
-              Official architectural specification and selection guide with interactive 2D dimension sketches for client signoffs and site drafting.
+              Official architectural specification and selection guide with interactive 2D dimension sketches for client signoffs, material vetting, and site drafting.
             </p>
           </div>
 

@@ -40,13 +40,15 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  BarChart3
+  BarChart3,
+  ClipboardCheck
 } from 'lucide-react';
 import type { BranchOffice } from '../../types';
 
 import { InvoiceModal } from '../InvoiceModal';
 import { AnimatedTabs } from '../AnimatedTabs';
 import { AnalyticsDashboardSection } from './AnalyticsDashboardSection';
+import { ChecklistPage } from '../../pages/ChecklistPage';
 
 interface AdminDashboardProps {
   onReturnToPublic: () => void;
@@ -177,7 +179,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
     deletePartner
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'emails' | 'portfolio' | 'services' | 'team' | 'magazine' | 'branches' | 'partners' | 'careers'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'clients' | 'projects' | 'checklist' | 'emails' | 'portfolio' | 'services' | 'team' | 'magazine' | 'branches' | 'partners' | 'careers'>('analytics');
   const [clientFilter, setClientFilter] = useState<'ALL' | 'PACKAGES' | 'SITE_VISITS'>('ALL');
 
   // Admin New Enquiry Email Notification Setting State
@@ -1211,6 +1213,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button 
+              onClick={() => setActiveTab('checklist')}
+              className={`px-4 py-2.5 rounded-xl border transition-all flex items-center space-x-2 text-xs font-bold cursor-pointer ${
+                activeTab === 'checklist' 
+                  ? 'bg-[#D4AF37] text-black border-[#D4AF37] shadow-lg shadow-[#D4AF37]/30 font-extrabold' 
+                  : 'bg-white/5 text-neutral-300 border-white/20 hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]'
+              }`}
+              title="Open Interior Selection Checklist"
+            >
+              <ClipboardCheck className="w-4 h-4 text-[#D4AF37]" />
+              <span>Selection Checklist</span>
+            </button>
+            <button 
               onClick={() => setActiveTab('emails')}
               className={`px-4 py-2.5 rounded-xl border transition-all flex items-center space-x-2 text-xs font-bold cursor-pointer ${
                 activeTab === 'emails' 
@@ -1245,6 +1259,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
             { id: 'analytics', label: 'Analytics & KPIs', icon: BarChart3 },
             { id: 'clients', label: 'Client Approvals', icon: Users, badge: pendingApprovalsCount },
             { id: 'projects', label: 'Project Process & Live Feeds', icon: Building2 },
+            { id: 'checklist', label: 'Selection Checklist', icon: ClipboardCheck },
             { id: 'portfolio', label: 'Portfolio CMS', icon: ImageIcon },
             { id: 'services', label: 'Service & Pricing CMS', icon: DollarSign },
             { id: 'team', label: 'Master Architects CMS', icon: Award },
@@ -1801,6 +1816,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                       <p className="text-xs text-neutral-400 font-mono">Client: {selectedProject.clientName} • Architect: {selectedProject.designerName}</p>
                     </div>
                     <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => setActiveTab('checklist')}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black flex items-center space-x-1.5 cursor-pointer shadow-sm"
+                        title="Open Interior Selection Checklist"
+                      >
+                        <ClipboardCheck className="w-3.5 h-3.5" />
+                        <span>Selection Checklist</span>
+                      </button>
                       <button
                         onClick={() => updateProject(selectedProject.id, { showOnLandingPage: selectedProject.showOnLandingPage !== false ? false : true })}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border flex items-center space-x-1.5 ${
@@ -2487,6 +2510,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* TAB 3.4: INTERIOR SELECTION CHECKLIST */}
+        {activeTab === 'checklist' && (
+          <div className="p-4 sm:p-6 lg:p-8 rounded-2xl glass-panel border border-[#D4AF37]/30 space-y-6 animate-in fade-in">
+            <ChecklistPage isEmbedded={true} />
           </div>
         )}
 
