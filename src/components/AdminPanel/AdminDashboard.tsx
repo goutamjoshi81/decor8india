@@ -3132,11 +3132,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
               {teamMembers.map((member) => (
                 <div key={member.id} className="glass-card rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between group">
                   <div>
-                    <div className="relative h-64 overflow-hidden bg-black">
+                    <div className="relative w-full aspect-[3/4] overflow-hidden bg-black">
                       <img 
                         src={member.image} 
                         alt={member.name} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover object-center transition-transform duration-500"
                         onError={(e) => {
                           const target = e.currentTarget;
                           if (!target.dataset.failed) {
@@ -3145,7 +3145,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                           }
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-transparent" />
+                      <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-[#0B0C0E] to-transparent pointer-events-none" />
                       <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-[#D4AF37]/40 text-[#D4AF37] font-mono text-[10px] font-bold">
                         {member.experience}
                       </div>

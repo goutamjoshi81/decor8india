@@ -33,12 +33,12 @@ export const MasterArchitectsSection: React.FC = () => {
             <TiltContainer key={member.id || index}>
               <div className="group glass-card rounded-2xl overflow-hidden border border-white/10 hover:border-[#D4AF37]/50 transition-all duration-300 h-full flex flex-col bg-[#111216]/80 shadow-xl">
                 
-                {/* Photo with gradient overlay */}
-                <div className="relative h-64 sm:h-72 lg:h-80 overflow-hidden bg-neutral-900">
+                {/* Photo with original aspect ratio preserved */}
+                <div className="relative w-full aspect-[3/4] overflow-hidden bg-neutral-900">
                   <img 
                     src={member.image || '/logo_transparent.png'} 
                     alt={member.name} 
-                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out"
+                    className="w-full h-full object-cover object-center transition-transform duration-500"
                     onError={(e) => {
                       const target = e.currentTarget;
                       if (!target.dataset.failed) {
@@ -47,7 +47,7 @@ export const MasterArchitectsSection: React.FC = () => {
                       }
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#111216] via-[#111216]/20 to-transparent" />
+                  <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-[#111216] to-transparent pointer-events-none" />
                 </div>
 
                 {/* Bio & Credentials */}

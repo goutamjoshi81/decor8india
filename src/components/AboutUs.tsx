@@ -178,11 +178,11 @@ export const AboutUs: React.FC<AboutUsProps> = ({ hideTeam = false }) => {
               {teamMembers.map((member, index) => (
                 <TiltContainer key={index}>
                   <div className="group glass-card rounded-2xl overflow-hidden border border-white/10 h-full">
-                    <div className="relative h-64 overflow-hidden">
+                    <div className="relative w-full aspect-[3/4] overflow-hidden bg-neutral-900">
                       <img 
                         src={member.image || '/logo_transparent.png'} 
                         alt={member.name} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover object-center transition-transform duration-500"
                         onError={(e) => {
                           const target = e.currentTarget;
                           if (!target.dataset.failed) {
@@ -191,7 +191,7 @@ export const AboutUs: React.FC<AboutUsProps> = ({ hideTeam = false }) => {
                           }
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0C0E] via-transparent to-transparent" />
+                      <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-[#0B0C0E] to-transparent pointer-events-none" />
                     </div>
                     <div className="p-5 space-y-2">
                       <h4 className="font-serif font-bold text-xl text-white group-hover:text-[#D4AF37] transition-colors">{member.name}</h4>
