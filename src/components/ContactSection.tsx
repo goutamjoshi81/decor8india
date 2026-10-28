@@ -7,7 +7,9 @@ import {
   Clock, 
   Send, 
   MessageSquare, 
-  CheckCircle2
+  CheckCircle2,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 export const ContactSection: React.FC = () => {
@@ -22,22 +24,38 @@ export const ContactSection: React.FC = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.phone) return;
 
-    submitBooking({
-      clientName: formData.name,
-      clientEmail: formData.email,
-      clientPhone: formData.phone,
-      serviceType: formData.service as 'Residential' | 'Commercial',
-      packageName: 'Custom Contact Inquiry',
-      preferredDate: new Date().toISOString().split('T')[0],
-      requirements: formData.message || 'General contact inquiry from website.'
-    });
+    setIsSubmitting(true);
+    setSubmitError(null);
 
-    setSubmitted(true);
+    try {
+      const res = await submitBooking({
+        clientName: formData.name,
+        clientEmail: formData.email,
+        clientPhone: formData.phone,
+        serviceType: formData.service as 'Residential' | 'Commercial',
+        packageName: 'Custom Contact Inquiry',
+        preferredDate: new Date().toISOString().split('T')[0],
+        requirements: formData.message || 'General contact inquiry from website.'
+      });
+
+      setIsSubmitting(false);
+
+      if (res.success) {
+        setSubmitted(true);
+      } else {
+        setSubmitError(res.message || 'Failed to submit inquiry. Please try again.');
+      }
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setSubmitError(err?.message || 'Server connection error. Please try again.');
+    }
   };
 
   return (
@@ -133,12 +151,32 @@ export const ContactSection: React.FC = () => {
                   />
                 </div>
 
+                {submitError && (
+                  <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/40 text-red-200 text-xs flex items-start space-x-2 animate-in fade-in">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5 flex-1">
+                      <div className="font-bold text-red-300">Request Could Not Be Sent</div>
+                      <p className="text-[11px] text-red-200/90">{submitError}</p>
+                    </div>
+                  </div>
+                )}
+
                 <button 
                   type="submit"
-                  className="w-full py-4 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-xl shadow-[#D4AF37]/20"
+                  disabled={isSubmitting}
+                  className="w-full py-4 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-xl shadow-[#D4AF37]/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Send Consultation Request</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Sending to Server...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Send Consultation Request</span>
+                    </>
+                  )}
                 </button>
               </form>
             ) : (

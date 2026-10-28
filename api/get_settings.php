@@ -1,3 +1,4 @@
+
 <?php
 // Decor8 India - Get System Settings API Endpoint
 require_once 'db_config.php';

@@ -1,7 +1,7 @@
 // Decor8 India - Live Backend API Integration Service
 // Points to your live backend on GoDaddy / production domain
 
-const API_BASE_URL = window.location.hostname === 'localhost'
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'https://decor8india.com/api' // Fallback for local testing against live GoDaddy backend
   : `${window.location.origin}/api`;
 
@@ -47,18 +47,26 @@ export const apiService = {
   },
 
   // Save Booking Endpoint (Saves to 'bookings' table)
-  async saveBooking(bookingData: any): Promise<{ success: boolean; bookingId?: string; message?: string }> {
+  async saveBooking(bookingData: any): Promise<{ success: boolean; bookingId?: string; message?: string; email_status?: any }> {
     try {
       const response = await fetch(`${API_BASE_URL}/save_booking.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookingData)
       });
-      const data = await response.json();
+      if (!response.ok) {
+        return { success: false, message: `Server error (${response.status}) while saving booking.` };
+      }
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        return { success: false, message: 'Invalid response from booking server.' };
+      }
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.warn('Backend API saveBooking error:', error);
-      return { success: false, message: 'Server connection error.' };
+      return { success: false, message: error?.message || 'Server connection error while saving booking.' };
     }
   },
 
@@ -161,11 +169,19 @@ export const apiService = {
         method: 'POST',
         body: formData
       });
-      const data = await response.json();
+      if (!response.ok) {
+        return { success: false, message: `Server upload failed with status ${response.status}.` };
+      }
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        return { success: false, message: 'Invalid response from upload server.' };
+      }
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.warn('Backend API uploadFile error:', error);
-      return { success: false, message: 'Server connection error during upload.' };
+      return { success: false, message: error?.message || 'Server connection error during upload.' };
     }
   },
 

@@ -55,7 +55,7 @@ interface AppContextType {
   login: (email: string, passwordInput?: string) => Promise<{ success: boolean; user?: User; message?: string }> | { success: boolean; user?: User; message?: string };
   updatePassword: (userId: string, newPassword: string) => boolean;
   logout: () => void;
-  submitBooking: (booking: Omit<BookingRequest, 'id' | 'createdAt' | 'status'>) => BookingRequest;
+  submitBooking: (booking: Omit<BookingRequest, 'id' | 'createdAt' | 'status'>) => Promise<{ success: boolean; booking?: BookingRequest; bookingId?: string; message?: string }>;
   submitSiteVisit: (visit: Omit<SiteVisitRequest, 'id' | 'createdAt' | 'status' | 'gatePassCode'>) => Promise<SiteVisitRequest>;
   confirmSiteVisit: (visitId: string) => void;
   rejectSiteVisit: (visitId: string) => void;
@@ -473,40 +473,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUser(null);
   };
 
-  const submitBooking = (bookingData: Omit<BookingRequest, 'id' | 'createdAt' | 'status'>): BookingRequest => {
-    const newBooking: BookingRequest = {
-      ...bookingData,
-      id: `bk-${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0],
-      status: 'Pending Approval'
-    };
+  const submitBooking = async (bookingData: Omit<BookingRequest, 'id' | 'createdAt' | 'status'>): Promise<{ success: boolean; booking?: BookingRequest; bookingId?: string; message?: string }> => {
+    try {
+      const { apiService } = await import('../services/apiService');
+      const response = await apiService.saveBooking(bookingData);
 
-    setBookings(prev => [newBooking, ...prev]);
+      // CRITICAL: Check whether the backend actually accepted the booking request
+      if (!response.success) {
+        console.warn('Backend rejected booking request:', response.message);
+        return {
+          success: false,
+          message: response.message || 'The server could not accept the booking request. Please check your details and try again.'
+        };
+      }
 
-    // Send to live GoDaddy PHP MySQL backend asynchronously
-    import('../services/apiService').then(({ apiService }) => {
-      apiService.saveBooking(bookingData).catch(err => {
-        console.warn('GoDaddy MySQL API submission fallback:', err);
-      });
-    });
-
-    // Also register pending user record if not exists
-    const existingUser = users.find(u => u.email.toLowerCase() === bookingData.clientEmail.toLowerCase());
-    if (!existingUser) {
-      const newUser: User = {
-        id: `usr-${Date.now().toString().slice(-4)}`,
-        name: bookingData.clientName,
-        email: bookingData.clientEmail,
-        phone: bookingData.clientPhone,
-        password: bookingData.clientPhone.replace(/[^0-9]/g, '') || '9876543210',
-        mustChangePassword: true,
-        role: 'CLIENT',
-        isApproved: false
+      // Backend accepted: create local booking record with confirmed backend booking ID
+      const confirmedId = response.bookingId || `bk-${Date.now()}`;
+      const newBooking: BookingRequest = {
+        ...bookingData,
+        id: confirmedId,
+        createdAt: new Date().toISOString().split('T')[0],
+        status: 'Pending Approval'
       };
-      setUsers(prev => [...prev, newUser]);
-    }
 
-    return newBooking;
+      setBookings(prev => [newBooking, ...prev]);
+
+      // Also register pending user record if not exists
+      const existingUser = users.find(u => u.email.toLowerCase() === bookingData.clientEmail.toLowerCase());
+      if (!existingUser) {
+        const newUser: User = {
+          id: `usr-${Date.now().toString().slice(-4)}`,
+          name: bookingData.clientName,
+          email: bookingData.clientEmail,
+          phone: bookingData.clientPhone,
+          password: bookingData.clientPhone.replace(/[^0-9]/g, '') || '9876543210',
+          mustChangePassword: true,
+          role: 'CLIENT',
+          isApproved: false
+        };
+        setUsers(prev => [...prev, newUser]);
+      }
+
+      return {
+        success: true,
+        booking: newBooking,
+        bookingId: confirmedId,
+        message: response.message || 'Booking request confirmed successfully!'
+      };
+    } catch (err: any) {
+      console.error('submitBooking failed:', err);
+      return {
+        success: false,
+        message: err?.message || 'Server connection error. Please verify your connection and try again.'
+      };
+    }
   };
 
   const submitSiteVisit = async (visitData: Omit<SiteVisitRequest, 'id' | 'createdAt' | 'status' | 'gatePassCode'>): Promise<SiteVisitRequest> => {

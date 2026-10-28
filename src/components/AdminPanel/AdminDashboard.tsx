@@ -41,7 +41,8 @@ import {
   ChevronLeft,
   ChevronRight,
   BarChart3,
-  ClipboardCheck
+  ClipboardCheck,
+  ExternalLink
 } from 'lucide-react';
 import type { BranchOffice } from '../../types';
 
@@ -1628,6 +1629,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onReturnToPublic
                                   <div className="text-[10px] text-neutral-400 italic line-clamp-1 mt-0.5" title={b.requirements}>
                                     Note: {b.requirements}
                                   </div>
+                                )}
+                                {b.floorPlanUrl && (
+                                  <a 
+                                    href={b.floorPlanUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="inline-flex items-center space-x-1 text-[10px] text-[#D4AF37] hover:underline mt-1 font-mono"
+                                  >
+                                    <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                                    <span>View Uploaded Floor Plan</span>
+                                  </a>
                                 )}
                               </div>
                             )}

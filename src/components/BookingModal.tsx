@@ -23,7 +23,10 @@ import {
   Tag, 
   CreditCard, 
   Clock, 
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  Trash2,
+  AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -193,6 +196,11 @@ export const BookingModal: React.FC = () => {
   const [requirements, setRequirements] = useState('');
   const [isEmiRequested, setIsEmiRequested] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedBookingId, setGeneratedBookingId] = useState('');
 
@@ -215,15 +223,65 @@ export const BookingModal: React.FC = () => {
     }
   };
 
-  const handleFinalSubmit = (e: React.FormEvent) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+
+    // Validate size (25MB limit)
+    const MAX_SIZE = 25 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setUploadError('File exceeds 25MB maximum size limit. Please choose a smaller layout or document.');
+      return;
+    }
+
+    setUploadedFileName(file.name);
+    setIsUploadingFile(true);
+
+    try {
+      const { apiService } = await import('../services/apiService');
+      const res = await apiService.uploadFile(file);
+
+      if (res.success && res.fileUrl) {
+        setUploadedFileUrl(res.fileUrl);
+        setUploadError(null);
+        setIsUploadingFile(false);
+      } else {
+        setUploadError(res.message || 'Server upload failed. Please ensure the file is an allowed format (PDF, CAD, PNG, JPG).');
+        setUploadedFileName(null);
+        setUploadedFileUrl(null);
+        setIsUploadingFile(false);
+      }
+    } catch (err: any) {
+      console.warn('File upload exception:', err);
+      setUploadError(err?.message || 'Error uploading file layout to server. Please check your connection and try again.');
+      setUploadedFileName(null);
+      setUploadedFileUrl(null);
+      setIsUploadingFile(false);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setUploadedFileName(null);
+    setUploadedFileUrl(null);
+    setUploadError(null);
+  };
+
+  const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName || !clientEmail || !clientPhone || !preferredDate) {
       alert('Please fill out all required fields marked with *');
       return;
     }
 
-    const bookingId = `D8I-${Math.floor(100000 + Math.random() * 900000)}`;
-    setGeneratedBookingId(bookingId);
+    if (isUploadingFile) {
+      alert('Please wait for your floor-plan file to finish uploading.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
 
     const serviceTitle = selectedService ? selectedService.title : `${serviceCategory} Package`;
     const budgetRange = isCustomArchitecture
@@ -234,45 +292,56 @@ export const BookingModal: React.FC = () => {
       ? `Custom Architecture Consultation Request. Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard | Target Area: ${currentActiveArea.toLocaleString()} Sq. Ft.${requirements ? ` | Notes: ${requirements}` : ''}${isEmiRequested ? ' | Stage-Wise Financing Requested' : ''}`
       : `${requirements ? `${requirements} | ` : ''}Selected Package: ${serviceTitle} | Material Standard: ${materialStandard} Standard | Target Area: ${currentActiveArea.toLocaleString()} Sq. Ft. | Calculated Estimate: ₹ ${(calculation.totalCost / 100000).toFixed(2)} Lakhs${hasDbDiscount ? ` (${discountPercentage}% Promotional Discount Applied)` : ''}${isEmiRequested ? ' | 0% EMI Financing (Up to 60 Mos) Requested' : ''}`;
 
-    submitBooking({
-      clientName,
-      clientEmail,
-      clientPhone,
-      serviceType: serviceCategory,
-      packageName: isCustomArchitecture 
-        ? `${serviceTitle} (Bespoke Scope)` 
-        : `${serviceTitle} (${materialStandard} Standard)`,
-      preferredDate,
-      floorPlanUrl: uploadedFileName ? `https://decor8india.com/uploads/${uploadedFileName}` : undefined,
-      requirements: reqNotes,
-      carpetArea: currentActiveArea,
-      budgetRange,
-      estimatedCost: isCustomArchitecture ? 0 : calculation.totalCost,
-      isEmiRequested
-    });
-
     try {
-      confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 }
+      const res = await submitBooking({
+        clientName,
+        clientEmail,
+        clientPhone,
+        serviceType: serviceCategory,
+        packageName: isCustomArchitecture 
+          ? `${serviceTitle} (Bespoke Scope)` 
+          : `${serviceTitle} (${materialStandard} Standard)`,
+        preferredDate,
+        floorPlanUrl: uploadedFileUrl || undefined,
+        requirements: reqNotes,
+        carpetArea: currentActiveArea,
+        budgetRange,
+        estimatedCost: isCustomArchitecture ? 0 : calculation.totalCost,
+        isEmiRequested
       });
-    } catch (err) {}
 
-    setIsSuccess(true);
+      setIsSubmitting(false);
+
+      // CRITICAL: Check whether the booking request was successfully accepted by backend
+      if (res.success) {
+        setGeneratedBookingId(res.bookingId || `D8I-${Math.floor(100000 + Math.random() * 900000)}`);
+        try {
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 }
+          });
+        } catch (err) {}
+        setIsSuccess(true);
+      } else {
+        setSubmitError(res.message || 'The booking request could not be accepted by the backend. Please check your details and try again.');
+      }
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setSubmitError(err?.message || 'A network error occurred while submitting your booking request. Please check your connection.');
+    }
   };
 
   const handleClose = () => {
     setIsBookingOpen(false);
     setSelectedServiceForBooking(null);
     setIsSuccess(false);
+    setIsSubmitting(false);
+    setSubmitError(null);
+    setUploadedFileName(null);
+    setUploadedFileUrl(null);
+    setUploadError(null);
     setStep(1);
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadedFileName(e.target.files[0].name);
-    }
   };
 
   return (
@@ -818,25 +887,67 @@ export const BookingModal: React.FC = () => {
                 </div>
 
                 {/* Floor Plan Upload (Optional) */}
-                <div className="space-y-1">
-                  <label className="text-xs text-neutral-300 font-medium">Upload Floor Plan or Layout (Optional)</label>
-                  <div className="relative border-2 border-dashed border-white/15 hover:border-[#D4AF37] rounded-2xl p-4 text-center bg-black/40 transition-colors">
-                    <input 
-                      type="file" 
-                      accept=".pdf,.png,.jpg,.jpeg,.dwg"
-                      onChange={handleFileUpload}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <Upload className="w-5 h-5 text-[#D4AF37] mx-auto mb-1" />
-                    <div className="text-xs text-neutral-300 font-medium">
-                      {uploadedFileName ? (
-                        <span className="text-[#D4AF37] font-bold">{uploadedFileName} uploaded</span>
-                      ) : (
-                        <span>Drag & drop or click to upload PDF/CAD layout</span>
-                      )}
-                    </div>
-                    <div className="text-[10px] text-neutral-500">Supported: PDF, JPG, PNG, CAD Layouts (Max 25MB)</div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs text-neutral-300 font-medium">Upload Floor Plan or Layout (Optional)</label>
+                    {uploadedFileUrl && !isUploadingFile && (
+                      <span className="text-[10px] text-emerald-400 font-mono flex items-center space-x-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>Uploaded to Server</span>
+                      </span>
+                    )}
                   </div>
+
+                  {isUploadingFile ? (
+                    <div className="border-2 border-dashed border-[#D4AF37]/60 rounded-2xl p-4 text-center bg-[#D4AF37]/5 space-y-2 animate-pulse">
+                      <Loader2 className="w-6 h-6 text-[#D4AF37] animate-spin mx-auto" />
+                      <div className="text-xs text-white font-medium">
+                        Uploading <span className="text-[#D4AF37] font-bold">{uploadedFileName}</span> to server...
+                      </div>
+                      <div className="text-[10px] text-neutral-400">Saving floor plan file to GoDaddy cloud storage</div>
+                    </div>
+                  ) : uploadedFileUrl ? (
+                    <div className="flex items-center justify-between p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/40">
+                      <div className="flex items-center space-x-3 overflow-hidden">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0 text-emerald-400">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <div className="text-left truncate">
+                          <div className="text-xs font-bold text-white truncate">{uploadedFileName}</div>
+                          <div className="text-[10px] text-emerald-400 font-mono">Floor plan uploaded & verified on server</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveFile}
+                        className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-red-500/20 hover:text-red-400 text-neutral-400 text-xs font-medium transition-colors flex items-center space-x-1 shrink-0 ml-2 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Remove</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative border-2 border-dashed border-white/15 hover:border-[#D4AF37] rounded-2xl p-4 text-center bg-black/40 transition-colors">
+                      <input 
+                        type="file" 
+                        accept=".pdf,.png,.jpg,.jpeg,.dwg,.dxf"
+                        onChange={handleFileUpload}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <Upload className="w-5 h-5 text-[#D4AF37] mx-auto mb-1" />
+                      <div className="text-xs text-neutral-300 font-medium">
+                        Drag & drop or click to upload PDF/CAD layout
+                      </div>
+                      <div className="text-[10px] text-neutral-500">Supported: PDF, JPG, PNG, CAD (.dwg, .dxf) (Max 25MB)</div>
+                    </div>
+                  )}
+
+                  {uploadError && (
+                    <div className="flex items-center space-x-1.5 p-2.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-[11px]">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{uploadError}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Project Notes */}
@@ -864,22 +975,44 @@ export const BookingModal: React.FC = () => {
                   </span>
                 </label>
 
+                {/* Backend Submission Error Banner */}
+                {submitError && (
+                  <div className="p-3.5 rounded-2xl bg-red-500/15 border border-red-500/40 text-red-200 text-xs flex items-start space-x-2.5 animate-in fade-in">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5 flex-1">
+                      <div className="font-bold text-red-300">Booking Submission Unsuccessful</div>
+                      <p className="text-[11px] leading-relaxed text-red-200/90">{submitError}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex space-x-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="w-1/3 py-3.5 rounded-2xl bg-white/10 text-neutral-300 font-semibold text-xs hover:text-white cursor-pointer transition-colors"
+                    disabled={isSubmitting}
+                    className="w-1/3 py-3.5 rounded-2xl bg-white/10 text-neutral-300 font-semibold text-xs hover:text-white cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Back to Estimate
                   </button>
 
                   <button
                     type="submit"
-                    className="w-2/3 py-3.5 rounded-2xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-xl cursor-pointer"
+                    disabled={isSubmitting || isUploadingFile}
+                    className="w-2/3 py-3.5 rounded-2xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Submit Consultation Booking</span>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Verifying with Backend...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Submit Consultation Booking</span>
+                      </>
+                    )}
                   </button>
                 </div>
 

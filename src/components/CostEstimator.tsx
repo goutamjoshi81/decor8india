@@ -16,7 +16,11 @@ import {
   Sparkles,
   Tag,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Upload,
+  Loader2,
+  Trash2,
+  AlertCircle
 } from 'lucide-react';
 
 
@@ -74,11 +78,18 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
   const [commCarpetArea, setCommCarpetArea] = useState<number>(1000);
   const [constPlotArea, setConstPlotArea] = useState<number>(1500);
 
-  // Lead Submission State & EMI Option
+  // Lead Submission State & Floor Plan File & EMI Option
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [isEmiRequested, setIsEmiRequested] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [confirmedBookingId, setConfirmedBookingId] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const selectedStandardDetail = useMemo(() => {
@@ -167,12 +178,64 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
     discountPercentage
   ]);
 
-  const handleSubmitEstimate = (e: React.FormEvent) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+
+    const MAX_SIZE = 25 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setUploadError('File exceeds 25MB limit. Please upload a smaller layout.');
+      return;
+    }
+
+    setUploadedFileName(file.name);
+    setIsUploadingFile(true);
+
+    try {
+      const { apiService } = await import('../services/apiService');
+      const res = await apiService.uploadFile(file);
+
+      if (res.success && res.fileUrl) {
+        setUploadedFileUrl(res.fileUrl);
+        setUploadError(null);
+        setIsUploadingFile(false);
+      } else {
+        setUploadError(res.message || 'Server upload failed. Please ensure the file is an allowed format (PDF, CAD, PNG, JPG).');
+        setUploadedFileName(null);
+        setUploadedFileUrl(null);
+        setIsUploadingFile(false);
+      }
+    } catch (err: any) {
+      console.warn('File upload exception:', err);
+      setUploadError(err?.message || 'Error uploading file layout to server. Please check your connection and try again.');
+      setUploadedFileName(null);
+      setUploadedFileUrl(null);
+      setIsUploadingFile(false);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setUploadedFileName(null);
+    setUploadedFileUrl(null);
+    setUploadError(null);
+  };
+
+  const handleSubmitEstimate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName || !clientEmail || !clientPhone) {
       alert('Please fill in all required contact details.');
       return;
     }
+
+    if (isUploadingFile) {
+      alert('Please wait for the floor-plan file upload to complete.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
 
     const serviceTitle = selectedService ? selectedService.title : `${serviceCategory} Package`;
     const selectedArea = serviceCategory === 'Residential' ? carpetArea : serviceCategory === 'Commercial' ? commCarpetArea : constPlotArea;
@@ -185,22 +248,36 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
       ? `Custom Residential Architecture Consultation Request. Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard | Target Area: ${selectedArea.toLocaleString()} Sq. Ft. | Client requested bespoke architectural design & elevation consultation.${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`
       : `Calculated Estimate from Live DB Services. Selected Package: ${serviceTitle} | Material Tier: ${materialStandard} Standard | Area: ${selectedArea.toLocaleString()} Sq. Ft.${hasDbDiscount ? ` | Discount Applied: ${discountPercentage}% OFF (Original: ₹ ${(calculation.originalTotal / 100000).toFixed(2)}L -> Final: ₹ ${(calculation.totalCost / 100000).toFixed(2)}L)` : ''}${isEmiRequested ? ' | Easy EMI Plan (Up to 60 Months) Requested' : ''}`;
 
-    submitBooking({
-      clientName,
-      clientEmail,
-      clientPhone,
-      serviceType: serviceCategory,
-      packageName: isCustomArchitecture ? `${serviceTitle} (Bespoke Architectural Consultation)` : `${serviceTitle} (${materialStandard} Standard)`,
-      propertyType: serviceCategory,
-      carpetArea: selectedArea,
-      budgetRange,
-      preferredDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      requirements,
-      estimatedCost: isCustomArchitecture ? 0 : calculation.totalCost,
-      isEmiRequested
-    });
+    try {
+      const res = await submitBooking({
+        clientName,
+        clientEmail,
+        clientPhone,
+        serviceType: serviceCategory,
+        packageName: isCustomArchitecture ? `${serviceTitle} (Bespoke Architectural Consultation)` : `${serviceTitle} (${materialStandard} Standard)`,
+        propertyType: serviceCategory,
+        carpetArea: selectedArea,
+        budgetRange,
+        preferredDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        floorPlanUrl: uploadedFileUrl || undefined,
+        requirements,
+        estimatedCost: isCustomArchitecture ? 0 : calculation.totalCost,
+        isEmiRequested
+      });
 
-    setIsSubmitted(true);
+      setIsSubmitting(false);
+
+      // CRITICAL: Only display confirmation message if backend accepted the request
+      if (res.success) {
+        setConfirmedBookingId(res.bookingId || '');
+        setIsSubmitted(true);
+      } else {
+        setSubmitError(res.message || 'Failed to submit estimate request to server. Please try again.');
+      }
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setSubmitError(err?.message || 'Server connection error. Please try again.');
+    }
   };
 
   const standardLabel = materialStandard === 'Eco' ? 'Eco' : materialStandard === 'Urban' ? 'Urban' : 'Luxe';
@@ -735,6 +812,63 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   />
                 </div>
 
+                {/* Floor Plan Upload (Optional) */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] text-neutral-300 font-medium">Upload Floor Plan / Layout (Optional)</label>
+                    {uploadedFileUrl && !isUploadingFile && (
+                      <span className="text-[9px] text-emerald-400 font-mono flex items-center space-x-1">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span>Uploaded</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {isUploadingFile ? (
+                    <div className="border border-dashed border-[#D4AF37]/60 rounded-xl p-2.5 text-center bg-[#D4AF37]/5 space-y-1 animate-pulse">
+                      <Loader2 className="w-4 h-4 text-[#D4AF37] animate-spin mx-auto" />
+                      <div className="text-[11px] text-white">
+                        Uploading <span className="text-[#D4AF37] font-bold">{uploadedFileName}</span> to server...
+                      </div>
+                    </div>
+                  ) : uploadedFileUrl ? (
+                    <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                      <div className="flex items-center space-x-2 overflow-hidden">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="text-xs font-bold text-white truncate">{uploadedFileName}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveFile}
+                        className="p-1 text-neutral-400 hover:text-red-400 text-xs flex items-center space-x-1 shrink-0 ml-1 cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span className="text-[10px]">Remove</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative border border-dashed border-white/15 hover:border-[#D4AF37] rounded-xl p-2.5 text-center bg-black/40 transition-colors">
+                      <input 
+                        type="file" 
+                        accept=".pdf,.png,.jpg,.jpeg,.dwg,.dxf"
+                        onChange={handleFileUpload}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <div className="flex items-center justify-center space-x-1.5 text-xs text-neutral-300">
+                        <Upload className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>Attach floor plan layout (PDF, CAD, Images up to 25MB)</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {uploadError && (
+                    <div className="flex items-center space-x-1.5 p-2 rounded-lg bg-red-500/15 border border-red-500/30 text-red-300 text-[10.5px]">
+                      <AlertCircle className="w-3 h-3 shrink-0" />
+                      <span>{uploadError}</span>
+                    </div>
+                  )}
+                </div>
+
                 {/* EMI Checkbox */}
                 <label className="flex items-center space-x-2.5 p-2.5 rounded-lg bg-black/50 border border-white/10 cursor-pointer hover:border-[#D4AF37]/50 transition-colors select-none">
                   <input 
@@ -763,27 +897,54 @@ export const CostEstimator: React.FC<CostEstimatorProps> = ({ isModal = false, o
                   properly before submitting.
                 </div>
 
+                {/* Backend Submission Error Banner */}
+                {submitError && (
+                  <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/40 text-red-200 text-xs flex items-start space-x-2 animate-in fade-in">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5 flex-1">
+                      <div className="font-bold text-red-300">Submission Unsuccessful</div>
+                      <p className="text-[11px] text-red-200/90">{submitError}</p>
+                    </div>
+                  </div>
+                )}
+
                 <button 
                   type="submit"
-                  className="w-full py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-lg shadow-[#D4AF37]/10"
+                  disabled={isSubmitting || isUploadingFile}
+                  className="w-full py-3 rounded-xl gold-gradient-bg text-black font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-opacity flex items-center justify-center space-x-2 shadow-lg shadow-[#D4AF37]/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <FileText className="w-4 h-4" />
-                  <span>{isCustomArchitecture ? 'Request Architectural Consultation & BOQ' : 'Submit Estimate Request'}</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Verifying with Server...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4" />
+                      <span>{isCustomArchitecture ? 'Request Architectural Consultation & BOQ' : 'Submit Estimate Request'}</span>
+                    </>
+                  )}
                 </button>
               </form>
             ) : (
               <div className="p-4 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-center space-y-2 animate-in fade-in">
                 <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
-                <div className="text-sm font-bold text-white">Estimate Submitted Successfully!</div>
+                <div className="text-sm font-bold text-white">Estimate Confirmed & Accepted!</div>
+                {confirmedBookingId && (
+                  <div className="text-[11px] font-mono text-[#D4AF37] font-semibold">Reference ID: #{confirmedBookingId}</div>
+                )}
                 <p className="text-xs text-neutral-300">
                   Our principal architect will review your configuration and email the detailed itemized BOQ PDF within 2 hours.
                 </p>
                 <button 
                   onClick={() => {
                     setIsSubmitted(false);
+                    setConfirmedBookingId('');
+                    setUploadedFileName(null);
+                    setUploadedFileUrl(null);
                     if (onCloseModal) onCloseModal();
                   }}
-                  className="text-xs text-[#D4AF37] underline pt-1 font-semibold block mx-auto"
+                  className="text-xs text-[#D4AF37] underline pt-1 font-semibold block mx-auto cursor-pointer"
                 >
                   Calculate Another Estimate
                 </button>

@@ -19,8 +19,12 @@ try {
 
     // Automatically check and add missing columns if bookings table was created with an older schema
     try {
-        $pdo->exec("ALTER TABLE bookings ADD COLUMN floor_plan_url VARCHAR(255) DEFAULT NULL");
+        $pdo->exec("ALTER TABLE bookings ADD COLUMN floor_plan_url TEXT DEFAULT NULL");
     } catch (\PDOException $ex) { /* Column already exists */ }
+
+    try {
+        $pdo->exec("ALTER TABLE bookings MODIFY COLUMN floor_plan_url TEXT DEFAULT NULL");
+    } catch (\PDOException $ex) { /* Column modification error */ }
     
     try {
         $pdo->exec("ALTER TABLE bookings ADD COLUMN is_emi_requested TINYINT(1) DEFAULT 0");
